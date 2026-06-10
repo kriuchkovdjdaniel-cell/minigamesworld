@@ -279,6 +279,60 @@
         font-weight: 700;
       }
 
+      .account-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        color: #cbd5e1;
+        font-weight: 800;
+      }
+
+      .account-bar button {
+        min-height: 36px;
+        padding: 0.45rem 0.75rem;
+      }
+
+      .auth-menu {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: none;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(2, 6, 23, 0.84);
+      }
+
+      .auth-menu.open {
+        display: grid;
+      }
+
+      .auth-panel {
+        width: min(88vw, 360px);
+        display: grid;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid rgba(248, 250, 252, 0.18);
+        border-radius: 8px;
+        background: #111827;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+      }
+
+      .auth-panel h2 {
+        margin: 0 0 0.25rem;
+        text-align: center;
+      }
+
+      .auth-panel input {
+        text-transform: none;
+      }
+
+      .auth-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
       @media (max-width: 560px) {
         header {
           align-items: stretch;
@@ -297,6 +351,11 @@
   </head>
   <body>
     <main>
+      <div class="account-bar">
+        <span id="accountStatus">Not logged in</span>
+        <button type="button" id="logoutButton" hidden>Log out</button>
+      </div>
+
       <header>
         <h1 id="gameTitle">Snake</h1>
         <div class="scoreboard" id="localScoreboard" aria-label="Scoreboard">
@@ -362,6 +421,19 @@
       </div>
     </div>
 
+    <div class="auth-menu" id="authMenu" aria-hidden="true">
+      <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+        <h2 id="authTitle">Account</h2>
+        <input id="usernameInput" type="text" maxlength="18" placeholder="Username" autocomplete="username">
+        <input id="passwordInput" type="password" maxlength="32" placeholder="Password" autocomplete="current-password">
+        <div class="auth-actions">
+          <button type="button" id="loginButton">Log in</button>
+          <button type="button" id="registerButton">Register</button>
+        </div>
+        <p class="room-note" id="authMessage"></p>
+      </div>
+    </div>
+
     <script>
       const canvas = document.getElementById("board");
       const ctx = canvas.getContext("2d");
@@ -377,6 +449,14 @@
       const onlineScoreboard = document.getElementById("onlineScoreboard");
       const playerOneScoreEl = document.getElementById("playerOneScore");
       const playerTwoScoreEl = document.getElementById("playerTwoScore");
+      const accountStatus = document.getElementById("accountStatus");
+      const logoutButton = document.getElementById("logoutButton");
+      const authMenu = document.getElementById("authMenu");
+      const usernameInput = document.getElementById("usernameInput");
+      const passwordInput = document.getElementById("passwordInput");
+      const loginButton = document.getElementById("loginButton");
+      const registerButton = document.getElementById("registerButton");
+      const authMessage = document.getElementById("authMessage");
       const statusEl = document.getElementById("status");
       const restartButton = document.getElementById("restart");
       const pauseButton = document.getElementById("pause");
@@ -463,7 +543,9 @@
       const firebaseDatabaseUrl = "https://fir-a3f0a-default-rtdb.firebaseio.com";
       const playerStorageKey = "snake-online-player-id";
       const ownedRoomsStorageKey = "snake-owned-room-codes";
+      const accountStorageKey = "snake-account";
       const playerId = getPlayerId();
+      let currentAccount = getStoredAccount();
       let createdRoomCode = "";
 
       function startGame(gameName) {
@@ -785,6 +867,10 @@
       }
 
       document.addEventListener("keydown", (event) => {
+        if (isTypingField(event.target)) {
+          return;
+        }
+
         const keys = {
           ArrowUp: { x: 0, y: -1 },
           w: { x: 0, y: -1 },
@@ -812,6 +898,10 @@
       });
 
       document.addEventListener("keyup", (event) => {
+        if (isTypingField(event.target)) {
+          return;
+        }
+
         if (currentGame !== "catcher" && currentGame !== "online-catcher") {
           return;
         }
@@ -823,6 +913,10 @@
           catcherMove = 0;
         }
       });
+
+      function isTypingField(element) {
+        return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
+      }
 
       document.querySelectorAll("[data-direction]").forEach((button) => {
         const directions = {
@@ -983,6 +1077,155 @@
         }
 
         return id;
+      }
+
+      function getStoredAccount() {
+        try {
+          return JSON.parse(localStorage.getItem(accountStorageKey) || "null");
+        } catch {
+          return null;
+        }
+      }
+
+      function setStoredAccount(account) {
+        currentAccount = account;
+
+        if (account) {
+          localStorage.setItem(accountStorageKey, JSON.stringify(account));
+        } else {
+          localStorage.removeItem(accountStorageKey);
+        }
+
+        updateAccountUi();
+      }
+
+      function sanitizeUsername(value) {
+        return value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
+      }
+
+      function usernameKey(value) {
+        return sanitizeUsername(value).toLowerCase();
+      }
+
+      async function hashPassword(password) {
+        const data = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      async function getUser(username) {
+        const response = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`);
+
+        if (!response.ok) {
+          throw new Error("Could not reach account server.");
+        }
+
+        return response.json();
+      }
+
+      async function saveUser(username, user) {
+        const response = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(user)
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not save account.");
+        }
+
+        return response.json();
+      }
+
+      function updateAccountUi() {
+        if (currentAccount) {
+          accountStatus.textContent = `Logged in as ${currentAccount.username}`;
+          logoutButton.hidden = false;
+          authMenu.classList.remove("open");
+          authMenu.setAttribute("aria-hidden", "true");
+        } else {
+          accountStatus.textContent = "Not logged in";
+          logoutButton.hidden = true;
+          authMenu.classList.add("open");
+          authMenu.setAttribute("aria-hidden", "false");
+        }
+      }
+
+      async function registerAccount() {
+        const username = sanitizeUsername(usernameInput.value);
+        const userKey = usernameKey(username);
+        const password = passwordInput.value;
+
+        if (username.length < 3 || password.length < 4) {
+          authMessage.textContent = "Use 3+ username letters and 4+ password letters.";
+          return;
+        }
+
+        loginButton.disabled = true;
+        registerButton.disabled = true;
+        authMessage.textContent = "Creating account...";
+
+        try {
+          const existingUser = await getUser(userKey);
+
+          if (existingUser) {
+            authMessage.textContent = "Username already exists.";
+            return;
+          }
+
+          const passwordHash = await hashPassword(password);
+          await saveUser(userKey, {
+            username,
+            passwordHash,
+            createdAt: Date.now()
+          });
+          passwordInput.value = "";
+          authMessage.textContent = "";
+          setStoredAccount({ username });
+        } catch {
+          authMessage.textContent = "Could not register. Check Firebase rules.";
+        } finally {
+          loginButton.disabled = false;
+          registerButton.disabled = false;
+        }
+      }
+
+      async function loginAccount() {
+        const username = sanitizeUsername(usernameInput.value);
+        const userKey = usernameKey(username);
+        const password = passwordInput.value;
+
+        if (!username || !password) {
+          authMessage.textContent = "Enter username and password.";
+          return;
+        }
+
+        loginButton.disabled = true;
+        registerButton.disabled = true;
+        authMessage.textContent = "Logging in...";
+
+        try {
+          const user = await getUser(userKey);
+          const passwordHash = await hashPassword(password);
+
+          if (!user || user.passwordHash !== passwordHash) {
+            authMessage.textContent = "Wrong username or password.";
+            return;
+          }
+
+          passwordInput.value = "";
+          authMessage.textContent = "";
+          setStoredAccount({ username: user.username || username });
+        } catch {
+          authMessage.textContent = "Could not log in. Check Firebase rules.";
+        } finally {
+          loginButton.disabled = false;
+          registerButton.disabled = false;
+        }
       }
 
       function getOwnedRoomCodes() {
@@ -1758,6 +2001,19 @@
       restartButton.addEventListener("click", resetGame);
       playButton.addEventListener("click", playLocalGame);
       cancelWaitButton.addEventListener("click", leaveOnlineRoom);
+      loginButton.addEventListener("click", loginAccount);
+      registerButton.addEventListener("click", registerAccount);
+      logoutButton.addEventListener("click", () => {
+        setStoredAccount(null);
+      });
+      passwordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          loginAccount();
+        }
+      });
+      usernameInput.addEventListener("input", () => {
+        usernameInput.value = usernameInput.value.replace(/[^a-zA-Z0-9_-]/g, "");
+      });
       pauseButton.addEventListener("click", togglePause);
       resumeButton.addEventListener("click", togglePause);
       leaveRoomButton.addEventListener("click", leaveOnlineRoom);
@@ -1796,6 +2052,7 @@
         }
       });
 
+      updateAccountUi();
       startGame("snake");
     </script>
   </body>
