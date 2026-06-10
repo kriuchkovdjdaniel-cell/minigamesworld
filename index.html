@@ -52,6 +52,10 @@
         font-weight: 700;
       }
 
+      .scoreboard[hidden] {
+        display: none;
+      }
+
       .stat {
         min-width: 5rem;
         padding: 0.65rem 0.75rem;
@@ -261,9 +265,13 @@
     <main>
       <header>
         <h1 id="gameTitle">Snake</h1>
-        <div class="scoreboard" aria-label="Scoreboard">
+        <div class="scoreboard" id="localScoreboard" aria-label="Scoreboard">
           <div class="stat">Score <span id="score">0</span></div>
           <div class="stat">Best <span id="best">0</span></div>
+        </div>
+        <div class="scoreboard" id="onlineScoreboard" aria-label="Online scoreboard" hidden>
+          <div class="stat">P1 <span id="playerOneScore">0</span></div>
+          <div class="stat">P2 <span id="playerTwoScore">0</span></div>
         </div>
       </header>
 
@@ -287,6 +295,7 @@
       <div class="pause-panel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
         <h2 id="pauseTitle">Paused</h2>
         <button type="button" id="resume">Resume</button>
+        <button type="button" id="leaveRoom" hidden>Leave Room</button>
         <button type="button" id="back" hidden>Back</button>
         <button type="button" id="games">Games</button>
         <div class="game-options" id="gameOptions" aria-label="Game modes">
@@ -317,11 +326,16 @@
       const gameTitle = document.getElementById("gameTitle");
       const scoreEl = document.getElementById("score");
       const bestEl = document.getElementById("best");
+      const localScoreboard = document.getElementById("localScoreboard");
+      const onlineScoreboard = document.getElementById("onlineScoreboard");
+      const playerOneScoreEl = document.getElementById("playerOneScore");
+      const playerTwoScoreEl = document.getElementById("playerTwoScore");
       const statusEl = document.getElementById("status");
       const restartButton = document.getElementById("restart");
       const pauseButton = document.getElementById("pause");
       const pauseMenu = document.getElementById("pauseMenu");
       const resumeButton = document.getElementById("resume");
+      const leaveRoomButton = document.getElementById("leaveRoom");
       const backButton = document.getElementById("back");
       const gamesButton = document.getElementById("games");
       const gameOptions = document.getElementById("gameOptions");
@@ -391,8 +405,10 @@
       let onlineDirection = { x: 1, y: 0 };
       let onlineState = null;
       let onlineSyncBusy = false;
+      let onlinePushBusy = false;
       let lastOnlineFetch = 0;
       let lastOnlinePush = 0;
+      let lastOnlineSnakeMove = 0;
       const firebaseDatabaseUrl = "https://fir-a3f0a-default-rtdb.firebaseio.com";
       const playerStorageKey = "snake-online-player-id";
       const ownedRoomsStorageKey = "snake-owned-room-codes";
@@ -400,6 +416,14 @@
       let createdRoomCode = "";
 
       function startGame(gameName) {
+        if (gameName === "snake" || gameName === "catcher") {
+          onlineRoomCode = "";
+          onlinePlayerSlot = "";
+          onlineState = null;
+          onlineSyncBusy = false;
+          showLocalScoreboard();
+        }
+
         currentGame = gameName;
         gameTitle.textContent = games[currentGame].title;
         best = Number(localStorage.getItem(games[currentGame].bestKey) || 0);
@@ -759,6 +783,7 @@
       function resetPauseMenu() {
         pauseMenuLevel = "main";
         resumeButton.hidden = false;
+        leaveRoomButton.hidden = !onlineRoomCode;
         backButton.hidden = true;
         gamesButton.hidden = false;
         gameOptions.classList.remove("open");
@@ -830,6 +855,16 @@
         }
 
         return response.json();
+      }
+
+      async function deleteRoom(code) {
+        const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`, {
+          method: "DELETE"
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not delete room.");
+        }
       }
 
       function getPlayerId() {
@@ -929,6 +964,7 @@
         onlinePlayerSlot = slot;
         currentGame = gameName;
         gameTitle.textContent = onlineGameNames[gameName] || games[gameName].title;
+        showOnlineScoreboard();
         best = 0;
         score = 0;
         scoreEl.textContent = "0";
@@ -941,15 +977,18 @@
         resetPauseMenu();
 
         onlineState = prepareOnlineState(room, gameName, slot);
+        updateOnlineScoreboard();
         onlineDirection = onlineState.playersState[slot]?.dir || { x: 1, y: 0 };
         onlineSyncBusy = false;
+        onlinePushBusy = false;
         lastOnlineFetch = 0;
         lastOnlinePush = 0;
+        lastOnlineSnakeMove = 0;
         statusEl.textContent =
           `${slot === "p1" ? "Player 1" : "Player 2"} in ${gameTitle.textContent}. Room ${code}.`;
         await saveRoom(code, onlineState);
         drawOnlineGame();
-        timer = setInterval(tickOnlineGame, gameName === "online-snake" ? 155 : 30);
+        timer = setInterval(tickOnlineGame, gameName === "online-snake" ? 180 : 30);
       }
 
       function prepareOnlineState(room, gameName, slot) {
@@ -991,6 +1030,45 @@
         await beginOnlineRoom(onlineRoomCode, currentGame, onlinePlayerSlot, room || {});
       }
 
+      async function leaveOnlineRoom() {
+        if (!onlineRoomCode) {
+          startGame("snake");
+          return;
+        }
+
+        const roomToLeave = onlineRoomCode;
+        const slotToLeave = onlinePlayerSlot;
+        const wasCreator = slotToLeave === "p1";
+
+        clearInterval(timer);
+        leaveRoomButton.disabled = true;
+        statusEl.textContent = "Leaving room...";
+
+        try {
+          if (wasCreator) {
+            await deleteRoom(roomToLeave);
+          } else {
+            await patchRoom(roomToLeave, {
+              players: 1,
+              joinedBy: null,
+              joinedAt: null,
+              "playersState/p2": null,
+              updatedAt: Date.now()
+            });
+          }
+        } catch {
+          statusEl.textContent = "Left locally. Could not update room server.";
+        } finally {
+          onlineRoomCode = "";
+          onlinePlayerSlot = "";
+          onlineState = null;
+          onlineSyncBusy = false;
+          catcherMove = 0;
+          leaveRoomButton.disabled = false;
+          startGame("snake");
+        }
+      }
+
       function tickOnlineGame() {
         if (paused || gameOver || !onlineRoomCode) {
           return;
@@ -1002,6 +1080,7 @@
           updateOnlineCatcher();
         }
 
+        updateOnlineScoreboard();
         drawOnlineGame();
         syncOnlineState();
       }
@@ -1011,11 +1090,16 @@
         const fetchDelay = currentGame === "online-snake" ? 260 : 180;
         const pushDelay = currentGame === "online-snake" ? 120 : 80;
 
-        if (now - lastOnlinePush > pushDelay) {
+        if (!onlinePushBusy && now - lastOnlinePush > pushDelay) {
           lastOnlinePush = now;
-          patchRoom(onlineRoomCode, buildOnlinePatch()).catch(() => {
-            statusEl.textContent = "Online sync failed. Check Firebase rules or connection.";
-          });
+          onlinePushBusy = true;
+          patchRoom(onlineRoomCode, buildOnlinePatch())
+            .catch(() => {
+              statusEl.textContent = "Online sync failed. Check Firebase rules or connection.";
+            })
+            .finally(() => {
+              onlinePushBusy = false;
+            });
         }
 
         if (onlineSyncBusy || now - lastOnlineFetch < fetchDelay) {
@@ -1085,11 +1169,21 @@
           return;
         }
 
+        const now = Date.now();
+        if (now - lastOnlineSnakeMove < 165) {
+          return;
+        }
+        lastOnlineSnakeMove = now;
+
         player.dir = onlineDirection;
         const head = player.snake[0];
+        const rawHead = {
+          x: head.x + player.dir.x,
+          y: head.y + player.dir.y
+        };
         const nextHead = {
-          x: (head.x + player.dir.x + tileCount) % tileCount,
-          y: (head.y + player.dir.y + tileCount) % tileCount
+          x: (rawHead.x + tileCount) % tileCount,
+          y: (rawHead.y + tileCount) % tileCount
         };
         const hitSelf = player.snake.some((part) => part.x === nextHead.x && part.y === nextHead.y);
 
@@ -1110,10 +1204,7 @@
 
         score = player.score;
         scoreEl.textContent = score;
-        bestEl.textContent = Math.max(
-          onlineState.playersState.p1?.score || 0,
-          onlineState.playersState.p2?.score || 0
-        );
+        updateOnlineScoreboard();
       }
 
       function updateOnlineCatcher() {
@@ -1148,10 +1239,23 @@
 
         score = player.score;
         scoreEl.textContent = score;
-        bestEl.textContent = Math.max(
-          onlineState.playersState.p1?.score || 0,
-          onlineState.playersState.p2?.score || 0
-        );
+        updateOnlineScoreboard();
+      }
+
+      function showLocalScoreboard() {
+        localScoreboard.hidden = false;
+        onlineScoreboard.hidden = true;
+      }
+
+      function showOnlineScoreboard() {
+        localScoreboard.hidden = true;
+        onlineScoreboard.hidden = false;
+        updateOnlineScoreboard();
+      }
+
+      function updateOnlineScoreboard() {
+        playerOneScoreEl.textContent = onlineState?.playersState?.p1?.score || 0;
+        playerTwoScoreEl.textContent = onlineState?.playersState?.p2?.score || 0;
       }
 
       function drawOnlineGame() {
@@ -1336,6 +1440,7 @@
       restartButton.addEventListener("click", resetGame);
       pauseButton.addEventListener("click", togglePause);
       resumeButton.addEventListener("click", togglePause);
+      leaveRoomButton.addEventListener("click", leaveOnlineRoom);
       gamesButton.addEventListener("click", () => {
         showGameModeMenu();
       });
