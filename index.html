@@ -333,6 +333,46 @@
         gap: 0.75rem;
       }
 
+      .admin-panel {
+        display: none;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid rgba(248, 250, 252, 0.18);
+        border-radius: 8px;
+        background: rgba(15, 23, 42, 0.72);
+      }
+
+      .admin-panel.open {
+        display: grid;
+      }
+
+      .admin-panel h2 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .admin-stats {
+        display: grid;
+        gap: 0.4rem;
+        color: #cbd5e1;
+        font-weight: 800;
+      }
+
+      .admin-users {
+        max-height: 8rem;
+        overflow: auto;
+        display: grid;
+        gap: 0.35rem;
+        color: #f8fafc;
+        font-weight: 700;
+      }
+
+      .admin-points {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
       @media (max-width: 560px) {
         header {
           align-items: stretch;
@@ -355,6 +395,20 @@
         <span id="accountStatus">Not logged in</span>
         <button type="button" id="logoutButton" hidden>Log out</button>
       </div>
+
+      <section class="admin-panel" id="adminPanel" aria-label="Admin panel">
+        <h2>Admin Panel</h2>
+        <div class="admin-stats">
+          <span id="adminRoomCount">Rooms: 0</span>
+        </div>
+        <div class="admin-points">
+          <input id="pointsInput" type="number" min="1" max="999" value="1" aria-label="Points amount">
+          <button type="button" id="addPointsButton">Add Points</button>
+        </div>
+        <button type="button" id="refreshAdminButton">Refresh</button>
+        <button type="button" id="clearRoomsButton">Clear Rooms</button>
+        <p class="room-note" id="adminMessage"></p>
+      </section>
 
       <header>
         <h1 id="gameTitle">Snake</h1>
@@ -451,6 +505,13 @@
       const playerTwoScoreEl = document.getElementById("playerTwoScore");
       const accountStatus = document.getElementById("accountStatus");
       const logoutButton = document.getElementById("logoutButton");
+      const adminPanel = document.getElementById("adminPanel");
+      const adminRoomCount = document.getElementById("adminRoomCount");
+      const pointsInput = document.getElementById("pointsInput");
+      const addPointsButton = document.getElementById("addPointsButton");
+      const refreshAdminButton = document.getElementById("refreshAdminButton");
+      const clearRoomsButton = document.getElementById("clearRoomsButton");
+      const adminMessage = document.getElementById("adminMessage");
       const authMenu = document.getElementById("authMenu");
       const usernameInput = document.getElementById("usernameInput");
       const passwordInput = document.getElementById("passwordInput");
@@ -1099,6 +1160,29 @@
         updateAccountUi();
       }
 
+      async function refreshStoredAccountRole() {
+        if (!currentAccount?.username) {
+          updateAccountUi();
+          return;
+        }
+
+        try {
+          const user = await getUser(usernameKey(currentAccount.username));
+
+          if (user) {
+            currentAccount = {
+              username: user.username || currentAccount.username,
+              isAdmin: Boolean(user.isAdmin)
+            };
+            localStorage.setItem(accountStorageKey, JSON.stringify(currentAccount));
+          }
+        } catch {
+          // Keep the saved local session if Firebase is temporarily unavailable.
+        }
+
+        updateAccountUi();
+      }
+
       function sanitizeUsername(value) {
         return value.trim().replace(/[^a-zA-Z0-9_-]/g, "");
       }
@@ -1141,18 +1225,170 @@
         return response.json();
       }
 
+      async function getAllUsers() {
+        const response = await fetch(`${firebaseDatabaseUrl}/users.json`);
+
+        if (!response.ok) {
+          throw new Error("Could not load users.");
+        }
+
+        return response.json();
+      }
+
+      async function getAllRooms() {
+        const response = await fetch(`${firebaseDatabaseUrl}/rooms.json`);
+
+        if (!response.ok) {
+          throw new Error("Could not load rooms.");
+        }
+
+        return response.json();
+      }
+
+      async function createUserIfAvailable(username, user) {
+        const checkResponse = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
+          headers: {
+            "X-Firebase-ETag": "true"
+          }
+        });
+
+        if (!checkResponse.ok) {
+          throw new Error("Could not check username.");
+        }
+
+        const existingUser = await checkResponse.json();
+
+        if (existingUser) {
+          return false;
+        }
+
+        const etag = checkResponse.headers.get("ETag");
+        const createResponse = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "If-Match": etag
+          },
+          body: JSON.stringify(user)
+        });
+
+        if (createResponse.status === 412) {
+          return false;
+        }
+
+        if (!createResponse.ok) {
+          throw new Error("Could not save account.");
+        }
+
+        return true;
+      }
+
       function updateAccountUi() {
         if (currentAccount) {
-          accountStatus.textContent = `Logged in as ${currentAccount.username}`;
+          accountStatus.textContent = currentAccount.isAdmin
+            ? `Logged in as ${currentAccount.username} - Admin`
+            : `Logged in as ${currentAccount.username}`;
           logoutButton.hidden = false;
+          adminPanel.classList.toggle("open", Boolean(currentAccount.isAdmin));
           authMenu.classList.remove("open");
           authMenu.setAttribute("aria-hidden", "true");
+          if (currentAccount.isAdmin) {
+            loadAdminPanel();
+          }
         } else {
           accountStatus.textContent = "Not logged in";
           logoutButton.hidden = true;
+          adminPanel.classList.remove("open");
           authMenu.classList.add("open");
           authMenu.setAttribute("aria-hidden", "false");
         }
+      }
+
+      async function loadAdminPanel() {
+        if (!currentAccount?.isAdmin) {
+          return;
+        }
+
+        adminMessage.textContent = "Loading...";
+
+        try {
+          const rooms = await getAllRooms();
+          const roomEntries = Object.entries(rooms || {});
+
+          adminRoomCount.textContent = `Rooms: ${roomEntries.length}`;
+          adminMessage.textContent = "Admin data loaded.";
+        } catch {
+          adminMessage.textContent = "Could not load admin data.";
+        }
+      }
+
+      async function clearAllRooms() {
+        if (!currentAccount?.isAdmin) {
+          return;
+        }
+
+        clearRoomsButton.disabled = true;
+        adminMessage.textContent = "Clearing rooms...";
+
+        try {
+          const response = await fetch(`${firebaseDatabaseUrl}/rooms.json`, {
+            method: "DELETE"
+          });
+
+          if (!response.ok) {
+            throw new Error("Could not clear rooms.");
+          }
+
+          adminMessage.textContent = "Rooms cleared.";
+          loadAdminPanel();
+        } catch {
+          adminMessage.textContent = "Could not clear rooms.";
+        } finally {
+          clearRoomsButton.disabled = false;
+        }
+      }
+
+      async function addAdminPoint() {
+        if (!currentAccount?.isAdmin) {
+          return;
+        }
+
+        const points = Math.max(1, Math.min(999, Number(pointsInput.value) || 1));
+        pointsInput.value = points;
+
+        if (currentGame === "online-snake" || currentGame === "online-catcher") {
+          if (!onlineRoomCode || !onlinePlayerSlot || !onlineState?.playersState?.[onlinePlayerSlot]) {
+            adminMessage.textContent = "No online player to add points to.";
+            return;
+          }
+
+          const player = onlineState.playersState[onlinePlayerSlot];
+          player.score = (player.score || 0) + points;
+          score = player.score;
+          scoreEl.textContent = score;
+          updateOnlineScoreboard();
+          adminMessage.textContent = `Added ${points} online points.`;
+
+          try {
+            await patchRoom(onlineRoomCode, {
+              [`playersState/${onlinePlayerSlot}/score`]: player.score,
+              updatedAt: Date.now()
+            });
+          } catch {
+            adminMessage.textContent = "Point added locally, but Firebase sync failed.";
+          }
+
+          return;
+        }
+
+        score += points;
+        scoreEl.textContent = score;
+        if (score > best) {
+          best = score;
+          bestEl.textContent = best;
+          localStorage.setItem(games[currentGame].bestKey, String(best));
+        }
+        adminMessage.textContent = `Added ${points} points.`;
       }
 
       async function registerAccount() {
@@ -1170,22 +1406,21 @@
         authMessage.textContent = "Creating account...";
 
         try {
-          const existingUser = await getUser(userKey);
-
-          if (existingUser) {
-            authMessage.textContent = "Username already exists.";
-            return;
-          }
-
           const passwordHash = await hashPassword(password);
-          await saveUser(userKey, {
+          const created = await createUserIfAvailable(userKey, {
             username,
             passwordHash,
             createdAt: Date.now()
           });
+
+          if (!created) {
+            authMessage.textContent = "Username already exists.";
+            return;
+          }
+
           passwordInput.value = "";
           authMessage.textContent = "";
-          setStoredAccount({ username });
+          setStoredAccount({ username, isAdmin: false });
         } catch {
           authMessage.textContent = "Could not register. Check Firebase rules.";
         } finally {
@@ -1219,7 +1454,10 @@
 
           passwordInput.value = "";
           authMessage.textContent = "";
-          setStoredAccount({ username: user.username || username });
+          setStoredAccount({
+            username: user.username || username,
+            isAdmin: Boolean(user.isAdmin)
+          });
         } catch {
           authMessage.textContent = "Could not log in. Check Firebase rules.";
         } finally {
@@ -2006,13 +2244,13 @@
       logoutButton.addEventListener("click", () => {
         setStoredAccount(null);
       });
+      refreshAdminButton.addEventListener("click", loadAdminPanel);
+      clearRoomsButton.addEventListener("click", clearAllRooms);
+      addPointsButton.addEventListener("click", addAdminPoint);
       passwordInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           loginAccount();
         }
-      });
-      usernameInput.addEventListener("input", () => {
-        usernameInput.value = usernameInput.value.replace(/[^a-zA-Z0-9_-]/g, "");
       });
       pauseButton.addEventListener("click", togglePause);
       resumeButton.addEventListener("click", togglePause);
@@ -2052,7 +2290,7 @@
         }
       });
 
-      updateAccountUi();
+      refreshStoredAccountRole();
       startGame("snake");
     </script>
   </body>
