@@ -105,6 +105,11 @@
         background: #2dd4bf;
       }
 
+      button.selected {
+        outline: 3px solid #f97316;
+        outline-offset: 2px;
+      }
+
       .pad {
         width: min(72vw, 240px);
         margin: 0 auto;
@@ -293,6 +298,8 @@
           <button type="button" id="appleCatcher">Apple Catcher</button>
         </div>
         <div class="game-list" id="onlineGames" aria-label="Online games">
+          <button type="button" class="selected" data-online-game="online-snake">Online Snake</button>
+          <button type="button" data-online-game="online-catcher">Online Apple Catcher</button>
           <button type="button" id="createRoom">Create Room</button>
           <div class="room-form">
             <input id="roomCodeInput" type="text" maxlength="8" placeholder="Room code" aria-label="Room code">
@@ -329,6 +336,7 @@
       const roomCodeInput = document.getElementById("roomCodeInput");
       const roomCodeEl = document.getElementById("roomCode");
       const roomNoteEl = document.getElementById("roomNote");
+      const onlineGameButtons = document.querySelectorAll("[data-online-game]");
       const gridSize = 20;
       const tileCount = canvas.width / gridSize;
       const startSnake = [
@@ -348,8 +356,13 @@
           help: "Use Left/Right or A/D to catch apples."
         }
       };
+      const onlineGameNames = {
+        "online-snake": "Online Snake",
+        "online-catcher": "Online Apple Catcher"
+      };
 
       let currentGame = "snake";
+      let selectedOnlineGame = "online-snake";
       let snake;
       let food;
       let direction;
@@ -729,6 +742,7 @@
         onlineGames.classList.toggle("open", list === "online");
         if (list === "online") {
           clearRoomMessage();
+          updateOnlineGameSelection();
         }
       }
 
@@ -817,12 +831,14 @@
         createRoomButton.disabled = true;
         joinRoomButton.disabled = true;
         roomCodeEl.textContent = "";
-        roomNoteEl.textContent = "Creating room...";
+        roomNoteEl.textContent = `Creating ${onlineGameNames[selectedOnlineGame]} room...`;
 
         try {
           const code = await generateRoomCode();
           const room = {
             players: 1,
+            game: selectedOnlineGame,
+            gameName: onlineGameNames[selectedOnlineGame],
             createdBy: playerId,
             joinedBy: null,
             createdAt: Date.now()
@@ -833,7 +849,7 @@
           saveOwnedRoomCode(code);
           roomCodeInput.value = code;
           roomCodeEl.textContent = `Room code: ${code}`;
-          roomNoteEl.textContent = "Share this code with player 2.";
+          roomNoteEl.textContent = `${room.gameName} selected. Share this code with player 2.`;
         } catch {
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not create room. Check Firebase database rules.";
@@ -891,7 +907,7 @@
             joinedAt: Date.now()
           });
           roomCodeEl.textContent = `Joined room: ${code}`;
-          roomNoteEl.textContent = "Player 2 joined. Online match setup is ready.";
+          roomNoteEl.textContent = `Joined ${room.gameName || "online game"}. Online match setup is ready.`;
         } catch {
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not join room. Check Firebase database rules.";
@@ -904,6 +920,12 @@
       function clearRoomMessage() {
         roomCodeEl.textContent = "";
         roomNoteEl.textContent = "";
+      }
+
+      function updateOnlineGameSelection() {
+        onlineGameButtons.forEach((button) => {
+          button.classList.toggle("selected", button.dataset.onlineGame === selectedOnlineGame);
+        });
       }
 
       restartButton.addEventListener("click", resetGame);
@@ -923,6 +945,13 @@
       });
       appleCatcherButton.addEventListener("click", () => {
         startGame("catcher");
+      });
+      onlineGameButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedOnlineGame = button.dataset.onlineGame;
+          updateOnlineGameSelection();
+          clearRoomMessage();
+        });
       });
       createRoomButton.addEventListener("click", createRoom);
       joinRoomButton.addEventListener("click", joinRoom);
