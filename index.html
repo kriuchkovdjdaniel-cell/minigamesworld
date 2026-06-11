@@ -10,6 +10,7 @@
         font-family: Arial, Helvetica, sans-serif;
         background: #111827;
         color: #f8fafc;
+        --app-width: 620px;
       }
 
       * {
@@ -26,8 +27,26 @@
           linear-gradient(135deg, #111827 0%, #172033 55%, #0f172a 100%);
       }
 
+      body[data-theme="midnight"] {
+        background:
+          radial-gradient(circle at top left, rgba(20, 184, 166, 0.28), transparent 32rem),
+          linear-gradient(135deg, #111827 0%, #172033 55%, #0f172a 100%);
+      }
+
+      body[data-theme="forest"] {
+        background:
+          radial-gradient(circle at top left, rgba(34, 197, 94, 0.24), transparent 32rem),
+          linear-gradient(135deg, #052e16 0%, #14331f 55%, #020617 100%);
+      }
+
+      body[data-theme="purple"] {
+        background:
+          radial-gradient(circle at top left, rgba(168, 85, 247, 0.26), transparent 32rem),
+          linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #020617 100%);
+      }
+
       main {
-        width: min(92vw, 620px);
+        width: min(92vw, var(--app-width));
         display: grid;
         gap: 1rem;
       }
@@ -328,6 +347,11 @@
         text-transform: none;
       }
 
+      .account-tools {
+        display: grid;
+        gap: 0.75rem;
+      }
+
       .auth-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -378,6 +402,33 @@
         text-transform: none;
       }
 
+      .settings-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
+      .settings-actions {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .settings-account {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .settings-controls label {
+        display: grid;
+        gap: 0.35rem;
+        color: #cbd5e1;
+        font-weight: 800;
+      }
+
+      .settings-controls select {
+        text-transform: none;
+      }
+
       @media (max-width: 560px) {
         header {
           align-items: stretch;
@@ -393,6 +444,10 @@
         }
 
         .admin-points {
+          grid-template-columns: 1fr;
+        }
+
+        .settings-controls {
           grid-template-columns: 1fr;
         }
       }
@@ -466,9 +521,79 @@
         <button type="button" id="leaveRoom" hidden>Leave Room</button>
         <button type="button" id="back" hidden>Back</button>
         <button type="button" id="games">Games</button>
+        <button type="button" id="settings">Settings</button>
         <div class="game-options" id="gameOptions" aria-label="Game modes">
           <button type="button" id="singlePlayer">Single Player</button>
           <button type="button" id="online">Online</button>
+        </div>
+        <div class="game-list" id="settingsMenu" aria-label="Settings">
+          <div class="settings-controls">
+            <label>
+              Sound
+              <select id="soundSelect">
+                <option value="on">On</option>
+                <option value="off">Off</option>
+              </select>
+            </label>
+            <label>
+              Theme
+              <select id="themeSelect">
+                <option value="midnight">Midnight</option>
+                <option value="forest">Forest</option>
+                <option value="purple">Purple</option>
+              </select>
+            </label>
+            <label>
+              Field Size
+              <select id="fieldSizeSelect">
+                <option value="normal">Normal</option>
+                <option value="small">Small</option>
+                <option value="large">Large</option>
+              </select>
+            </label>
+            <label>
+              Controls
+              <select id="controlsSelect">
+                <option value="all">WASD + Arrows</option>
+                <option value="wasd">WASD</option>
+                <option value="arrows">Arrows</option>
+              </select>
+            </label>
+            <label>
+              Skin
+              <select id="skinSelect">
+                <option value="classic">Classic</option>
+                <option value="round">Round</option>
+                <option value="neon">Neon</option>
+                <option value="block">Block</option>
+              </select>
+            </label>
+            <label>
+              Color
+              <select id="colorSelect">
+                <option value="teal">Teal</option>
+                <option value="green">Green</option>
+                <option value="blue">Blue</option>
+                <option value="purple">Purple</option>
+                <option value="pink">Pink</option>
+                <option value="orange">Orange</option>
+              </select>
+            </label>
+          </div>
+          <div class="settings-actions">
+            <button type="button" id="resetRecordButton">Reset Record</button>
+            <button type="button" id="accountSettingsButton">Account</button>
+            <div class="settings-account" aria-label="Account recovery">
+              <input id="settingsGmailInput" type="email" maxlength="64" placeholder="Gmail" autocomplete="email">
+              <input id="settingsCurrentPasswordInput" type="password" maxlength="32" placeholder="Current password for Gmail recovery" autocomplete="current-password">
+              <button type="button" id="settingsSaveGmailButton">Save Gmail</button>
+              <input id="settingsRecoveryGmailInput" type="email" maxlength="64" placeholder="Recovery Gmail" autocomplete="email">
+              <input id="settingsNewPasswordInput" type="password" maxlength="32" placeholder="New password" autocomplete="new-password">
+              <button type="button" id="settingsSendRecoveryEmailButton">Send Recovery Email</button>
+              <button type="button" id="settingsChangePasswordButton">Change Password</button>
+            </div>
+            <p class="room-note" id="settingsMessage"></p>
+          </div>
         </div>
         <div class="game-list" id="singlePlayerGames" aria-label="Single player games">
           <button type="button" id="snakeClassic">Snake Classic</button>
@@ -493,15 +618,38 @@
         <h2 id="authTitle">Account</h2>
         <input id="usernameInput" type="text" maxlength="18" placeholder="Username" autocomplete="username">
         <input id="passwordInput" type="password" maxlength="32" placeholder="Password" autocomplete="current-password">
+        <input id="gmailInput" type="email" maxlength="64" placeholder="Gmail" autocomplete="email">
         <div class="auth-actions">
           <button type="button" id="loginButton">Log in</button>
           <button type="button" id="registerButton">Register</button>
         </div>
+        <div class="account-tools">
+          <button type="button" id="saveGmailButton">Save Gmail</button>
+          <input id="changeGmailInput" type="email" maxlength="64" placeholder="Gmail for password change" autocomplete="email">
+          <input id="newPasswordInput" type="password" maxlength="32" placeholder="New password" autocomplete="new-password">
+          <button type="button" id="sendRecoveryEmailButton">Send Recovery Email</button>
+          <button type="button" id="changePasswordButton">Change Password</button>
+        </div>
+        <button type="button" id="accountBackButton">Back</button>
         <p class="room-note" id="authMessage"></p>
       </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDlROlavoLuWEc0HS7vKIru_DLNbRqQDXA",
+        authDomain: "fir-a3f0a.firebaseapp.com",
+        databaseURL: "https://fir-a3f0a-default-rtdb.firebaseio.com",
+        projectId: "fir-a3f0a",
+        storageBucket: "fir-a3f0a.firebasestorage.app",
+        messagingSenderId: "809077245956",
+        appId: "1:809077245956:web:7ec420f6d4a6125d5fcd51",
+        measurementId: "G-SMG9M04N2F"
+      };
+      const firebaseApp = firebase.initializeApp(firebaseConfig);
+      const firebaseAuth = firebaseApp.auth();
       const canvas = document.getElementById("board");
       const ctx = canvas.getContext("2d");
       const gameTitle = document.getElementById("gameTitle");
@@ -531,8 +679,15 @@
       const authMenu = document.getElementById("authMenu");
       const usernameInput = document.getElementById("usernameInput");
       const passwordInput = document.getElementById("passwordInput");
+      const gmailInput = document.getElementById("gmailInput");
       const loginButton = document.getElementById("loginButton");
       const registerButton = document.getElementById("registerButton");
+      const saveGmailButton = document.getElementById("saveGmailButton");
+      const changeGmailInput = document.getElementById("changeGmailInput");
+      const newPasswordInput = document.getElementById("newPasswordInput");
+      const sendRecoveryEmailButton = document.getElementById("sendRecoveryEmailButton");
+      const changePasswordButton = document.getElementById("changePasswordButton");
+      const accountBackButton = document.getElementById("accountBackButton");
       const authMessage = document.getElementById("authMessage");
       const statusEl = document.getElementById("status");
       const restartButton = document.getElementById("restart");
@@ -543,7 +698,9 @@
       const leaveRoomButton = document.getElementById("leaveRoom");
       const backButton = document.getElementById("back");
       const gamesButton = document.getElementById("games");
+      const settingsButton = document.getElementById("settings");
       const gameOptions = document.getElementById("gameOptions");
+      const settingsMenu = document.getElementById("settingsMenu");
       const singlePlayerButton = document.getElementById("singlePlayer");
       const onlineButton = document.getElementById("online");
       const singlePlayerGames = document.getElementById("singlePlayerGames");
@@ -556,6 +713,22 @@
       const roomCodeEl = document.getElementById("roomCode");
       const roomNoteEl = document.getElementById("roomNote");
       const onlineGameButtons = document.querySelectorAll("[data-online-game]");
+      const soundSelect = document.getElementById("soundSelect");
+      const themeSelect = document.getElementById("themeSelect");
+      const fieldSizeSelect = document.getElementById("fieldSizeSelect");
+      const controlsSelect = document.getElementById("controlsSelect");
+      const skinSelect = document.getElementById("skinSelect");
+      const colorSelect = document.getElementById("colorSelect");
+      const resetRecordButton = document.getElementById("resetRecordButton");
+      const accountSettingsButton = document.getElementById("accountSettingsButton");
+      const settingsGmailInput = document.getElementById("settingsGmailInput");
+      const settingsCurrentPasswordInput = document.getElementById("settingsCurrentPasswordInput");
+      const settingsSaveGmailButton = document.getElementById("settingsSaveGmailButton");
+      const settingsRecoveryGmailInput = document.getElementById("settingsRecoveryGmailInput");
+      const settingsNewPasswordInput = document.getElementById("settingsNewPasswordInput");
+      const settingsSendRecoveryEmailButton = document.getElementById("settingsSendRecoveryEmailButton");
+      const settingsChangePasswordButton = document.getElementById("settingsChangePasswordButton");
+      const settingsMessage = document.getElementById("settingsMessage");
       const gridSize = 20;
       const tileCount = canvas.width / gridSize;
       const startSnake = [
@@ -630,9 +803,31 @@
       const playerStorageKey = "snake-online-player-id";
       const ownedRoomsStorageKey = "snake-owned-room-codes";
       const accountStorageKey = "snake-account";
+      const styleStorageKey = "snake-player-style";
+      const settingsStorageKey = "snake-settings";
       const playerId = getPlayerId();
       let currentAccount = getStoredAccount();
+      let playerStyle = getStoredPlayerStyle();
+      let gameSettings = getStoredGameSettings();
       let createdRoomCode = "";
+      const colorThemes = {
+        teal: { head: "#5eead4", body: "#14b8a6", top: "#99f6e4" },
+        green: { head: "#86efac", body: "#22c55e", top: "#bbf7d0" },
+        blue: { head: "#93c5fd", body: "#3b82f6", top: "#bfdbfe" },
+        purple: { head: "#c4b5fd", body: "#8b5cf6", top: "#ddd6fe" },
+        pink: { head: "#f9a8d4", body: "#ec4899", top: "#fbcfe8" },
+        orange: { head: "#fdba74", body: "#f97316", top: "#fed7aa" }
+      };
+      const boardThemeColors = {
+        midnight: "#020617",
+        forest: "#031d12",
+        purple: "#120f2f"
+      };
+      const appWidths = {
+        small: "500px",
+        normal: "620px",
+        large: "760px"
+      };
 
       function startGame(gameName) {
         if (gameName === "snake" || gameName === "catcher") {
@@ -664,6 +859,352 @@
 
       function setLocalBestScore(gameName, value) {
         localStorage.setItem(games[gameName].bestKey, String(value));
+      }
+
+      function getStoredPlayerStyle() {
+        try {
+          const storedStyle = JSON.parse(localStorage.getItem(styleStorageKey) || "null");
+
+          return {
+            skin: storedStyle?.skin || "classic",
+            color: storedStyle?.color || "teal"
+          };
+        } catch {
+          return {
+            skin: "classic",
+            color: "teal"
+          };
+        }
+      }
+
+      function getStoredGameSettings() {
+        try {
+          const storedSettings = JSON.parse(localStorage.getItem(settingsStorageKey) || "null");
+
+          return {
+            sound: storedSettings?.sound || "on",
+            theme: storedSettings?.theme || "midnight",
+            fieldSize: storedSettings?.fieldSize || "normal",
+            controls: storedSettings?.controls || "all"
+          };
+        } catch {
+          return {
+            sound: "on",
+            theme: "midnight",
+            fieldSize: "normal",
+            controls: "all"
+          };
+        }
+      }
+
+      function saveGameSettings() {
+        localStorage.setItem(settingsStorageKey, JSON.stringify(gameSettings));
+      }
+
+      function savePlayerStyle() {
+        localStorage.setItem(styleStorageKey, JSON.stringify(playerStyle));
+      }
+
+      function applyPlayerStyleControls() {
+        skinSelect.value = playerStyle.skin;
+        colorSelect.value = playerStyle.color;
+      }
+
+      function applyGameSettingsControls() {
+        soundSelect.value = gameSettings.sound;
+        themeSelect.value = gameSettings.theme;
+        fieldSizeSelect.value = gameSettings.fieldSize;
+        controlsSelect.value = gameSettings.controls;
+        document.body.dataset.theme = gameSettings.theme;
+        document.documentElement.style.setProperty("--app-width", appWidths[gameSettings.fieldSize] || appWidths.normal);
+      }
+
+      function updatePlayerStyle() {
+        playerStyle = {
+          skin: skinSelect.value,
+          color: colorSelect.value
+        };
+        savePlayerStyle();
+
+        const player = onlineState?.playersState?.[onlinePlayerSlot];
+
+        if (player) {
+          player.skin = playerStyle.skin;
+          player.color = playerStyle.color;
+        }
+
+        draw();
+      }
+
+      function updateGameSettings() {
+        gameSettings = {
+          sound: soundSelect.value,
+          theme: themeSelect.value,
+          fieldSize: fieldSizeSelect.value,
+          controls: controlsSelect.value
+        };
+        saveGameSettings();
+        applyGameSettingsControls();
+        draw();
+      }
+
+      function getTheme(colorName) {
+        return colorThemes[colorName] || colorThemes.teal;
+      }
+
+      function getBoardColor() {
+        return boardThemeColors[gameSettings.theme] || boardThemeColors.midnight;
+      }
+
+      function isKeyAllowedForControls(key) {
+        const arrowKey = key.startsWith("Arrow");
+        const wasdKey = ["w", "W", "a", "A", "s", "S", "d", "D"].includes(key);
+
+        if (gameSettings.controls === "arrows") {
+          return arrowKey;
+        }
+
+        if (gameSettings.controls === "wasd") {
+          return wasdKey;
+        }
+
+        return arrowKey || wasdKey;
+      }
+
+      function playSound(type) {
+        if (gameSettings.sound !== "on") {
+          return;
+        }
+
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          const audioContext = new AudioContextClass();
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          const tones = {
+            point: 620,
+            gameover: 180,
+            shoot: 360
+          };
+
+          oscillator.frequency.value = tones[type] || 440;
+          oscillator.type = "square";
+          gain.gain.setValueAtTime(0.06, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+          oscillator.start();
+          oscillator.stop(audioContext.currentTime + 0.12);
+        } catch {
+          // Sound is optional.
+        }
+      }
+
+      async function resetCurrentRecord() {
+        if (!isSinglePlayerGame(currentGame)) {
+          settingsMessage.textContent = "Open a single player game first.";
+          return;
+        }
+
+        best = 0;
+        bestEl.textContent = "0";
+        setLocalBestScore(currentGame, 0);
+
+        if (currentAccount?.username) {
+          try {
+            await patchUser(usernameKey(currentAccount.username), {
+              [`bestScores/${currentGame}`]: 0
+            });
+          } catch {
+            settingsMessage.textContent = "Local record reset. Cloud reset failed.";
+            return;
+          }
+        }
+
+        settingsMessage.textContent = `${games[currentGame].title} record reset.`;
+      }
+
+      function openAccountSettings() {
+        pauseMenu.classList.remove("open");
+        pauseMenu.setAttribute("aria-hidden", "true");
+        paused = false;
+        updatePauseButton();
+        pauseButton.textContent = "Pause";
+        authMenu.classList.add("open");
+        authMenu.setAttribute("aria-hidden", "false");
+        loadAccountGmail();
+        authMessage.textContent = currentAccount
+          ? `Logged in as ${currentAccount.username}. Use Log out at the top to switch account.`
+          : "Log in or register.";
+      }
+
+      function closeAccountSettings() {
+        authMenu.classList.remove("open");
+        authMenu.setAttribute("aria-hidden", "true");
+        authMessage.textContent = "";
+
+        if (!currentAccount) {
+          authMenu.classList.add("open");
+          authMenu.setAttribute("aria-hidden", "false");
+          authMessage.textContent = "Log in or register to play.";
+        }
+      }
+
+      async function loadAccountGmail() {
+        if (!currentAccount?.username) {
+          gmailInput.value = "";
+          settingsGmailInput.value = "";
+          return;
+        }
+
+        try {
+          const user = await getUser(usernameKey(currentAccount.username));
+          gmailInput.value = user?.gmail || "";
+          settingsGmailInput.value = user?.gmail || "";
+        } catch {
+          gmailInput.value = "";
+          settingsGmailInput.value = "";
+        }
+      }
+
+      async function saveAccountGmail(source = "account") {
+        const messageEl = source === "settings" ? settingsMessage : authMessage;
+        const inputEl = source === "settings" ? settingsGmailInput : gmailInput;
+        const buttonEl = source === "settings" ? settingsSaveGmailButton : saveGmailButton;
+        const currentPassword = source === "settings"
+          ? settingsCurrentPasswordInput.value
+          : passwordInput.value;
+
+        if (!currentAccount?.username) {
+          messageEl.textContent = "Log in first.";
+          return;
+        }
+
+        const gmail = normalizeGmail(inputEl.value);
+
+        if (!gmail) {
+          messageEl.textContent = "Enter Gmail like name@gmail.com.";
+          return;
+        }
+
+        buttonEl.disabled = true;
+        messageEl.textContent = "Saving Gmail...";
+
+        try {
+          const userKey = usernameKey(currentAccount.username);
+          const user = await getUser(userKey);
+          const patch = { gmail };
+
+          if (!user?.authUid && currentPassword.length >= 4) {
+            const passwordHash = await hashPassword(currentPassword);
+
+            if (user?.passwordHash !== passwordHash) {
+              messageEl.textContent = "Current password is wrong.";
+              return;
+            }
+
+            const authUser = await createFirebaseEmailAccount(gmail, currentPassword);
+            patch.authUid = authUser?.uid || "";
+          }
+
+          await patchUser(userKey, patch);
+          gmailInput.value = gmail;
+          settingsGmailInput.value = gmail;
+          messageEl.textContent = patch.authUid
+            ? "Gmail saved. Recovery email enabled."
+            : "Gmail saved. Enter current password and save Gmail to enable email recovery.";
+        } catch (error) {
+          messageEl.textContent = `Could not save Gmail: ${error.code || "check Firebase/Auth settings"}.`;
+        } finally {
+          buttonEl.disabled = false;
+        }
+      }
+
+      async function createFirebaseEmailAccount(gmail, password) {
+        if (!gmail) {
+          return null;
+        }
+
+        const credential = await firebaseAuth.createUserWithEmailAndPassword(gmail, password);
+        return credential.user;
+      }
+
+      async function signInFirebaseEmailAccount(gmail, password) {
+        if (!gmail) {
+          return null;
+        }
+
+        const credential = await firebaseAuth.signInWithEmailAndPassword(gmail, password);
+        return credential.user;
+      }
+
+      async function sendPasswordRecoveryEmail(source = "account") {
+        const messageEl = source === "settings" ? settingsMessage : authMessage;
+        const gmailEl = source === "settings" ? settingsRecoveryGmailInput : changeGmailInput;
+        const fallbackGmailEl = source === "settings" ? settingsGmailInput : gmailInput;
+        const buttonEl = source === "settings" ? settingsSendRecoveryEmailButton : sendRecoveryEmailButton;
+        const gmail = normalizeGmail(gmailEl.value || fallbackGmailEl.value);
+
+        if (!gmail) {
+          messageEl.textContent = "Enter Gmail like name@gmail.com.";
+          return;
+        }
+
+        buttonEl.disabled = true;
+        messageEl.textContent = "Sending recovery email...";
+
+        try {
+          await firebaseAuth.sendPasswordResetEmail(gmail);
+          messageEl.textContent = "Recovery email sent. Check Gmail.";
+        } catch (error) {
+          if (error.code === "auth/user-not-found" || error.code === "auth/invalid-email") {
+            messageEl.textContent = "No email account yet. Save Gmail with current password first.";
+          } else {
+            messageEl.textContent = `Could not send email: ${error.code || "check Firebase/Auth settings"}.`;
+          }
+        } finally {
+          buttonEl.disabled = false;
+        }
+      }
+
+      async function changeAccountPassword(source = "account") {
+        const messageEl = source === "settings" ? settingsMessage : authMessage;
+        const gmailEl = source === "settings" ? settingsRecoveryGmailInput : changeGmailInput;
+        const fallbackGmailEl = source === "settings" ? settingsGmailInput : gmailInput;
+        const newPasswordEl = source === "settings" ? settingsNewPasswordInput : newPasswordInput;
+        const buttonEl = source === "settings" ? settingsChangePasswordButton : changePasswordButton;
+        const username = sanitizeUsername(usernameInput.value || currentAccount?.username || "");
+        const userKey = usernameKey(username);
+        const gmail = normalizeGmail(gmailEl.value || fallbackGmailEl.value);
+        const newPassword = newPasswordEl.value;
+
+        if (!username || !gmail || newPassword.length < 4) {
+          messageEl.textContent = "Enter username, Gmail, and 4+ new password letters.";
+          return;
+        }
+
+        buttonEl.disabled = true;
+        messageEl.textContent = "Changing password...";
+
+        try {
+          const user = await getUser(userKey);
+
+          if (!user || user.gmail !== gmail) {
+            messageEl.textContent = "Username and Gmail do not match.";
+            return;
+          }
+
+          const passwordHash = await hashPassword(newPassword);
+          await patchUser(userKey, { passwordHash });
+          passwordInput.value = "";
+          newPasswordInput.value = "";
+          settingsNewPasswordInput.value = "";
+          messageEl.textContent = "Password changed.";
+        } catch {
+          messageEl.textContent = "Could not change password.";
+        } finally {
+          buttonEl.disabled = false;
+        }
       }
 
       function resetGame() {
@@ -858,6 +1399,7 @@
       function addPoint() {
         score += 1;
         scoreEl.textContent = score;
+        playSound("point");
         if (score > best) {
           best = score;
           bestEl.textContent = best;
@@ -867,6 +1409,7 @@
 
       function endGame() {
         gameOver = true;
+        playSound("gameover");
         waitingToPlay = false;
         hidePlayOverlay();
         pauseMenu.classList.remove("open");
@@ -939,7 +1482,7 @@
       }
 
       function drawBoard() {
-        ctx.fillStyle = "#020617";
+        ctx.fillStyle = getBoardColor();
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
@@ -961,27 +1504,56 @@
         ctx.fillStyle = "#f97316";
         roundTile(food.x, food.y, 7);
 
+        const theme = getTheme(playerStyle.color);
         snake.forEach((part, index) => {
-          ctx.fillStyle = index === 0 ? "#5eead4" : "#14b8a6";
-          roundTile(part.x, part.y, 5);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0);
         });
       }
 
       function drawCatcher() {
+        const theme = getTheme(playerStyle.color);
+
         ctx.fillStyle = "#f97316";
         ctx.beginPath();
         ctx.arc(apple.x, apple.y, apple.size, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = "#14b8a6";
+        ctx.fillStyle = theme.body;
         ctx.beginPath();
         ctx.roundRect(catcher.x, catcher.y, catcher.width, catcher.height, 8);
         ctx.fill();
 
-        ctx.fillStyle = "#5eead4";
+        ctx.fillStyle = theme.head;
         ctx.beginPath();
         ctx.roundRect(catcher.x + 14, catcher.y - 12, catcher.width - 28, 14, 7);
         ctx.fill();
+      }
+
+      function drawSnakeTile(part, color, skin, isHead) {
+        const radiusBySkin = {
+          classic: isHead ? 7 : 5,
+          round: 9,
+          neon: 8,
+          block: 2
+        };
+
+        ctx.save();
+        ctx.fillStyle = color;
+
+        if (skin === "neon") {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 14;
+        }
+
+        roundTile(part.x, part.y, radiusBySkin[skin] ?? 5);
+
+        if (skin === "block") {
+          ctx.strokeStyle = "rgba(248, 250, 252, 0.24)";
+          ctx.lineWidth = 2;
+          strokeTile(part.x, part.y, 2);
+        }
+
+        ctx.restore();
       }
 
       function roundTile(x, y, radius) {
@@ -993,6 +1565,17 @@
         ctx.beginPath();
         ctx.roundRect(left, top, size, size, radius);
         ctx.fill();
+      }
+
+      function strokeTile(x, y, radius) {
+        const inset = 2;
+        const left = x * gridSize + inset;
+        const top = y * gridSize + inset;
+        const size = gridSize - inset * 2;
+
+        ctx.beginPath();
+        ctx.roundRect(left, top, size, size, radius);
+        ctx.stroke();
       }
 
       document.addEventListener("keydown", (event) => {
@@ -1015,7 +1598,7 @@
           D: { x: 1, y: 0 }
         };
 
-        if (keys[event.key]) {
+        if (keys[event.key] && isKeyAllowedForControls(event.key)) {
           event.preventDefault();
           changeDirection(keys[event.key]);
         }
@@ -1036,7 +1619,8 @@
         }
 
         if (currentGame === "online-tanks") {
-          const movementKey = ["ArrowUp", "w", "W", "ArrowDown", "s", "S", "ArrowLeft", "a", "A", "ArrowRight", "d", "D"].includes(event.key);
+          const movementKey = ["ArrowUp", "w", "W", "ArrowDown", "s", "S", "ArrowLeft", "a", "A", "ArrowRight", "d", "D"].includes(event.key) &&
+            isKeyAllowedForControls(event.key);
 
           if (movementKey) {
             tankMove = 0;
@@ -1058,7 +1642,9 @@
       });
 
       function isTypingField(element) {
-        return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
+        return element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement ||
+          element instanceof HTMLSelectElement;
       }
 
       document.querySelectorAll("[data-direction]").forEach((button) => {
@@ -1154,7 +1740,9 @@
         leaveRoomButton.hidden = !onlineRoomCode;
         backButton.hidden = true;
         gamesButton.hidden = false;
+        settingsButton.hidden = false;
         gameOptions.classList.remove("open");
+        settingsMenu.classList.remove("open");
         singlePlayerGames.classList.remove("open");
         onlineGames.classList.remove("open");
       }
@@ -1164,7 +1752,23 @@
         resumeButton.hidden = true;
         backButton.hidden = false;
         gamesButton.hidden = true;
+        settingsButton.hidden = true;
         gameOptions.classList.add("open");
+        settingsMenu.classList.remove("open");
+        singlePlayerGames.classList.remove("open");
+        onlineGames.classList.remove("open");
+      }
+
+      function showSettingsMenu() {
+        pauseMenuLevel = "settings";
+        settingsMessage.textContent = "";
+        loadAccountGmail();
+        resumeButton.hidden = true;
+        backButton.hidden = false;
+        gamesButton.hidden = true;
+        settingsButton.hidden = true;
+        gameOptions.classList.remove("open");
+        settingsMenu.classList.add("open");
         singlePlayerGames.classList.remove("open");
         onlineGames.classList.remove("open");
       }
@@ -1174,7 +1778,9 @@
         resumeButton.hidden = true;
         backButton.hidden = false;
         gamesButton.hidden = true;
+        settingsButton.hidden = true;
         gameOptions.classList.remove("open");
+        settingsMenu.classList.remove("open");
         singlePlayerGames.classList.toggle("open", list === "single");
         onlineGames.classList.toggle("open", list === "online");
         if (list === "online") {
@@ -1306,6 +1912,11 @@
 
       function usernameKey(value) {
         return sanitizeUsername(value).toLowerCase();
+      }
+
+      function normalizeGmail(value) {
+        const gmail = value.trim().toLowerCase();
+        return /^[^\s@]+@gmail\.com$/.test(gmail) ? gmail : "";
       }
 
       async function hashPassword(password) {
@@ -1496,6 +2107,14 @@
           authMenu.classList.add("open");
           authMenu.setAttribute("aria-hidden", "false");
         }
+
+        updateSettingsAccountUi();
+      }
+
+      function updateSettingsAccountUi() {
+        accountSettingsButton.textContent = currentAccount
+          ? `Account: ${currentAccount.username}`
+          : "Account: log in";
       }
 
       async function loadAdminPanel() {
@@ -1596,9 +2215,15 @@
         const username = sanitizeUsername(usernameInput.value);
         const userKey = usernameKey(username);
         const password = passwordInput.value;
+        const gmail = gmailInput.value ? normalizeGmail(gmailInput.value) : "";
 
         if (username.length < 3 || password.length < 4) {
           authMessage.textContent = "Use 3+ username letters and 4+ password letters.";
+          return;
+        }
+
+        if (gmailInput.value && !gmail) {
+          authMessage.textContent = "Gmail must look like name@gmail.com.";
           return;
         }
 
@@ -1607,10 +2232,24 @@
         authMessage.textContent = "Creating account...";
 
         try {
+          if (await getUser(userKey)) {
+            authMessage.textContent = "Username already exists.";
+            return;
+          }
+
           const passwordHash = await hashPassword(password);
+          let authUid = "";
+
+          if (gmail) {
+            const authUser = await createFirebaseEmailAccount(gmail, password);
+            authUid = authUser?.uid || "";
+          }
+
           const created = await createUserIfAvailable(userKey, {
             username,
             passwordHash,
+            gmail,
+            authUid,
             bestScores: getLocalBestScores(),
             createdAt: Date.now()
           });
@@ -1621,6 +2260,8 @@
           }
 
           passwordInput.value = "";
+          newPasswordInput.value = "";
+          settingsGmailInput.value = gmail;
           authMessage.textContent = "";
           setStoredAccount({ username, isAdmin: false });
           syncBestScoresFromAccount();
@@ -1649,13 +2290,29 @@
         try {
           const user = await getUser(userKey);
           const passwordHash = await hashPassword(password);
+          let firebaseLoginOk = false;
 
-          if (!user || user.passwordHash !== passwordHash) {
+          if (user?.gmail && user?.authUid) {
+            try {
+              await signInFirebaseEmailAccount(user.gmail, password);
+              firebaseLoginOk = true;
+            } catch {
+              firebaseLoginOk = false;
+            }
+          }
+
+          if (!user || (!firebaseLoginOk && user.passwordHash !== passwordHash)) {
             authMessage.textContent = "Wrong username or password.";
             return;
           }
 
+          if (firebaseLoginOk && user.passwordHash !== passwordHash) {
+            await patchUser(userKey, { passwordHash });
+          }
+
           passwordInput.value = "";
+          gmailInput.value = user.gmail || "";
+          settingsGmailInput.value = user.gmail || "";
           authMessage.textContent = "";
           setStoredAccount({
             username: user.username || username,
@@ -1706,10 +2363,14 @@
 
       function makeOnlinePlayer(slot, gameName) {
         const username = currentAccount?.username || slot.toUpperCase();
+        const skin = playerStyle.skin;
+        const color = playerStyle.color;
 
         if (gameName === "online-tanks") {
           return {
             username,
+            skin,
+            color,
             x: slot === "p1" ? 140 : 380,
             y: slot === "p1" ? 280 : 280,
             dir: slot === "p1" ? { x: 1, y: 0 } : { x: -1, y: 0 },
@@ -1722,6 +2383,8 @@
         if (gameName === "online-catcher") {
           return {
             username,
+            skin,
+            color,
             x: slot === "p1" ? 136 : 328,
             y: canvas.height - 44,
             score: 0,
@@ -1731,6 +2394,8 @@
 
         return {
           username,
+          skin,
+          color,
           snake: slot === "p1"
             ? [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }]
             : [{ x: 20, y: 10 }, { x: 21, y: 10 }, { x: 22, y: 10 }],
@@ -1852,6 +2517,8 @@
 
         if (state.playersState[slot] && currentAccount?.username) {
           state.playersState[slot].username = currentAccount.username;
+          state.playersState[slot].skin = playerStyle.skin;
+          state.playersState[slot].color = playerStyle.color;
         }
 
         if (gameName === "online-snake") {
@@ -2321,6 +2988,7 @@
         }
 
         lastTankShot = now;
+        playSound("shoot");
         player.bullets = Array.isArray(player.bullets) ? player.bullets : [];
         player.bullets.push({
           x: player.x + player.dir.x * 22,
@@ -2459,18 +3127,20 @@
           });
         }
 
-        drawOnlineSnakePlayer(onlineState.playersState.p1, "#5eead4", "#14b8a6");
-        drawOnlineSnakePlayer(onlineState.playersState.p2, "#fdba74", "#f97316");
+        drawOnlineSnakePlayer(onlineState.playersState.p1, "teal");
+        drawOnlineSnakePlayer(onlineState.playersState.p2, "orange");
       }
 
-      function drawOnlineSnakePlayer(player, headColor, bodyColor) {
+      function drawOnlineSnakePlayer(player, fallbackColor) {
         if (!player?.snake) {
           return;
         }
 
+        const theme = getTheme(player.color || fallbackColor);
+        const skin = player.skin || "classic";
+
         player.snake.forEach((part, index) => {
-          ctx.fillStyle = index === 0 ? headColor : bodyColor;
-          roundTile(part.x, part.y, 5);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, skin, index === 0);
         });
       }
 
@@ -2484,42 +3154,46 @@
           });
         }
 
-        drawOnlineCatcherPlayer(onlineState.playersState.p1, "#14b8a6", "#5eead4");
-        drawOnlineCatcherPlayer(onlineState.playersState.p2, "#f97316", "#fdba74");
+        drawOnlineCatcherPlayer(onlineState.playersState.p1, "teal");
+        drawOnlineCatcherPlayer(onlineState.playersState.p2, "orange");
       }
 
-      function drawOnlineCatcherPlayer(player, baseColor, topColor) {
+      function drawOnlineCatcherPlayer(player, fallbackColor) {
         if (!player) {
           return;
         }
 
-        ctx.fillStyle = baseColor;
+        const theme = getTheme(player.color || fallbackColor);
+
+        ctx.fillStyle = theme.body;
         ctx.beginPath();
         ctx.roundRect(player.x, player.y, 96, 18, 8);
         ctx.fill();
 
-        ctx.fillStyle = topColor;
+        ctx.fillStyle = theme.head;
         ctx.beginPath();
         ctx.roundRect(player.x + 14, player.y - 12, 68, 14, 7);
         ctx.fill();
       }
 
       function drawOnlineTanks() {
-        drawTankPlayer(onlineState.playersState.p1, "#14b8a6", "#5eead4");
-        drawTankPlayer(onlineState.playersState.p2, "#f97316", "#fdba74");
+        drawTankPlayer(onlineState.playersState.p1, "teal");
+        drawTankPlayer(onlineState.playersState.p2, "orange");
       }
 
-      function drawTankPlayer(player, baseColor, turretColor) {
+      function drawTankPlayer(player, fallbackColor) {
         if (!player) {
           return;
         }
 
-        ctx.fillStyle = baseColor;
+        const theme = getTheme(player.color || fallbackColor);
+
+        ctx.fillStyle = theme.body;
         ctx.beginPath();
         ctx.roundRect(player.x - 18, player.y - 18, 36, 36, 7);
         ctx.fill();
 
-        ctx.strokeStyle = turretColor;
+        ctx.strokeStyle = theme.head;
         ctx.lineWidth = 8;
         ctx.lineCap = "round";
         ctx.beginPath();
@@ -2527,7 +3201,7 @@
         ctx.lineTo(player.x + player.dir.x * 28, player.y + player.dir.y * 28);
         ctx.stroke();
 
-        ctx.fillStyle = turretColor;
+        ctx.fillStyle = theme.head;
         (player.bullets || []).forEach((bullet) => {
           ctx.beginPath();
           ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
@@ -2659,15 +3333,48 @@
       shootButton.addEventListener("click", shootOnlineTank);
       loginButton.addEventListener("click", loginAccount);
       registerButton.addEventListener("click", registerAccount);
+      saveGmailButton.addEventListener("click", () => saveAccountGmail("account"));
+      sendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("account"));
+      changePasswordButton.addEventListener("click", () => changeAccountPassword("account"));
+      settingsSaveGmailButton.addEventListener("click", () => saveAccountGmail("settings"));
+      settingsSendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("settings"));
+      settingsChangePasswordButton.addEventListener("click", () => changeAccountPassword("settings"));
+      accountBackButton.addEventListener("click", closeAccountSettings);
       logoutButton.addEventListener("click", () => {
+        firebaseAuth.signOut();
+        gmailInput.value = "";
+        changeGmailInput.value = "";
+        newPasswordInput.value = "";
+        settingsGmailInput.value = "";
+        settingsCurrentPasswordInput.value = "";
+        settingsRecoveryGmailInput.value = "";
+        settingsNewPasswordInput.value = "";
         setStoredAccount(null);
       });
       refreshAdminButton.addEventListener("click", loadAdminPanel);
       clearRoomsButton.addEventListener("click", clearAllRooms);
       addPointsButton.addEventListener("click", addAdminPoint);
+      soundSelect.addEventListener("change", updateGameSettings);
+      themeSelect.addEventListener("change", updateGameSettings);
+      fieldSizeSelect.addEventListener("change", updateGameSettings);
+      controlsSelect.addEventListener("change", updateGameSettings);
+      skinSelect.addEventListener("change", updatePlayerStyle);
+      colorSelect.addEventListener("change", updatePlayerStyle);
+      resetRecordButton.addEventListener("click", resetCurrentRecord);
+      accountSettingsButton.addEventListener("click", openAccountSettings);
       passwordInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           loginAccount();
+        }
+      });
+      newPasswordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          changeAccountPassword("account");
+        }
+      });
+      settingsNewPasswordInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          changeAccountPassword("settings");
         }
       });
       pauseButton.addEventListener("click", togglePause);
@@ -2675,6 +3382,9 @@
       leaveRoomButton.addEventListener("click", leaveOnlineRoom);
       gamesButton.addEventListener("click", () => {
         showGameModeMenu();
+      });
+      settingsButton.addEventListener("click", () => {
+        showSettingsMenu();
       });
       singlePlayerButton.addEventListener("click", () => {
         showGameList("single");
@@ -2709,6 +3419,8 @@
       });
 
       refreshStoredAccountRole();
+      applyPlayerStyleControls();
+      applyGameSettingsControls();
       startGame("snake");
     </script>
   </body>
