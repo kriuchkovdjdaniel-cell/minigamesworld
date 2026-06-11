@@ -588,9 +588,7 @@
               <input id="settingsCurrentPasswordInput" type="password" maxlength="32" placeholder="Current password for Gmail recovery" autocomplete="current-password">
               <button type="button" id="settingsSaveGmailButton">Save Gmail</button>
               <input id="settingsRecoveryGmailInput" type="email" maxlength="64" placeholder="Recovery Gmail" autocomplete="email">
-              <input id="settingsNewPasswordInput" type="password" maxlength="32" placeholder="New password" autocomplete="new-password">
               <button type="button" id="settingsSendRecoveryEmailButton">Send Recovery Email</button>
-              <button type="button" id="settingsChangePasswordButton">Change Password</button>
             </div>
             <p class="room-note" id="settingsMessage"></p>
           </div>
@@ -626,9 +624,7 @@
         <div class="account-tools">
           <button type="button" id="saveGmailButton">Save Gmail</button>
           <input id="changeGmailInput" type="email" maxlength="64" placeholder="Gmail for password change" autocomplete="email">
-          <input id="newPasswordInput" type="password" maxlength="32" placeholder="New password" autocomplete="new-password">
           <button type="button" id="sendRecoveryEmailButton">Send Recovery Email</button>
-          <button type="button" id="changePasswordButton">Change Password</button>
         </div>
         <button type="button" id="accountBackButton">Back</button>
         <p class="room-note" id="authMessage"></p>
@@ -684,9 +680,7 @@
       const registerButton = document.getElementById("registerButton");
       const saveGmailButton = document.getElementById("saveGmailButton");
       const changeGmailInput = document.getElementById("changeGmailInput");
-      const newPasswordInput = document.getElementById("newPasswordInput");
       const sendRecoveryEmailButton = document.getElementById("sendRecoveryEmailButton");
-      const changePasswordButton = document.getElementById("changePasswordButton");
       const accountBackButton = document.getElementById("accountBackButton");
       const authMessage = document.getElementById("authMessage");
       const statusEl = document.getElementById("status");
@@ -725,9 +719,7 @@
       const settingsCurrentPasswordInput = document.getElementById("settingsCurrentPasswordInput");
       const settingsSaveGmailButton = document.getElementById("settingsSaveGmailButton");
       const settingsRecoveryGmailInput = document.getElementById("settingsRecoveryGmailInput");
-      const settingsNewPasswordInput = document.getElementById("settingsNewPasswordInput");
       const settingsSendRecoveryEmailButton = document.getElementById("settingsSendRecoveryEmailButton");
-      const settingsChangePasswordButton = document.getElementById("settingsChangePasswordButton");
       const settingsMessage = document.getElementById("settingsMessage");
       const gridSize = 20;
       const tileCount = canvas.width / gridSize;
@@ -1162,46 +1154,6 @@
           } else {
             messageEl.textContent = `Could not send email: ${error.code || "check Firebase/Auth settings"}.`;
           }
-        } finally {
-          buttonEl.disabled = false;
-        }
-      }
-
-      async function changeAccountPassword(source = "account") {
-        const messageEl = source === "settings" ? settingsMessage : authMessage;
-        const gmailEl = source === "settings" ? settingsRecoveryGmailInput : changeGmailInput;
-        const fallbackGmailEl = source === "settings" ? settingsGmailInput : gmailInput;
-        const newPasswordEl = source === "settings" ? settingsNewPasswordInput : newPasswordInput;
-        const buttonEl = source === "settings" ? settingsChangePasswordButton : changePasswordButton;
-        const username = sanitizeUsername(usernameInput.value || currentAccount?.username || "");
-        const userKey = usernameKey(username);
-        const gmail = normalizeGmail(gmailEl.value || fallbackGmailEl.value);
-        const newPassword = newPasswordEl.value;
-
-        if (!username || !gmail || newPassword.length < 4) {
-          messageEl.textContent = "Enter username, Gmail, and 4+ new password letters.";
-          return;
-        }
-
-        buttonEl.disabled = true;
-        messageEl.textContent = "Changing password...";
-
-        try {
-          const user = await getUser(userKey);
-
-          if (!user || user.gmail !== gmail) {
-            messageEl.textContent = "Username and Gmail do not match.";
-            return;
-          }
-
-          const passwordHash = await hashPassword(newPassword);
-          await patchUser(userKey, { passwordHash });
-          passwordInput.value = "";
-          newPasswordInput.value = "";
-          settingsNewPasswordInput.value = "";
-          messageEl.textContent = "Password changed.";
-        } catch {
-          messageEl.textContent = "Could not change password.";
         } finally {
           buttonEl.disabled = false;
         }
@@ -2260,7 +2212,6 @@
           }
 
           passwordInput.value = "";
-          newPasswordInput.value = "";
           settingsGmailInput.value = gmail;
           authMessage.textContent = "";
           setStoredAccount({ username, isAdmin: false });
@@ -3335,20 +3286,16 @@
       registerButton.addEventListener("click", registerAccount);
       saveGmailButton.addEventListener("click", () => saveAccountGmail("account"));
       sendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("account"));
-      changePasswordButton.addEventListener("click", () => changeAccountPassword("account"));
       settingsSaveGmailButton.addEventListener("click", () => saveAccountGmail("settings"));
       settingsSendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("settings"));
-      settingsChangePasswordButton.addEventListener("click", () => changeAccountPassword("settings"));
       accountBackButton.addEventListener("click", closeAccountSettings);
       logoutButton.addEventListener("click", () => {
         firebaseAuth.signOut();
         gmailInput.value = "";
         changeGmailInput.value = "";
-        newPasswordInput.value = "";
         settingsGmailInput.value = "";
         settingsCurrentPasswordInput.value = "";
         settingsRecoveryGmailInput.value = "";
-        settingsNewPasswordInput.value = "";
         setStoredAccount(null);
       });
       refreshAdminButton.addEventListener("click", loadAdminPanel);
@@ -3365,16 +3312,6 @@
       passwordInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           loginAccount();
-        }
-      });
-      newPasswordInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          changeAccountPassword("account");
-        }
-      });
-      settingsNewPasswordInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          changeAccountPassword("settings");
         }
       });
       pauseButton.addEventListener("click", togglePause);
