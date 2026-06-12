@@ -634,6 +634,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
     <script>
       const firebaseConfig = {
         apiKey: "AIzaSyDlROlavoLuWEc0HS7vKIru_DLNbRqQDXA",
@@ -647,6 +648,7 @@
       };
       const firebaseApp = firebase.initializeApp(firebaseConfig);
       const firebaseAuth = firebaseApp.auth();
+      const firebaseDb = firebaseApp.database();
       const canvas = document.getElementById("board");
       const ctx = canvas.getContext("2d");
       const gameTitle = document.getElementById("gameTitle");
@@ -795,9 +797,8 @@
       let onlinePlayerSlot = "";
       let onlineDirection = { x: 1, y: 0 };
       let onlineState = null;
-      let onlineSyncBusy = false;
+      let onlineRoomUnsubscribe = null;
       let onlinePushBusy = false;
-      let lastOnlineFetch = 0;
       let lastOnlinePush = 0;
       let lastOnlineHeartbeat = 0;
       let lastOnlineSnakeMove = 0;
@@ -837,10 +838,10 @@
       function startGame(gameName) {
         if (gameName === "snake" || gameName === "catcher" || gameName === "dodger") {
           clearInterval(waitingTimer);
+          unsubscribeFromRoom();
           onlineRoomCode = "";
           onlinePlayerSlot = "";
           onlineState = null;
-          onlineSyncBusy = false;
           tankMove = 0;
           showLocalScoreboard();
         }
@@ -2550,17 +2551,50 @@
         return gameName === "online-snake" ? 220 : 35;
       }
 
-      function getOnlineFetchDelay() {
-        return currentGame === "online-snake" ? 280 : 160;
-      }
-
       function getOnlinePushDelay() {
         return currentGame === "online-snake" ? 180 : 90;
+      }
+
+      function unsubscribeFromRoom() {
+        if (onlineRoomUnsubscribe) {
+          onlineRoomUnsubscribe();
+          onlineRoomUnsubscribe = null;
+        }
+      }
+
+      function subscribeToRoom(code, onRoom) {
+        unsubscribeFromRoom();
+        const roomRef = firebaseDb.ref(`rooms/${code}`);
+        const handler = (snapshot) => {
+          onRoom(snapshot.val());
+        };
+
+        roomRef.on("value", handler, () => {
+          statusEl.textContent = "Online live sync failed. Check Firebase rules or connection.";
+        });
+        onlineRoomUnsubscribe = () => roomRef.off("value", handler);
+      }
+
+      function closeOnlineRoomLocally(message = "Online room closed.") {
+        clearInterval(timer);
+        clearInterval(waitingTimer);
+        unsubscribeFromRoom();
+        onlineRoomCode = "";
+        onlinePlayerSlot = "";
+        onlineState = null;
+        onlinePushBusy = false;
+        waitingToPlay = false;
+        gameOver = true;
+        hidePlayOverlay();
+        showLocalScoreboard();
+        startGame("snake");
+        statusEl.textContent = message;
       }
 
       async function beginOnlineRoom(code, gameName, slot, room) {
         clearInterval(timer);
         clearInterval(waitingTimer);
+        unsubscribeFromRoom();
         onlineRoomCode = code;
         onlinePlayerSlot = slot;
         currentGame = gameName;
@@ -2585,9 +2619,7 @@
         onlineState = prepareOnlineState(room, gameName, slot);
         updateOnlineScoreboard();
         onlineDirection = onlineState.playersState[slot]?.dir || { x: 1, y: 0 };
-        onlineSyncBusy = false;
         onlinePushBusy = false;
-        lastOnlineFetch = 0;
         lastOnlinePush = 0;
         lastOnlineHeartbeat = 0;
         lastOnlineSnakeMove = 0;
@@ -2599,6 +2631,19 @@
         statusEl.textContent =
           `${slot === "p1" ? "Player 1" : "Player 2"} in ${gameTitle.textContent}. Room ${code}.`;
         await saveRoom(code, onlineState);
+        subscribeToRoom(code, (latestRoom) => {
+          if (!onlineRoomCode || code !== onlineRoomCode) {
+            return;
+          }
+
+          if (!latestRoom) {
+            closeOnlineRoomLocally("Online room closed.");
+            return;
+          }
+
+          mergeOnlineState(latestRoom);
+          updateOnlineScoreboard();
+        });
         drawOnlineGame();
         timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
       }
@@ -2759,6 +2804,7 @@
       function waitForSecondPlayer(code, gameName, room) {
         clearInterval(timer);
         clearInterval(waitingTimer);
+        unsubscribeFromRoom();
         onlineRoomCode = code;
         onlinePlayerSlot = "p1";
         currentGame = gameName;
@@ -2781,28 +2827,30 @@
         onlineState = prepareOnlineState(room, gameName, "p1");
         updateOnlineScoreboard();
 
-        waitingTimer = setInterval(async () => {
-          try {
-            const latestRoom = await getRoom(code);
-
-            if (!latestRoom) {
-              clearInterval(waitingTimer);
-              statusEl.textContent = "Room closed.";
-              startGame("snake");
-              return;
-            }
-
-            if (latestRoom.players >= 2 && latestRoom.playersState?.p2) {
-              clearInterval(waitingTimer);
-              waitingToPlay = false;
-              updateShootButton();
-              updatePauseButton();
-              await beginOnlineRoom(code, gameName, "p1", latestRoom);
-            }
-          } catch {
-            statusEl.textContent = "Waiting sync failed. Check Firebase rules or connection.";
+        let startingRoom = false;
+        subscribeToRoom(code, (latestRoom) => {
+          if (!onlineRoomCode || code !== onlineRoomCode || startingRoom) {
+            return;
           }
-        }, 900);
+
+          if (!latestRoom) {
+            closeOnlineRoomLocally("Room closed.");
+            return;
+          }
+
+          onlineState = prepareOnlineState(latestRoom, gameName, "p1");
+          updateOnlineScoreboard();
+
+          if (latestRoom.players >= 2 && latestRoom.playersState?.p2) {
+            startingRoom = true;
+            waitingToPlay = false;
+            updateShootButton();
+            updatePauseButton();
+            beginOnlineRoom(code, gameName, "p1", latestRoom).catch(() => {
+              statusEl.textContent = "Could not start online room.";
+            });
+          }
+        });
       }
 
       async function leaveOnlineRoom() {
@@ -2817,6 +2865,7 @@
 
         clearInterval(timer);
         clearInterval(waitingTimer);
+        unsubscribeFromRoom();
         leaveRoomButton.disabled = true;
         statusEl.textContent = "Leaving room...";
 
@@ -2838,7 +2887,6 @@
           onlineRoomCode = "";
           onlinePlayerSlot = "";
           onlineState = null;
-          onlineSyncBusy = false;
           catcherMove = 0;
           tankMove = 0;
           leaveRoomButton.disabled = false;
@@ -2871,7 +2919,6 @@
         }
 
         const now = Date.now();
-        const fetchDelay = getOnlineFetchDelay();
         const pushDelay = getOnlinePushDelay();
         const shouldPush =
           onlineLocalDirty ||
@@ -2904,30 +2951,6 @@
               onlinePushBusy = false;
             });
         }
-
-        if (onlineSyncBusy || now - lastOnlineFetch < fetchDelay) {
-          return;
-        }
-
-        onlineSyncBusy = true;
-        lastOnlineFetch = now;
-
-        getRoom(onlineRoomCode)
-          .then((room) => {
-            if (!room) {
-              endGame();
-              statusEl.textContent = "Online room closed.";
-              return;
-            }
-
-            mergeOnlineState(room);
-          })
-          .catch(() => {
-            statusEl.textContent = "Online sync failed. Check Firebase rules or connection.";
-          })
-          .finally(() => {
-            onlineSyncBusy = false;
-          });
       }
 
       function buildOnlinePatch() {
@@ -2979,7 +3002,13 @@
         }
 
         if (remoteState.playersState[otherSlot]) {
+          const previousOther = onlineState.playersState[otherSlot];
           onlineState.playersState[otherSlot] = remoteState.playersState[otherSlot];
+
+          if (currentGame === "online-tanks" && previousOther) {
+            onlineState.playersState[otherSlot].renderX = previousOther.renderX ?? previousOther.x;
+            onlineState.playersState[otherSlot].renderY = previousOther.renderY ?? previousOther.y;
+          }
         }
 
         if (currentGame === "online-snake" && remoteState.foods && !onlineFoodsDirty) {
@@ -3317,28 +3346,40 @@
       }
 
       function drawOnlineTanks() {
-        drawTankPlayer(onlineState.playersState.p1, "teal");
-        drawTankPlayer(onlineState.playersState.p2, "orange");
+        drawTankPlayer(onlineState.playersState.p1, "teal", "p1");
+        drawTankPlayer(onlineState.playersState.p2, "orange", "p2");
       }
 
-      function drawTankPlayer(player, fallbackColor) {
+      function drawTankPlayer(player, fallbackColor, slot) {
         if (!player) {
           return;
         }
 
         const theme = getTheme(player.color || fallbackColor);
+        const isLocalPlayer = slot === onlinePlayerSlot;
+        let drawX = player.x;
+        let drawY = player.y;
+
+        if (!isLocalPlayer) {
+          player.renderX = player.renderX ?? player.x;
+          player.renderY = player.renderY ?? player.y;
+          player.renderX += (player.x - player.renderX) * 0.35;
+          player.renderY += (player.y - player.renderY) * 0.35;
+          drawX = player.renderX;
+          drawY = player.renderY;
+        }
 
         ctx.fillStyle = theme.body;
         ctx.beginPath();
-        ctx.roundRect(player.x - 18, player.y - 18, 36, 36, 7);
+        ctx.roundRect(drawX - 18, drawY - 18, 36, 36, 7);
         ctx.fill();
 
         ctx.strokeStyle = theme.head;
         ctx.lineWidth = 8;
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(player.x, player.y);
-        ctx.lineTo(player.x + player.dir.x * 28, player.y + player.dir.y * 28);
+        ctx.moveTo(drawX, drawY);
+        ctx.lineTo(drawX + player.dir.x * 28, drawY + player.dir.y * 28);
         ctx.stroke();
 
         ctx.fillStyle = theme.head;
