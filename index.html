@@ -799,7 +799,9 @@
       let onlinePushBusy = false;
       let lastOnlineFetch = 0;
       let lastOnlinePush = 0;
+      let lastOnlineHeartbeat = 0;
       let lastOnlineSnakeMove = 0;
+      let onlineLocalDirty = false;
       let onlineFoodsDirty = false;
       let onlineApplesDirty = false;
       const firebaseDatabaseUrl = "https://fir-a3f0a-default-rtdb.firebaseio.com";
@@ -1289,6 +1291,7 @@
 
           if (!reversing) {
             onlineDirection = newDirection;
+            onlineLocalDirty = true;
           }
           return;
         }
@@ -2543,6 +2546,18 @@
         return Array.from({ length: 4 }, () => makeOnlineApple());
       }
 
+      function getOnlineTickDelay(gameName) {
+        return gameName === "online-snake" ? 240 : 50;
+      }
+
+      function getOnlineFetchDelay() {
+        return currentGame === "online-snake" ? 650 : 450;
+      }
+
+      function getOnlinePushDelay() {
+        return currentGame === "online-snake" ? 320 : 220;
+      }
+
       async function beginOnlineRoom(code, gameName, slot, room) {
         clearInterval(timer);
         clearInterval(waitingTimer);
@@ -2574,7 +2589,9 @@
         onlinePushBusy = false;
         lastOnlineFetch = 0;
         lastOnlinePush = 0;
+        lastOnlineHeartbeat = 0;
         lastOnlineSnakeMove = 0;
+        onlineLocalDirty = true;
         onlineFoodsDirty = false;
         onlineApplesDirty = false;
         tankMove = 0;
@@ -2583,7 +2600,7 @@
           `${slot === "p1" ? "Player 1" : "Player 2"} in ${gameTitle.textContent}. Room ${code}.`;
         await saveRoom(code, onlineState);
         drawOnlineGame();
-        timer = setInterval(tickOnlineGame, gameName === "online-snake" ? 240 : 35);
+        timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
       }
 
       function prepareOnlineState(room, gameName, slot) {
@@ -2718,6 +2735,8 @@
           paused = false;
           waitingToPlay = false;
           lastOnlineSnakeMove = 0;
+          lastOnlineHeartbeat = 0;
+          onlineLocalDirty = true;
           tankMove = 0;
           lastTankShot = 0;
           hidePlayOverlay();
@@ -2731,7 +2750,7 @@
           drawOnlineGame();
 
           clearInterval(timer);
-          timer = setInterval(tickOnlineGame, currentGame === "online-snake" ? 240 : 35);
+          timer = setInterval(tickOnlineGame, getOnlineTickDelay(currentGame));
         } catch {
           statusEl.textContent = "Could not restart online game.";
         }
@@ -2847,11 +2866,20 @@
       }
 
       function syncOnlineState() {
-        const now = Date.now();
-        const fetchDelay = currentGame === "online-snake" ? 260 : 180;
-        const pushDelay = currentGame === "online-snake" ? 120 : 80;
+        if (document.hidden || !onlineRoomCode || !onlineState) {
+          return;
+        }
 
-        if (!onlinePushBusy && now - lastOnlinePush > pushDelay) {
+        const now = Date.now();
+        const fetchDelay = getOnlineFetchDelay();
+        const pushDelay = getOnlinePushDelay();
+        const shouldPush =
+          onlineLocalDirty ||
+          onlineFoodsDirty ||
+          onlineApplesDirty ||
+          now - lastOnlineHeartbeat > 2200;
+
+        if (shouldPush && !onlinePushBusy && now - lastOnlinePush > pushDelay) {
           lastOnlinePush = now;
           onlinePushBusy = true;
           const patch = buildOnlinePatch();
@@ -2866,6 +2894,8 @@
               if (pushedApples) {
                 onlineApplesDirty = false;
               }
+              onlineLocalDirty = false;
+              lastOnlineHeartbeat = Date.now();
             })
             .catch(() => {
               statusEl.textContent = "Online sync failed. Check Firebase rules or connection.";
@@ -2996,6 +3026,7 @@
 
         if (hitSelf) {
           player.alive = false;
+          onlineLocalDirty = true;
           statusEl.textContent = "You crashed. Press Restart to rejoin.";
           return;
         }
@@ -3013,8 +3044,10 @@
             ...onlineState.foods.filter((_, index) => index !== eatenFoodIndex)
           ]);
           onlineFoodsDirty = true;
+          onlineLocalDirty = true;
         } else {
           player.snake.pop();
+          onlineLocalDirty = true;
         }
 
         score = getPlayerTotalScore(player);
@@ -3031,6 +3064,7 @@
 
         if (catcherMove !== 0) {
           player.x = Math.max(0, Math.min(canvas.width - 96, player.x + catcherMove * 9));
+          onlineLocalDirty = true;
         }
 
         if (onlinePlayerSlot === "p1") {
@@ -3057,6 +3091,7 @@
           player.score += 1;
           onlineState.apples[caughtAppleIndex] = makeOnlineApple();
           onlineApplesDirty = true;
+          onlineLocalDirty = true;
         }
 
         score = getPlayerTotalScore(player);
@@ -3093,6 +3128,7 @@
           dx: player.dir.x,
           dy: player.dir.y
         });
+        onlineLocalDirty = true;
       }
 
       function updateOnlineTanks() {
@@ -3106,8 +3142,10 @@
 
         if (tankMove !== 0) {
           moveOnlineTank(player, 4.2);
+          onlineLocalDirty = true;
         }
 
+        const bulletCountBefore = (player.bullets || []).length;
         player.bullets = (player.bullets || [])
           .map((bullet) => ({
             ...bullet,
@@ -3116,12 +3154,17 @@
           }))
           .filter((bullet) => bullet.x > 0 && bullet.x < canvas.width && bullet.y > 0 && bullet.y < canvas.height);
 
+        if (player.bullets.length || bulletCountBefore !== player.bullets.length) {
+          onlineLocalDirty = true;
+        }
+
         if (opponent) {
           player.bullets = player.bullets.filter((bullet) => {
             const hit = Math.abs(bullet.x - opponent.x) < 22 && Math.abs(bullet.y - opponent.y) < 22;
 
             if (hit) {
               player.score = (player.score || 0) + 1;
+              onlineLocalDirty = true;
             }
 
             return !hit;
