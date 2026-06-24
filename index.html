@@ -11,6 +11,15 @@
         background: #111827;
         color: #f8fafc;
         --app-width: 620px;
+        --theme-bg-a: #052e16;
+        --theme-bg-b: #12331e;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #14b8a6;
+        --theme-accent-b: #3b82f6;
+        --theme-accent-c: #22c55e;
+        --theme-panel: rgba(5, 46, 22, 0.42);
+        --theme-border: rgba(134, 239, 172, 0.22);
+        --theme-glow: rgba(34, 197, 94, 0.22);
       }
 
       * {
@@ -32,7 +41,7 @@
         -webkit-user-select: none;
         background:
           radial-gradient(circle at top left, rgba(34, 197, 94, 0.32), transparent 32rem),
-          linear-gradient(135deg, #052e16 0%, #12331e 55%, #020617 100%);
+          linear-gradient(135deg, var(--theme-bg-a) 0%, var(--theme-bg-b) 55%, var(--theme-bg-c) 100%);
       }
 
       body::before,
@@ -66,21 +75,93 @@
       }
 
       body[data-theme="midnight"] {
+        --theme-bg-a: #052e16;
+        --theme-bg-b: #12331e;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #14b8a6;
+        --theme-accent-b: #3b82f6;
+        --theme-accent-c: #22c55e;
+        --theme-panel: rgba(5, 46, 22, 0.42);
+        --theme-border: rgba(134, 239, 172, 0.22);
+        --theme-glow: rgba(34, 197, 94, 0.22);
         background:
           radial-gradient(circle at top left, rgba(34, 197, 94, 0.32), transparent 32rem),
           linear-gradient(135deg, #052e16 0%, #12331e 55%, #020617 100%);
       }
 
       body[data-theme="forest"] {
+        --theme-bg-a: #064e3b;
+        --theme-bg-b: #14532d;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #22c55e;
+        --theme-accent-b: #14b8a6;
+        --theme-accent-c: #84cc16;
+        --theme-panel: rgba(20, 83, 45, 0.44);
+        --theme-border: rgba(187, 247, 208, 0.24);
+        --theme-glow: rgba(34, 197, 94, 0.26);
         background:
           radial-gradient(circle at top left, rgba(34, 197, 94, 0.24), transparent 32rem),
           linear-gradient(135deg, #052e16 0%, #14331f 55%, #020617 100%);
       }
 
       body[data-theme="purple"] {
+        --theme-bg-a: #1e1b4b;
+        --theme-bg-b: #312e81;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #8b5cf6;
+        --theme-accent-b: #ec4899;
+        --theme-accent-c: #22d3ee;
+        --theme-panel: rgba(49, 46, 129, 0.42);
+        --theme-border: rgba(216, 180, 254, 0.28);
+        --theme-glow: rgba(168, 85, 247, 0.28);
         background:
           radial-gradient(circle at top left, rgba(168, 85, 247, 0.26), transparent 32rem),
           linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #020617 100%);
+      }
+
+      body[data-theme="ocean"] {
+        --theme-bg-a: #082f49;
+        --theme-bg-b: #0f766e;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #06b6d4;
+        --theme-accent-b: #2563eb;
+        --theme-accent-c: #5eead4;
+        --theme-panel: rgba(8, 47, 73, 0.48);
+        --theme-border: rgba(125, 211, 252, 0.28);
+        --theme-glow: rgba(14, 165, 233, 0.28);
+        background:
+          radial-gradient(circle at top left, rgba(14, 165, 233, 0.3), transparent 32rem),
+          linear-gradient(135deg, #082f49 0%, #0f766e 55%, #020617 100%);
+      }
+
+      body[data-theme="sunset"] {
+        --theme-bg-a: #431407;
+        --theme-bg-b: #7c2d12;
+        --theme-bg-c: #111827;
+        --theme-accent-a: #f97316;
+        --theme-accent-b: #e11d48;
+        --theme-accent-c: #facc15;
+        --theme-panel: rgba(124, 45, 18, 0.42);
+        --theme-border: rgba(253, 186, 116, 0.28);
+        --theme-glow: rgba(249, 115, 22, 0.3);
+        background:
+          radial-gradient(circle at top left, rgba(249, 115, 22, 0.3), transparent 32rem),
+          linear-gradient(135deg, #431407 0%, #7c2d12 55%, #111827 100%);
+      }
+
+      body[data-theme="candy"] {
+        --theme-bg-a: #500724;
+        --theme-bg-b: #86198f;
+        --theme-bg-c: #020617;
+        --theme-accent-a: #ec4899;
+        --theme-accent-b: #8b5cf6;
+        --theme-accent-c: #f9a8d4;
+        --theme-panel: rgba(134, 25, 143, 0.4);
+        --theme-border: rgba(249, 168, 212, 0.3);
+        --theme-glow: rgba(236, 72, 153, 0.3);
+        background:
+          radial-gradient(circle at top left, rgba(236, 72, 153, 0.28), transparent 32rem),
+          linear-gradient(135deg, #500724 0%, #86198f 55%, #020617 100%);
       }
 
       main {
@@ -275,9 +356,9 @@
         background:
           linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%) 0 0 / 32px 32px,
           linear-gradient(-45deg, rgba(255, 255, 255, 0.025) 25%, transparent 25%) 0 0 / 32px 32px,
-          radial-gradient(circle at 50% 12%, rgba(94, 234, 212, 0.16), transparent 20rem),
-          radial-gradient(circle at 50% 92%, rgba(34, 197, 94, 0.18), transparent 22rem),
-          linear-gradient(180deg, #16230f 0%, #0f1b0b 42%, #060b05 100%);
+          radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--theme-accent-a) 22%, transparent), transparent 20rem),
+          radial-gradient(circle at 50% 92%, color-mix(in srgb, var(--theme-accent-c) 22%, transparent), transparent 22rem),
+          linear-gradient(180deg, var(--theme-bg-a) 0%, var(--theme-bg-b) 42%, var(--theme-bg-c) 100%);
       }
 
       .start-screen.closed {
@@ -286,20 +367,20 @@
 
       .start-panel {
         position: relative;
-        width: min(92vw, 440px);
-        max-height: 92vh;
+        width: min(94vw, 760px);
+        max-height: 94vh;
         overflow: auto;
         display: grid;
-        gap: 0.85rem;
+        gap: 1.1rem;
         text-align: center;
         image-rendering: pixelated;
-        padding: 1rem;
+        padding: 1.35rem;
         border: 2px solid rgba(134, 239, 172, 0.34);
         border-radius: 24px;
         background:
-          linear-gradient(90deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
-          linear-gradient(0deg, rgba(34, 197, 94, 0.07) 1px, transparent 1px) 0 0 / 22px 22px,
-          linear-gradient(145deg, rgba(2, 6, 23, 0.72), rgba(5, 46, 22, 0.5));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 12%, transparent) 1px, transparent 1px) 0 0 / 22px 22px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 10%, transparent) 1px, transparent 1px) 0 0 / 22px 22px,
+          linear-gradient(145deg, rgba(2, 6, 23, 0.72), var(--theme-panel));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.12),
           inset 0 0 0 1px rgba(94, 234, 212, 0.1),
@@ -309,9 +390,38 @@
         animation: menuArrive 420ms ease both;
       }
 
+      .start-panel:has(#startGamesMenu.open),
+      .start-panel:has(#startOnlineRoomMenu.open),
+      .start-panel:has(#startAdminMenu.open) {
+        width: min(96vw, 1180px);
+      }
+
+      #startAdminMenu,
+      #startAdminPanelMount {
+        width: 100%;
+        min-width: 0;
+      }
+
+      #startAdminPanelMount .admin-panel {
+        position: static;
+        width: 100%;
+        max-width: none;
+        max-height: none;
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .start-panel:has(#startGamesMenu.open) h2,
+      .start-panel:has(#startOnlineRoomMenu.open) h2 {
+        font-size: clamp(3.1rem, 6.4vw, 5.9rem);
+        max-width: 100%;
+        overflow-wrap: normal;
+      }
+
       .start-panel::before,
       .start-panel::after {
         content: "";
+        display: none;
         position: absolute;
         width: 84px;
         height: 84px;
@@ -338,7 +448,7 @@
       .start-panel h2 {
         margin: 0;
         font-family: Impact, Arial Black, Arial, sans-serif;
-        font-size: clamp(2.8rem, 13vw, 5rem);
+        font-size: clamp(4rem, 9vw, 7.2rem);
         line-height: 1;
         color: #f8fafc;
         filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.18));
@@ -352,7 +462,7 @@
 
       .start-splash {
         color: #ffff55;
-        font-size: 1.05rem;
+        font-size: 1.35rem;
         font-weight: 900;
         transform: rotate(-8deg);
         text-shadow: 2px 2px 0 #000;
@@ -360,17 +470,18 @@
       }
 
       .start-panel p {
-        min-height: 1.3rem;
+        min-height: 1.55rem;
         margin: 0;
         color: #ffff55;
-        font-weight: 800;
+        font-size: 1.08rem;
+        font-weight: 900;
         text-shadow: 2px 2px 0 #000;
       }
 
       #startStatus {
         justify-self: center;
-        min-width: min(100%, 260px);
-        padding: 0.35rem 0.75rem;
+        min-width: min(100%, 360px);
+        padding: 0.5rem 1rem;
         border: 1px solid rgba(250, 204, 21, 0.38);
         border-radius: 999px;
         background:
@@ -402,8 +513,8 @@
       .start-actions {
         display: none;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.7rem;
-        padding: 0.65rem;
+        gap: 0.95rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.16);
         border-radius: 22px;
         background:
@@ -416,8 +527,8 @@
 
       .start-submenu {
         display: none;
-        gap: 0.7rem;
-        padding: 0.65rem;
+        gap: 0.9rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.18);
         border-radius: 22px;
         background:
@@ -435,6 +546,7 @@
 
       .start-submenu h3 {
         margin: 0.2rem 0 0;
+        font-size: 1.35rem;
         color: #ecfeff;
         text-shadow: 2px 2px 0 #000;
         text-transform: uppercase;
@@ -460,11 +572,14 @@
       .start-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
+        gap: 1rem;
       }
 
       .start-submenu input,
       .start-submenu select {
+        min-height: 56px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
         border-color: rgba(134, 239, 172, 0.32);
         border-radius: 16px;
         background:
@@ -473,6 +588,39 @@
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
           0 10px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .settings-slider-label {
+        display: grid;
+        gap: 0.45rem;
+        color: #d1fae5;
+        font-weight: 900;
+        text-shadow: 1px 1px 0 #000;
+      }
+
+      .settings-slider-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        min-height: 44px;
+        padding: 0;
+        accent-color: #22d3ee;
+        cursor: pointer;
+      }
+
+      .start-submenu input[type="range"] {
+        min-height: 44px;
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      .custom-music-field {
+        grid-column: 1 / -1;
       }
 
       input:focus,
@@ -488,9 +636,9 @@
 
       .start-showcase {
         display: grid;
-        grid-template-columns: 7rem 1fr;
-        gap: 0.65rem;
-        padding: 0.75rem;
+        grid-template-columns: 10rem 1fr;
+        gap: 1rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.46);
         border-radius: 18px;
         background:
@@ -502,7 +650,7 @@
       }
 
       .showcase-thumb {
-        min-height: 7rem;
+        min-height: 10rem;
         display: grid;
         place-items: center;
         overflow: hidden;
@@ -528,15 +676,15 @@
       }
 
       .showcase-icon {
-        width: 4.4rem;
-        height: 4.4rem;
+        width: 6rem;
+        height: 6rem;
         display: grid;
         place-items: center;
         border-radius: 24px;
         background: rgba(2, 6, 23, 0.62);
         color: #ecfeff;
         font-family: Impact, Arial Black, Arial, sans-serif;
-        font-size: 1.45rem;
+        font-size: 1.9rem;
         letter-spacing: 0;
         text-shadow: 2px 2px 0 #000;
         box-shadow: 0 0 22px rgba(94, 234, 212, 0.28);
@@ -549,7 +697,7 @@
 
       .showcase-copy strong {
         color: #ecfeff;
-        font-size: 1.15rem;
+        font-size: 1.55rem;
         text-transform: uppercase;
         text-shadow: 2px 2px 0 #000;
       }
@@ -558,10 +706,316 @@
       .showcase-copy p {
         margin: 0;
         color: #d1fae5;
-        font-size: 0.9rem;
+        font-size: 1.05rem;
         font-weight: 800;
         line-height: 1.25;
         text-shadow: 1px 1px 0 #000;
+      }
+
+      #startGamesMenu {
+        width: 100%;
+      }
+
+      #startGamesMenu .start-showcase {
+        grid-template-columns: minmax(13rem, 18rem) 1fr;
+        align-items: center;
+        min-height: 17rem;
+        padding: 1.25rem;
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(191, 219, 254, 0.82) 0%, rgba(15, 23, 42, 0.9) 42%, rgba(2, 6, 23, 0.92) 100%);
+      }
+
+      #startGamesMenu .showcase-thumb {
+        min-height: 13rem;
+        aspect-ratio: 1;
+        border-radius: 12px;
+        background-size: cover;
+      }
+
+      #startGamesMenu .showcase-copy {
+        align-content: center;
+        gap: 0.75rem;
+      }
+
+      #startGamesMenu .showcase-copy strong {
+        font-size: clamp(1.7rem, 4vw, 2.45rem);
+        text-transform: none;
+      }
+
+      #startGamesMenu .showcase-copy span {
+        width: fit-content;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #f8fafc;
+      }
+
+      #startGamesMenu .showcase-copy p:last-child {
+        width: min(100%, 18rem);
+        min-height: 3.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: #315efb;
+        color: #ffffff;
+        font-size: 0;
+        box-shadow: 0 10px 26px rgba(49, 94, 251, 0.32);
+      }
+
+      #startGamesMenu .showcase-copy p:last-child::after {
+        content: "▶";
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      #startGamesMenu .showcase-copy p:last-child::after {
+        content: "PLAY";
+        font-size: 1.15rem;
+      }
+
+      .game-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        min-height: 15.5rem;
+        display: grid;
+        align-content: start;
+        gap: 0.45rem;
+        padding: 0;
+        border: 0;
+        border-radius: 10px;
+        background: #111318;
+        color: #f8fafc;
+        box-shadow: none;
+        text-align: left;
+        text-transform: none;
+        overflow: hidden;
+      }
+
+      .game-card-grid button[data-start-game]::before,
+      .game-card-grid button[data-start-online-game]::before {
+        display: none;
+      }
+
+      .game-card-grid button:hover,
+      .game-card-grid button.selected {
+        transform: translateY(-4px);
+        outline: 3px solid #315efb;
+        outline-offset: 3px;
+        filter: none;
+      }
+
+      .game-thumb {
+        position: relative;
+        min-height: 9.3rem;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-radius: 8px;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .game-thumb::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.32), transparent 6rem),
+          linear-gradient(180deg, transparent 54%, rgba(0, 0, 0, 0.42));
+      }
+
+      .game-thumb::after {
+        content: "▶";
+        position: absolute;
+        inset: auto 1rem 1rem auto;
+        width: 3.2rem;
+        height: 3.2rem;
+        display: grid;
+        place-items: center;
+        border-radius: 8px;
+        background: #315efb;
+        color: #fff;
+        font-size: 1.6rem;
+        opacity: 0;
+        transform: translateY(0.5rem);
+        transition: opacity 140ms ease, transform 140ms ease;
+      }
+
+      .game-card-grid button:hover .game-thumb::after,
+      .game-card-grid button.selected .game-thumb::after {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .game-icon-large {
+        position: relative;
+        z-index: 1;
+        padding: 0.35rem 0.6rem;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.36);
+        font-family: Impact, Arial Black, Arial, sans-serif;
+        font-size: 2rem;
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+      }
+
+      .game-card-title,
+      .game-card-meta {
+        padding: 0 0.2rem;
+      }
+
+      .game-card-title {
+        font-size: 1rem;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .game-card-meta {
+        color: #d1d5db;
+        font-size: 0.88rem;
+        font-weight: 800;
+      }
+
+      #startGamesMenu .showcase-copy p:last-child {
+        width: auto;
+        min-height: 0;
+        display: block;
+        color: #cbd5e1;
+        font-size: 1rem;
+        background: transparent;
+        box-shadow: none;
+      }
+
+      #startGamesMenu .showcase-copy p:last-child::after,
+      .game-thumb::after {
+        display: none;
+      }
+
+      .game-card-meta {
+        display: none;
+      }
+
+      .game-card-play {
+        width: calc(100% - 1rem);
+        min-height: 2.9rem;
+        display: grid;
+        place-items: center;
+        justify-self: center;
+        margin: 0.25rem 0 0.7rem;
+        border-radius: 10px;
+        background: #315efb;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 1000;
+        letter-spacing: 0;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.22),
+          0 10px 22px rgba(49, 94, 251, 0.24);
+      }
+
+      .game-card-play::before {
+        content: "PLAY";
+      }
+
+      .online-room-panel {
+        display: none;
+        grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 0.9fr);
+        gap: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(253, 186, 116, 0.46);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at top right, rgba(249, 115, 22, 0.22), transparent 16rem),
+          linear-gradient(145deg, rgba(69, 26, 3, 0.84), rgba(15, 23, 42, 0.64));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 18px 42px rgba(0, 0, 0, 0.28);
+      }
+
+      #startOnlineRoomMenu .online-room-panel {
+        display: grid;
+      }
+
+      .online-room-panel h3 {
+        grid-column: 1 / -1;
+        margin: 0;
+      }
+
+      .online-room-controls,
+      .online-room-lobby {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .online-room-controls .start-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .online-room-lobby .admin-rooms {
+        max-height: 16rem;
+        min-height: 8rem;
+      }
+
+      .game-thumb[data-game="snake"],
+      .showcase-thumb[data-game="snake"] {
+        background:
+          radial-gradient(circle at 78% 28%, #facc15 0 14px, transparent 15px),
+          linear-gradient(90deg, rgba(34, 197, 94, 0.96) 0 12%, transparent 12%),
+          linear-gradient(90deg, rgba(34, 197, 94, 0.78) 0 42%, transparent 42%),
+          linear-gradient(135deg, #22c55e, #67e8f9);
+      }
+
+      .game-thumb[data-game="catcher"],
+      .showcase-thumb[data-game="catcher"] {
+        background:
+          radial-gradient(circle at 52% 28%, #ef4444 0 18px, transparent 19px),
+          linear-gradient(180deg, #38bdf8 0 52%, #22c55e 52% 100%);
+      }
+
+      .game-thumb[data-game="dodger"],
+      .showcase-thumb[data-game="dodger"] {
+        background:
+          radial-gradient(circle at 70% 35%, #facc15 0 18px, transparent 19px),
+          radial-gradient(circle at 30% 70%, #ef4444 0 22px, transparent 23px),
+          linear-gradient(135deg, #020617, #172554);
+      }
+
+      .game-thumb[data-game="solo-pong"],
+      .showcase-thumb[data-game="solo-pong"] {
+        background:
+          repeating-linear-gradient(90deg, #22c55e 0 16px, #2e1065 16px 23px),
+          linear-gradient(180deg, #581c87, #111827);
+      }
+
+      .game-thumb[data-game="coin-rush"],
+      .showcase-thumb[data-game="coin-rush"] {
+        background:
+          radial-gradient(circle at 28% 42%, #facc15 0 20px, transparent 21px),
+          radial-gradient(circle at 68% 58%, #fde047 0 24px, transparent 25px),
+          linear-gradient(135deg, #0ea5e9, #16a34a);
+      }
+
+      .game-thumb[data-game="laser-dodge"],
+      .showcase-thumb[data-game="laser-dodge"] {
+        background:
+          linear-gradient(110deg, transparent 0 38%, #ef4444 39% 44%, transparent 45%),
+          linear-gradient(20deg, transparent 0 52%, #22d3ee 53% 58%, transparent 59%),
+          linear-gradient(135deg, #0f172a, #7f1d1d);
+      }
+
+      .game-thumb[data-game^="online"],
+      .showcase-thumb[data-game^="online"] {
+        background:
+          radial-gradient(circle at 28% 38%, #8b5cf6 0 22px, transparent 23px),
+          radial-gradient(circle at 72% 56%, #3b82f6 0 22px, transparent 23px),
+          linear-gradient(135deg, #1e1b4b, #020617);
       }
 
       .start-submenu input,
@@ -583,7 +1037,9 @@
 
       .start-actions button,
       .start-submenu button {
-        min-height: 54px;
+        min-height: 68px;
+        padding: 0.85rem 1.15rem;
+        font-size: 1.08rem;
         border: 1px solid rgba(94, 234, 212, 0.7);
         border-radius: 999px;
         background:
@@ -658,6 +1114,10 @@
         background: linear-gradient(135deg, rgba(34, 197, 94, 0.96), rgba(20, 184, 166, 0.86));
       }
 
+      #startPlayButton {
+        display: none;
+      }
+
       #startSettingsButton {
         background: linear-gradient(135deg, rgba(20, 184, 166, 0.96), rgba(14, 165, 233, 0.86));
       }
@@ -669,11 +1129,15 @@
       #startBackFromGames,
       #startBackFromProfile,
       #startBackFromShop,
+      #startBackFromPremium,
+      #startBackFromDonate,
+      #startBackFromBattlePass,
+      #startBackFromLeaderboard,
       #startBackFromQuests,
       #startBackFromSocial,
       #startBackFromSettings,
       #startBackFromAccount {
-        min-height: 44px;
+        min-height: 56px;
         background:
           linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(22, 101, 52, 0.76));
       }
@@ -703,6 +1167,78 @@
           inset 0 1px 0 rgba(243, 232, 255, 0.32),
           0 10px 24px rgba(88, 28, 135, 0.38),
           0 0 24px rgba(168, 85, 247, 0.28);
+      }
+
+      body main,
+      body .start-panel,
+      body .game,
+      body header,
+      body .start-actions,
+      body .start-submenu,
+      body .account-bar,
+      body .admin-panel,
+      body .profile-card,
+      body .shop-item,
+      body .quest-card,
+      body .social-card,
+      body .admin-user-card,
+      body .admin-room-card {
+        border-color: var(--theme-border);
+        background:
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 12%, transparent) 1px, transparent 1px) 0 0 / 22px 22px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 10%, transparent) 1px, transparent 1px) 0 0 / 22px 22px,
+          linear-gradient(145deg, rgba(2, 6, 23, 0.62), var(--theme-panel));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          0 18px 44px rgba(0, 0, 0, 0.24),
+          0 0 34px var(--theme-glow);
+      }
+
+      body button,
+      body .start-actions button,
+      body .start-submenu button,
+      body .controls button,
+      body .pad button {
+        border-color: color-mix(in srgb, var(--theme-accent-c) 72%, white 10%);
+        background: linear-gradient(135deg, var(--theme-accent-a), var(--theme-accent-b));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.32),
+          inset 0 -4px 0 rgba(2, 6, 23, 0.2),
+          0 10px 24px color-mix(in srgb, var(--theme-accent-b) 30%, transparent),
+          0 0 22px color-mix(in srgb, var(--theme-accent-a) 26%, transparent);
+      }
+
+      body button.selected,
+      body #startPlayButton,
+      body #pause {
+        border-color: color-mix(in srgb, var(--theme-accent-c) 82%, white 18%);
+        background: linear-gradient(135deg, var(--theme-accent-c), var(--theme-accent-a));
+      }
+
+      body #startCreateRoomButton,
+      body #startJoinRoomButton {
+        background: linear-gradient(135deg, var(--theme-accent-b), var(--theme-accent-a));
+      }
+
+      #startQuestsMenu h3::before,
+      #startQuestsMenu h3::after {
+        display: none;
+      }
+
+      #startQuestsMenu .shop-list {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+
+      #startQuestsMenu .quest-card {
+        border-color: transparent;
+        background:
+          radial-gradient(circle at top left, color-mix(in srgb, var(--theme-accent-a) 16%, transparent), transparent 12rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.64), color-mix(in srgb, var(--theme-panel) 88%, transparent));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 12px 28px rgba(0, 0, 0, 0.18);
       }
 
       @keyframes loadingSlide {
@@ -1064,6 +1600,11 @@
         padding: 0.45rem 0.75rem;
       }
 
+      .account-bar #phoneModeButton,
+      .account-bar #logoutButton {
+        display: none;
+      }
+
       #adminToggleButton {
         background: linear-gradient(135deg, rgba(126, 34, 206, 0.94), rgba(37, 99, 235, 0.84));
         border-color: rgba(216, 180, 254, 0.72);
@@ -1178,10 +1719,10 @@
       }
 
       .admin-users {
-        max-height: 16rem;
+        max-height: 22rem;
         overflow: auto;
         display: grid;
-        gap: 0.55rem;
+        gap: 0.8rem;
         color: #f8fafc;
         font-weight: 700;
         padding-right: 0.35rem;
@@ -1221,10 +1762,10 @@
       }
 
       .admin-rooms {
-        max-height: 12rem;
+        max-height: 17rem;
         overflow: auto;
         display: grid;
-        gap: 0.55rem;
+        gap: 0.8rem;
         padding-right: 0.35rem;
         scrollbar-width: thin;
         scrollbar-color: #a78bfa rgba(2, 6, 23, 0.52);
@@ -1249,8 +1790,8 @@
 
       .admin-user-card {
         display: grid;
-        gap: 0.55rem;
-        padding: 0.75rem;
+        gap: 0.75rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.2);
         border-radius: 16px;
         background:
@@ -1280,6 +1821,7 @@
       .admin-user-name {
         color: #ecfeff;
         font-weight: 900;
+        font-size: 1.1rem;
         overflow-wrap: anywhere;
       }
 
@@ -1294,19 +1836,19 @@
 
       .admin-user-meta {
         color: #cbd5e1;
-        font-size: 0.9rem;
+        font-size: 1rem;
       }
 
       .admin-user-actions {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
+        gap: 0.65rem;
       }
 
       .admin-room-card {
         display: grid;
-        gap: 0.55rem;
-        padding: 0.75rem;
+        gap: 0.75rem;
+        padding: 1rem;
         border: 1px solid rgba(196, 181, 253, 0.24);
         border-radius: 16px;
         background:
@@ -1321,7 +1863,7 @@
       .profile-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.65rem;
+        gap: 0.9rem;
       }
 
       .profile-card,
@@ -1329,24 +1871,26 @@
       .quest-card,
       .chat-message {
         display: grid;
-        gap: 0.35rem;
-        padding: 0.75rem;
+        gap: 0.5rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.2);
         border-radius: 16px;
         background:
           linear-gradient(145deg, rgba(2, 6, 23, 0.62), rgba(20, 83, 45, 0.28));
         color: #ecfeff;
+        font-size: 1rem;
         font-weight: 800;
       }
 
       .empty-card,
       .social-card {
-        padding: 0.75rem;
+        padding: 1rem;
         border: 1px solid rgba(134, 239, 172, 0.18);
         border-radius: 16px;
         background:
           linear-gradient(145deg, rgba(2, 6, 23, 0.54), rgba(20, 83, 45, 0.2));
         color: #d1fae5;
+        font-size: 1rem;
         font-weight: 800;
         text-align: center;
         box-shadow:
@@ -1373,16 +1917,58 @@
           linear-gradient(145deg, rgba(30, 27, 75, 0.62), rgba(5, 46, 22, 0.28));
       }
 
+      #startPremiumMenu {
+        align-content: start;
+      }
+
+      #startPremiumMenu .premium-showcase {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        padding: 1.25rem;
+        text-align: center;
+      }
+
+      #startPremiumMenu .premium-showcase .showcase-copy {
+        justify-items: center;
+      }
+
+      #startPremiumMenu .premium-showcase strong {
+        font-size: 1.75rem;
+      }
+
+      #startPremiumMenu .premium-showcase span,
+      #startPremiumMenu .premium-showcase p {
+        max-width: 42rem;
+        font-size: 1.08rem;
+        line-height: 1.35;
+      }
+
+      #startPremiumMenu .shop-list {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+
+      #startShopMenu {
+        align-content: start;
+      }
+
+      #startShopMenu .shop-list {
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+
       .donate-card {
         display: grid;
         grid-template-columns: 1fr auto;
         align-items: center;
-        gap: 0.75rem;
+        gap: 1rem;
       }
 
       .donate-price {
-        min-width: 4rem;
-        padding: 0.45rem 0.7rem;
+        min-width: 5rem;
+        padding: 0.6rem 0.85rem;
         border-radius: 999px;
         background: linear-gradient(135deg, #facc15, #f97316);
         color: #111827;
@@ -1399,8 +1985,8 @@
       .battle-pass-board {
         overflow-x: auto;
         display: grid;
-        gap: 0.85rem;
-        padding: 0.85rem;
+        gap: 1rem;
+        padding: 1rem;
         border: 2px solid rgba(216, 180, 254, 0.38);
         border-radius: 22px;
         background:
@@ -1669,6 +2255,54 @@
         background: linear-gradient(135deg, rgba(239, 68, 68, 0.92), rgba(190, 18, 60, 0.78));
       }
 
+      .confirm-menu {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: none;
+        place-items: center;
+        padding: 1rem;
+        background: rgba(2, 6, 23, 0.82);
+        backdrop-filter: blur(6px);
+      }
+
+      .confirm-menu.open {
+        display: grid;
+      }
+
+      .confirm-panel {
+        width: min(90vw, 420px);
+        display: grid;
+        gap: 1rem;
+        padding: 1.2rem;
+        border: 1px solid var(--theme-border);
+        border-radius: 22px;
+        background:
+          radial-gradient(circle at top left, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 11rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.94), var(--theme-panel));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 24px 70px rgba(0, 0, 0, 0.48),
+          0 0 36px var(--theme-glow);
+        text-align: center;
+      }
+
+      .confirm-panel h2,
+      .confirm-panel p {
+        margin: 0;
+      }
+
+      .confirm-panel p {
+        color: #d1fae5;
+        font-weight: 900;
+      }
+
+      .confirm-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+
       .admin-points {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -1722,10 +2356,15 @@
           padding: 0.55rem;
           align-content: start;
           background:
-            linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px) 0 0 / 24px 24px,
-            linear-gradient(0deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
-            radial-gradient(circle at 50% 16%, rgba(94, 234, 212, 0.12), transparent 14rem),
-            linear-gradient(145deg, rgba(2, 6, 23, 0.92), rgba(5, 46, 22, 0.82));
+            linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 14%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+            linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 12%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+            radial-gradient(circle at 50% 16%, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 14rem),
+            linear-gradient(145deg, rgba(2, 6, 23, 0.92), var(--theme-panel));
+        }
+
+        .start-panel:has(#startGamesMenu.open),
+        .start-panel:has(#startOnlineRoomMenu.open) {
+          width: 100vw;
         }
 
         .start-panel h2 {
@@ -1766,6 +2405,43 @@
 
         .start-submenu h3 {
           font-size: 0.9rem;
+        }
+
+        #startGamesMenu .start-showcase {
+          grid-template-columns: 1fr;
+          min-height: 0;
+        }
+
+        #startGamesMenu .showcase-thumb {
+          min-height: 9rem;
+          aspect-ratio: 16 / 9;
+        }
+
+        .game-card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.65rem;
+        }
+
+        .game-card-grid button[data-start-game],
+        .game-card-grid button[data-start-online-game] {
+          min-height: 11rem;
+        }
+
+        .game-thumb {
+          min-height: 6.4rem;
+        }
+
+        .game-card-title {
+          font-size: 0.8rem;
+        }
+
+        .game-card-meta {
+          font-size: 0.7rem;
+        }
+
+        .online-room-panel {
+          grid-template-columns: 1fr;
+          padding: 0.75rem;
         }
 
         .start-submenu input,
@@ -1893,7 +2569,7 @@
         }
       }
 
-      @media (max-width: 950px) and (orientation: landscape) {
+      @media (max-width: 0px) and (orientation: landscape) {
         body {
           min-height: 100dvh;
           place-items: stretch;
@@ -1915,10 +2591,10 @@
           padding: 0.5rem;
           align-content: start;
           background:
-            linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px) 0 0 / 24px 24px,
-            linear-gradient(0deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
-            radial-gradient(circle at 50% 16%, rgba(94, 234, 212, 0.12), transparent 14rem),
-            linear-gradient(145deg, rgba(2, 6, 23, 0.92), rgba(5, 46, 22, 0.82));
+            linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 14%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+            linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 12%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+            radial-gradient(circle at 50% 16%, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 14rem),
+            linear-gradient(145deg, rgba(2, 6, 23, 0.92), var(--theme-panel));
         }
 
         .start-panel h2 {
@@ -2188,10 +2864,10 @@
         padding: 0.85rem;
         align-content: start;
         background:
-          linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px) 0 0 / 24px 24px,
-          linear-gradient(0deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
-          radial-gradient(circle at 50% 16%, rgba(94, 234, 212, 0.12), transparent 14rem),
-          linear-gradient(145deg, rgba(2, 6, 23, 0.92), rgba(5, 46, 22, 0.82));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 14%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 12%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          radial-gradient(circle at 50% 16%, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 14rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.92), var(--theme-panel));
       }
 
       body.phone-preview-mode .start-panel h2 {
@@ -2236,10 +2912,10 @@
         padding: 0.55rem;
         align-content: start;
         background:
-          linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px) 0 0 / 24px 24px,
-          linear-gradient(0deg, rgba(34, 197, 94, 0.08) 1px, transparent 1px) 0 0 / 24px 24px,
-          radial-gradient(circle at 50% 16%, rgba(94, 234, 212, 0.12), transparent 14rem),
-          linear-gradient(145deg, rgba(2, 6, 23, 0.92), rgba(5, 46, 22, 0.82));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 14%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 12%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          radial-gradient(circle at 50% 16%, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 14rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.92), var(--theme-panel));
       }
 
       body.phone-device-mode .start-actions {
@@ -2446,7 +3122,7 @@
         overflow: auto;
       }
 
-      @media (max-width: 950px) and (orientation: landscape) {
+      @media (max-width: 0px) and (orientation: landscape) {
         body.phone-device-mode main {
           grid-template-columns: minmax(0, 1fr);
           grid-template-rows: auto minmax(0, 1fr);
@@ -2526,7 +3202,7 @@
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
-      <div class="start-panel">
+      <div class="start-panel" id="startPanel">
         <h2>Sigma Studio</h2>
         <div class="start-splash">Danya editor!</div>
         <p id="startStatus">Loading...</p>
@@ -2546,6 +3222,7 @@
           <button type="button" id="startSocialButton">Social</button>
           <button type="button" id="startSettingsButton">Settings</button>
           <button type="button" id="startAccountButton">Account</button>
+          <button type="button" id="startAdminButton" hidden>Admin Panel</button>
         </div>
         <div class="start-submenu" id="startGamesMenu" aria-label="Main menu games">
           <button type="button" id="startBackFromGames">Back</button>
@@ -2561,32 +3238,46 @@
             </div>
           </div>
           <h3>Games</h3>
-          <button type="button" class="selected" data-start-game="snake">Snake Classic</button>
-          <button type="button" data-start-game="catcher">Apple Catcher</button>
-          <button type="button" data-start-game="dodger">Gem Runner</button>
-          <button type="button" data-start-game="solo-pong">Brick Pong</button>
-          <button type="button" data-start-game="coin-rush">Coin Rush</button>
-          <button type="button" data-start-game="laser-dodge">Laser Dodge</button>
-          <h3>Online</h3>
-          <button type="button" data-start-online-game="online-snake">Online Snake</button>
-          <button type="button" data-start-online-game="online-tanks">Online Tanks</button>
-          <button type="button" data-start-online-game="online-pong">Online Pong</button>
-          <button type="button" data-start-online-game="online-tag">Online Tag</button>
-          <button type="button" data-start-online-game="online-soccer">Online Soccer</button>
-          <button type="button" data-start-online-game="online-maze">Online Maze Race</button>
-          <button type="button" data-start-online-game="online-battle">Online Battle Arena</button>
-          <div class="start-grid">
-            <button type="button" id="startCreateRoomButton">Create Room</button>
-            <button type="button" id="startJoinRoomButton">Join Room</button>
+          <div class="game-card-grid">
+            <button type="button" class="selected" data-start-game="snake">Snake Classic</button>
+            <button type="button" data-start-game="catcher">Apple Catcher</button>
+            <button type="button" data-start-game="dodger">Gem Runner</button>
+            <button type="button" data-start-game="solo-pong">Brick Pong</button>
+            <button type="button" data-start-game="coin-rush">Coin Rush</button>
+            <button type="button" data-start-game="laser-dodge">Laser Dodge</button>
           </div>
-          <select id="startRoomVisibilitySelect" aria-label="Room visibility">
-            <option value="public">Public Room</option>
-            <option value="private">Private Room</option>
-          </select>
-          <input id="startRoomCodeInput" type="text" maxlength="8" placeholder="Room code">
-          <button type="button" id="refreshLobbyButton">Refresh Public Rooms</button>
-          <div class="admin-rooms" id="publicRoomsList" aria-label="Public rooms list"></div>
-          <p class="room-note" id="startRoomNote"></p>
+          <h3>Online</h3>
+          <div class="game-card-grid">
+            <button type="button" data-start-online-game="online-snake">Online Snake</button>
+            <button type="button" data-start-online-game="online-tanks">Online Tanks</button>
+            <button type="button" data-start-online-game="online-pong">Online Pong</button>
+            <button type="button" data-start-online-game="online-tag">Online Tag</button>
+            <button type="button" data-start-online-game="online-soccer">Online Soccer</button>
+            <button type="button" data-start-online-game="online-maze">Online Maze Race</button>
+            <button type="button" data-start-online-game="online-battle">Online Battle Arena</button>
+          </div>
+        </div>
+        <div class="start-submenu" id="startOnlineRoomMenu" aria-label="Online room menu">
+          <button type="button" id="startBackFromOnlineRoom">Back</button>
+          <div class="online-room-panel" id="onlineRoomPanel">
+            <h3>Online Room</h3>
+            <div class="online-room-controls">
+              <div class="start-grid">
+                <button type="button" id="startCreateRoomButton">Create Room</button>
+                <button type="button" id="startJoinRoomButton">Join Room</button>
+              </div>
+              <select id="startRoomVisibilitySelect" aria-label="Room visibility">
+                <option value="public">Public Room</option>
+                <option value="private">Private Room</option>
+              </select>
+              <input id="startRoomCodeInput" type="text" maxlength="8" placeholder="Room code">
+              <p class="room-note" id="startRoomNote"></p>
+            </div>
+            <div class="online-room-lobby">
+              <button type="button" id="refreshLobbyButton">Refresh Public Rooms</button>
+              <div class="admin-rooms" id="publicRoomsList" aria-label="Public rooms list"></div>
+            </div>
+          </div>
         </div>
         <div class="start-submenu" id="startProfileMenu" aria-label="Profile">
           <button type="button" id="startBackFromProfile">Back</button>
@@ -2663,14 +3354,17 @@
         <div class="start-submenu" id="startSettingsMenu" aria-label="Main menu settings">
           <h3>Settings</h3>
           <div class="start-grid">
-            <select id="startSoundSelect" aria-label="Sound">
-              <option value="on">Sound On</option>
-              <option value="off">Sound Off</option>
-            </select>
+            <label class="settings-slider-label">
+              <span class="settings-slider-title">Volume <span id="startSoundValue">70%</span></span>
+              <input id="startSoundSelect" type="range" min="0" max="100" value="70" aria-label="Volume">
+            </label>
             <select id="startThemeSelect" aria-label="Theme">
               <option value="midnight">Midnight</option>
               <option value="forest">Forest</option>
               <option value="purple">Purple</option>
+              <option value="ocean">Ocean</option>
+              <option value="sunset">Sunset</option>
+              <option value="candy">Candy</option>
             </select>
             <select id="startFieldSizeSelect" aria-label="Field size">
               <option value="normal">Normal Field</option>
@@ -2687,7 +3381,9 @@
               <option value="round">Round Skin</option>
               <option value="neon">Neon Skin</option>
               <option value="block">Block Skin</option>
+              <option value="glass">Glass Skin</option>
               <option value="sigma">Sigma Skin</option>
+              <option value="royal">Royal Skin</option>
             </select>
             <select id="startColorSelect" aria-label="Color">
               <option value="teal">Teal</option>
@@ -2697,7 +3393,24 @@
               <option value="pink">Pink</option>
               <option value="orange">Orange</option>
               <option value="gold">Gold</option>
+              <option value="lime">Lime</option>
+              <option value="cyan">Cyan</option>
+              <option value="ruby">Ruby</option>
+              <option value="ice">Ice</option>
             </select>
+            <select id="startMusicSelect" aria-label="Music pack">
+              <option value="">Standard Music</option>
+              <option value="retro">Retro Music</option>
+              <option value="chiptune">Chiptune Music</option>
+              <option value="premium">Premium Music</option>
+              <option value="boss">Boss Music</option>
+            </select>
+            <input class="custom-music-field" id="startCustomMusicUrlInput" type="url" maxlength="300" placeholder="Music URL: MP3/OGG/WAV, YouTube Music or Spotify">
+            <select class="custom-music-field" id="startCustomMusicListSelect" aria-label="Saved music list">
+              <option value="">Saved music list</option>
+            </select>
+            <button type="button" id="startSaveCustomMusicButton">Save Music</button>
+            <button type="button" id="startDeleteCustomMusicButton">Delete Music</button>
           </div>
           <button type="button" id="startResetRecordButton">Reset Record</button>
           <p class="room-note" id="startSettingsMessage"></p>
@@ -2718,6 +3431,10 @@
           <p class="room-note" id="startAccountMessage"></p>
           <button type="button" id="startBackFromAccount">Back</button>
         </div>
+        <div class="start-submenu" id="startAdminMenu" aria-label="Main menu admin panel">
+          <button type="button" id="startBackFromAdmin">Back</button>
+          <div id="startAdminPanelMount"></div>
+        </div>
       </div>
     </div>
 
@@ -2731,6 +3448,7 @@
         </div>
       </div>
 
+      <div id="adminPanelHome"></div>
       <section class="admin-panel" id="adminPanel" aria-label="Admin panel">
         <h2>Admin Panel</h2>
         <div class="admin-stats">
@@ -2757,6 +3475,10 @@
         <div class="admin-users" id="adminUsersList" aria-label="Admin users list"></div>
         <h3 class="admin-section-title">Rooms</h3>
         <div class="admin-rooms" id="adminRoomsList" aria-label="Admin rooms list"></div>
+        <h3 class="admin-section-title">Banned IPs</h3>
+        <div class="admin-rooms" id="adminIpBansList" aria-label="Admin banned IP list"></div>
+        <h3 class="admin-section-title">Music Moderation</h3>
+        <div class="admin-rooms" id="adminMusicList" aria-label="Music moderation list"></div>
         <p class="room-note" id="adminMessage"></p>
       </section>
 
@@ -2821,11 +3543,8 @@
         <div class="game-list" id="settingsMenu" aria-label="Settings">
           <div class="settings-controls">
             <label>
-              Sound
-              <select id="soundSelect">
-                <option value="on">On</option>
-                <option value="off">Off</option>
-              </select>
+              <span class="settings-slider-title">Volume <span id="soundValue">70%</span></span>
+              <input id="soundSelect" type="range" min="0" max="100" value="70" aria-label="Volume">
             </label>
             <label>
               Theme
@@ -2833,6 +3552,9 @@
                 <option value="midnight">Midnight</option>
                 <option value="forest">Forest</option>
                 <option value="purple">Purple</option>
+                <option value="ocean">Ocean</option>
+                <option value="sunset">Sunset</option>
+                <option value="candy">Candy</option>
               </select>
             </label>
             <label>
@@ -2858,7 +3580,9 @@
                 <option value="round">Round</option>
                 <option value="neon">Neon</option>
                 <option value="block">Block</option>
+                <option value="glass">Glass</option>
                 <option value="sigma">Sigma</option>
+                <option value="royal">Royal</option>
               </select>
             </label>
             <label>
@@ -2871,8 +3595,34 @@
                 <option value="pink">Pink</option>
                 <option value="orange">Orange</option>
                 <option value="gold">Gold</option>
+                <option value="lime">Lime</option>
+                <option value="cyan">Cyan</option>
+                <option value="ruby">Ruby</option>
+                <option value="ice">Ice</option>
               </select>
             </label>
+            <label>
+              Music
+              <select id="musicSelect">
+                <option value="">Standard</option>
+                <option value="retro">Retro</option>
+                <option value="chiptune">Chiptune</option>
+                <option value="premium">Premium</option>
+                <option value="boss">Boss</option>
+              </select>
+            </label>
+            <label class="custom-music-field">
+              Music URL
+              <input id="customMusicUrlInput" type="url" maxlength="300" placeholder="MP3/OGG/WAV, YouTube Music or Spotify">
+            </label>
+            <label class="custom-music-field">
+              Saved Music
+              <select id="customMusicListSelect" aria-label="Saved music list">
+                <option value="">Saved music list</option>
+              </select>
+            </label>
+            <button type="button" id="saveCustomMusicButton">Save Music</button>
+            <button type="button" id="deleteCustomMusicButton">Delete Music</button>
           </div>
           <div class="settings-actions">
             <button type="button" id="resetRecordButton">Reset Record</button>
@@ -2934,6 +3684,17 @@
       </div>
     </div>
 
+    <div class="confirm-menu" id="confirmMenu" aria-hidden="true">
+      <div class="confirm-panel" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle">Are you sure?</h2>
+        <p id="confirmMessage">Confirm action?</p>
+        <div class="confirm-actions">
+          <button type="button" id="confirmYesButton">Yes</button>
+          <button type="button" id="confirmNahButton" class="admin-danger">Nah</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -2960,6 +3721,7 @@
       const playButton = document.getElementById("playButton");
       const cancelWaitButton = document.getElementById("cancelWaitButton");
       const startScreen = document.getElementById("startScreen");
+      const startPanel = document.getElementById("startPanel");
       const startStatus = document.getElementById("startStatus");
       const startPlayButton = document.getElementById("startPlayButton");
       const startGamesButton = document.getElementById("startGamesButton");
@@ -2973,7 +3735,9 @@
       const startSocialButton = document.getElementById("startSocialButton");
       const startSettingsButton = document.getElementById("startSettingsButton");
       const startAccountButton = document.getElementById("startAccountButton");
+      const startAdminButton = document.getElementById("startAdminButton");
       const startGamesMenu = document.getElementById("startGamesMenu");
+      const startOnlineRoomMenu = document.getElementById("startOnlineRoomMenu");
       const startProfileMenu = document.getElementById("startProfileMenu");
       const startShopMenu = document.getElementById("startShopMenu");
       const startPremiumMenu = document.getElementById("startPremiumMenu");
@@ -2985,6 +3749,7 @@
       const startSettingsMenu = document.getElementById("startSettingsMenu");
       const startAccountMenu = document.getElementById("startAccountMenu");
       const startBackFromGames = document.getElementById("startBackFromGames");
+      const startBackFromOnlineRoom = document.getElementById("startBackFromOnlineRoom");
       const startBackFromProfile = document.getElementById("startBackFromProfile");
       const startBackFromShop = document.getElementById("startBackFromShop");
       const startBackFromPremium = document.getElementById("startBackFromPremium");
@@ -3001,12 +3766,21 @@
       const startShowcaseAction = document.getElementById("startShowcaseAction");
       const startBackFromSettings = document.getElementById("startBackFromSettings");
       const startBackFromAccount = document.getElementById("startBackFromAccount");
+      const startAdminMenu = document.getElementById("startAdminMenu");
+      const startBackFromAdmin = document.getElementById("startBackFromAdmin");
+      const startAdminPanelMount = document.getElementById("startAdminPanelMount");
       const startSoundSelect = document.getElementById("startSoundSelect");
+      const startSoundValue = document.getElementById("startSoundValue");
       const startThemeSelect = document.getElementById("startThemeSelect");
       const startFieldSizeSelect = document.getElementById("startFieldSizeSelect");
       const startControlsSelect = document.getElementById("startControlsSelect");
       const startSkinSelect = document.getElementById("startSkinSelect");
       const startColorSelect = document.getElementById("startColorSelect");
+      const startMusicSelect = document.getElementById("startMusicSelect");
+      const startCustomMusicUrlInput = document.getElementById("startCustomMusicUrlInput");
+      const startCustomMusicListSelect = document.getElementById("startCustomMusicListSelect");
+      const startSaveCustomMusicButton = document.getElementById("startSaveCustomMusicButton");
+      const startDeleteCustomMusicButton = document.getElementById("startDeleteCustomMusicButton");
       const startResetRecordButton = document.getElementById("startResetRecordButton");
       const startSettingsMessage = document.getElementById("startSettingsMessage");
       const startUsernameInput = document.getElementById("startUsernameInput");
@@ -3061,12 +3835,15 @@
       const phoneModeButton = document.getElementById("phoneModeButton");
       const logoutButton = document.getElementById("logoutButton");
       const adminPanel = document.getElementById("adminPanel");
+      const adminPanelHome = document.getElementById("adminPanelHome");
       const adminRoomCount = document.getElementById("adminRoomCount");
       const adminOnlineCount = document.getElementById("adminOnlineCount");
       const adminUserCount = document.getElementById("adminUserCount");
       const adminUserSearchInput = document.getElementById("adminUserSearchInput");
       const adminUsersList = document.getElementById("adminUsersList");
       const adminRoomsList = document.getElementById("adminRoomsList");
+      const adminIpBansList = document.getElementById("adminIpBansList");
+      const adminMusicList = document.getElementById("adminMusicList");
       const pointsTargetSelect = document.getElementById("pointsTargetSelect");
       const pointsInput = document.getElementById("pointsInput");
       const addPointsButton = document.getElementById("addPointsButton");
@@ -3087,6 +3864,10 @@
       const sendRecoveryEmailButton = document.getElementById("sendRecoveryEmailButton");
       const accountBackButton = document.getElementById("accountBackButton");
       const authMessage = document.getElementById("authMessage");
+      const confirmMenu = document.getElementById("confirmMenu");
+      const confirmMessage = document.getElementById("confirmMessage");
+      const confirmYesButton = document.getElementById("confirmYesButton");
+      const confirmNahButton = document.getElementById("confirmNahButton");
       const statusEl = document.getElementById("status");
       const roomChat = document.getElementById("roomChat");
       const chatMessages = document.getElementById("chatMessages");
@@ -3124,11 +3905,17 @@
       const startSoloGameButtons = document.querySelectorAll("[data-start-game]");
       const startOnlineGameButtons = document.querySelectorAll("[data-start-online-game]");
       const soundSelect = document.getElementById("soundSelect");
+      const soundValue = document.getElementById("soundValue");
       const themeSelect = document.getElementById("themeSelect");
       const fieldSizeSelect = document.getElementById("fieldSizeSelect");
       const controlsSelect = document.getElementById("controlsSelect");
       const skinSelect = document.getElementById("skinSelect");
       const colorSelect = document.getElementById("colorSelect");
+      const musicSelect = document.getElementById("musicSelect");
+      const customMusicUrlInput = document.getElementById("customMusicUrlInput");
+      const customMusicListSelect = document.getElementById("customMusicListSelect");
+      const saveCustomMusicButton = document.getElementById("saveCustomMusicButton");
+      const deleteCustomMusicButton = document.getElementById("deleteCustomMusicButton");
       const resetRecordButton = document.getElementById("resetRecordButton");
       const accountSettingsButton = document.getElementById("accountSettingsButton");
       const settingsGmailInput = document.getElementById("settingsGmailInput");
@@ -3226,6 +4013,21 @@
         "online-maze": "Online Maze Race",
         "online-battle": "Online Battle Arena"
       };
+      const startGameMeta = {
+        snake: { display: "Snake Classic", rating: "95%", players: "1.2K active", creator: "Sigma Studio" },
+        catcher: { display: "Apple Catcher", rating: "94%", players: "840 active", creator: "Danya Games" },
+        dodger: { display: "Gem Runner", rating: "91%", players: "683 active", creator: "Sigma Studio" },
+        "solo-pong": { display: "Brick Pong", rating: "98%", players: "2.4K active", creator: "Danya Arcade" },
+        "coin-rush": { display: "Coin Rush", rating: "90%", players: "517 active", creator: "Sigma Studio" },
+        "laser-dodge": { display: "Laser Dodge", rating: "89%", players: "321 active", creator: "Danya Labs" },
+        "online-snake": { display: "Online Snake", rating: "97%", players: "2 players", creator: "Sigma Online" },
+        "online-tanks": { display: "Online Tanks", rating: "96%", players: "2 players", creator: "Sigma Online" },
+        "online-pong": { display: "Online Pong", rating: "93%", players: "2 players", creator: "Sigma Online" },
+        "online-tag": { display: "Online Tag", rating: "92%", players: "2 players", creator: "Sigma Online" },
+        "online-soccer": { display: "Online Soccer", rating: "94%", players: "2 players", creator: "Sigma Online" },
+        "online-maze": { display: "Online Maze Race", rating: "90%", players: "2 players", creator: "Sigma Online" },
+        "online-battle": { display: "Online Battle Arena", rating: "91%", players: "2 players", creator: "Sigma Online" }
+      };
 
       let currentGame = "snake";
       let selectedStartGame = "snake";
@@ -3293,11 +4095,15 @@
       let adminPanelOpen = false;
       let phonePreviewMode = false;
       let currentUserData = null;
+      let currentClientIp = "";
+      let confirmResolver = null;
       let musicContext = null;
       let musicGain = null;
       let musicTimer = null;
       let musicStep = 0;
       let musicUnlocked = false;
+      let selectedMusicPack = "";
+      let customMusicAudio = null;
       const colorThemes = {
         teal: { head: "#5eead4", body: "#14b8a6", top: "#99f6e4" },
         green: { head: "#86efac", body: "#22c55e", top: "#bbf7d0" },
@@ -3305,7 +4111,11 @@
         purple: { head: "#c4b5fd", body: "#8b5cf6", top: "#ddd6fe" },
         pink: { head: "#f9a8d4", body: "#ec4899", top: "#fbcfe8" },
         orange: { head: "#fdba74", body: "#f97316", top: "#fed7aa" },
-        gold: { head: "#fde68a", body: "#f59e0b", top: "#fef3c7" }
+        gold: { head: "#fde68a", body: "#f59e0b", top: "#fef3c7" },
+        lime: { head: "#d9f99d", body: "#84cc16", top: "#ecfccb" },
+        cyan: { head: "#a5f3fc", body: "#06b6d4", top: "#cffafe" },
+        ruby: { head: "#fca5a5", body: "#dc2626", top: "#fee2e2" },
+        ice: { head: "#e0f2fe", body: "#38bdf8", top: "#f0f9ff" }
       };
       const boardThemeColors = {
         midnight: "#020617",
@@ -3325,14 +4135,24 @@
         { id: "color-purple", type: "color", value: "purple", name: "Purple Color", cost: 45 },
         { id: "color-pink", type: "color", value: "pink", name: "Pink Color", cost: 45 },
         { id: "color-orange", type: "color", value: "orange", name: "Orange Color", cost: 50 },
+        { id: "color-lime", type: "color", value: "lime", name: "Lime Color", cost: 55 },
+        { id: "color-cyan", type: "color", value: "cyan", name: "Cyan Color", cost: 55 },
+        { id: "skin-glass", type: "skin", value: "glass", name: "Glass Skin", cost: 95 },
         { id: "trail-spark", type: "trail", value: "spark", name: "Spark Trail", cost: 90 },
-        { id: "music-retro", type: "music", value: "retro", name: "Retro Music Pack", cost: 120 }
+        { id: "trail-comet", type: "trail", value: "comet", name: "Comet Trail", cost: 130 },
+        { id: "music-retro", type: "music", value: "retro", name: "Retro Music Pack", cost: 120 },
+        { id: "music-chiptune", type: "music", value: "chiptune", name: "Chiptune Pack", cost: 150 }
       ];
       const premiumItems = [
         { id: "skin-sigma", type: "skin", value: "sigma", name: "Sigma Premium Skin", cost: 0, premium: true },
+        { id: "skin-royal", type: "skin", value: "royal", name: "Royal Premium Skin", cost: 0, premium: true },
         { id: "color-gold", type: "color", value: "gold", name: "Gold VIP Color", cost: 0, vip: true },
+        { id: "color-ruby", type: "color", value: "ruby", name: "Ruby Premium Color", cost: 0, premium: true },
+        { id: "color-ice", type: "color", value: "ice", name: "Ice Premium Color", cost: 0, premium: true },
         { id: "trail-vip", type: "trail", value: "vip", name: "VIP Trail", cost: 0, vip: true },
-        { id: "music-premium", type: "music", value: "premium", name: "Premium Music Pack", cost: 0, premium: true }
+        { id: "trail-crown", type: "trail", value: "crown", name: "Crown Trail", cost: 0, premium: true },
+        { id: "music-premium", type: "music", value: "premium", name: "Premium Music Pack", cost: 0, premium: true },
+        { id: "music-boss", type: "music", value: "boss", name: "Boss Music Pack", cost: 0, premium: true }
       ];
       const allShopItems = [...shopItems, ...premiumItems];
       const battlePassRewards = [
@@ -3340,7 +4160,26 @@
         { level: 2, free: "80 XP", premium: "VIP trail", coins: 0, xp: 80, premiumItem: "trail-vip" },
         { level: 3, free: "Blue color", premium: "Sigma skin", coins: 0, xp: 0, freeItem: "color-blue", premiumItem: "skin-sigma" },
         { level: 4, free: "150 coins", premium: "Premium music", coins: 150, xp: 0, premiumItem: "music-premium" },
-        { level: 5, free: "200 XP", premium: "Premium badge glow", coins: 0, xp: 200, premiumItem: "skin-sigma" }
+        { level: 5, free: "200 XP", premium: "Premium badge glow", coins: 0, xp: 200, premiumItem: "skin-sigma" },
+        { level: 6, free: "Orange color", premium: "Ruby premium color", coins: 0, xp: 0, freeItem: "color-orange", premiumItem: "color-ruby" },
+        { level: 7, free: "120 XP charge", premium: "Crown trail", coins: 0, xp: 120, premiumItem: "trail-crown" },
+        { level: 8, free: "Purple color", premium: "Boss music pack", coins: 0, xp: 0, freeItem: "color-purple", premiumItem: "music-boss" },
+        { level: 9, free: "250 coin vault", premium: "Royal premium skin", coins: 250, xp: 0, premiumItem: "skin-royal" },
+        { level: 10, free: "300 XP boost", premium: "Ice premium color", coins: 0, xp: 300, premiumItem: "color-ice" },
+        { level: 11, free: "Pink color", premium: "Legend crown trail", coins: 0, xp: 0, freeItem: "color-pink", premiumItem: "trail-crown" },
+        { level: 12, free: "500 coin jackpot", premium: "Sigma Legend skin", coins: 500, xp: 0, premiumItem: "skin-sigma" },
+        { level: 13, free: "Lime color", premium: "Ruby storm color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-ruby" },
+        { level: 14, free: "220 XP shard", premium: "Boss arena music", coins: 0, xp: 220, premiumItem: "music-boss" },
+        { level: 15, free: "Comet trail", premium: "Royal glow skin", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "skin-royal" },
+        { level: 16, free: "350 coin chest", premium: "Ice crystal color", coins: 350, xp: 0, premiumItem: "color-ice" },
+        { level: 17, free: "Cyan color", premium: "Crown comet trail", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "trail-crown" },
+        { level: 18, free: "Chiptune pack", premium: "Premium synth music", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
+        { level: 19, free: "Glass skin", premium: "Sigma royal skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-sigma" },
+        { level: 20, free: "600 coin bank", premium: "VIP gold crown", coins: 600, xp: 0, premiumItem: "color-gold" },
+        { level: 21, free: "420 XP core", premium: "Boss crown trail", coins: 0, xp: 420, premiumItem: "trail-crown" },
+        { level: 22, free: "Spark trail", premium: "Ice boss color", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "color-ice" },
+        { level: 23, free: "Retro music pack", premium: "Royal finale music", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
+        { level: 24, free: "1000 coin finale", premium: "Sigma champion skin", coins: 1000, xp: 0, premiumItem: "skin-sigma" }
       ];
       const donationLinks = {
         main: "https://boosty.to/sigmaboyko228/posts/c185c4d3-f370-4a43-8fda-5e7580eb8e64"
@@ -3456,22 +4295,82 @@
         }
       }
 
+      function normalizeVolume(value, fallback = 70) {
+        const numberValue = Number(value);
+
+        if (!Number.isFinite(numberValue)) {
+          return fallback;
+        }
+
+        return Math.max(0, Math.min(100, Math.round(numberValue)));
+      }
+
+      function getGameVolume() {
+        return normalizeVolume(gameSettings.volume ?? (gameSettings.sound === "off" ? 0 : 70)) / 100;
+      }
+
+      function normalizeMusicList(list) {
+        if (!Array.isArray(list)) {
+          return [];
+        }
+
+        return [...new Set(list.map((url) => String(url || "").trim()).filter(Boolean))].slice(0, 20);
+      }
+
+      function getMusicSubmissionId(url) {
+        let hash = 2166136261;
+
+        for (let index = 0; index < url.length; index += 1) {
+          hash ^= url.charCodeAt(index);
+          hash = Math.imul(hash, 16777619);
+        }
+
+        return `music_${(hash >>> 0).toString(36)}_${url.length}`;
+      }
+
+      function normalizeApprovedMusicList(list) {
+        return normalizeMusicList(list);
+      }
+
+      function isApprovedCustomMusic(url) {
+        return normalizeApprovedMusicList(gameSettings.approvedCustomMusicList).includes(url);
+      }
+
+      function getMusicUrlLabel(url) {
+        try {
+          const parsedUrl = new URL(url);
+          const pathName = parsedUrl.pathname.split("/").filter(Boolean).pop() || parsedUrl.hostname;
+          return `${parsedUrl.hostname} / ${decodeURIComponent(pathName)}`.slice(0, 58);
+        } catch {
+          return String(url || "Saved music").slice(0, 58);
+        }
+      }
+
       function getStoredGameSettings() {
         try {
           const storedSettings = JSON.parse(localStorage.getItem(settingsStorageKey) || "null");
+          const volume = normalizeVolume(storedSettings?.volume ?? (storedSettings?.sound === "off" ? 0 : 70));
 
           return {
-            sound: storedSettings?.sound || "on",
+            sound: volume > 0 ? "on" : "off",
+            volume,
             theme: storedSettings?.theme || "midnight",
             fieldSize: storedSettings?.fieldSize || "normal",
-            controls: storedSettings?.controls || "all"
+            controls: storedSettings?.controls || "all",
+            customMusicUrl: storedSettings?.customMusicUrl || "",
+            customMusicList: normalizeMusicList(storedSettings?.customMusicList),
+            approvedCustomMusicList: normalizeApprovedMusicList(storedSettings?.approvedCustomMusicList)
           };
         } catch {
           return {
             sound: "on",
+            volume: 70,
             theme: "midnight",
             fieldSize: "normal",
-            controls: "all"
+            controls: "all",
+            customMusicUrl: "",
+            customMusicList: [],
+            approvedCustomMusicList: []
           };
         }
       }
@@ -3489,19 +4388,53 @@
         colorSelect.value = playerStyle.color;
         startSkinSelect.value = playerStyle.skin;
         startColorSelect.value = playerStyle.color;
+        musicSelect.value = selectedMusicPack;
+        startMusicSelect.value = selectedMusicPack;
+      }
+
+      function ownsMusicPack(pack) {
+        if (!pack) {
+          return true;
+        }
+
+        if (!currentAccount?.username || !currentUserData) {
+          return false;
+        }
+
+        return Boolean(currentUserData.ownedItems?.[`music-${pack}`]);
+      }
+
+      function renderCustomMusicLists() {
+        const customMusicList = normalizeMusicList(gameSettings.customMusicList);
+        const selectedUrl = gameSettings.customMusicUrl || "";
+        const listHtml = [
+          `<option value="">Saved music list</option>`,
+          ...customMusicList.map((url) => `<option value="${escapeHtml(url)}">${escapeHtml(getMusicUrlLabel(url))}${isApprovedCustomMusic(url) ? " - Approved" : " - Pending"}</option>`)
+        ].join("");
+
+        customMusicListSelect.innerHTML = listHtml;
+        startCustomMusicListSelect.innerHTML = listHtml;
+        customMusicListSelect.value = customMusicList.includes(selectedUrl) ? selectedUrl : "";
+        startCustomMusicListSelect.value = customMusicList.includes(selectedUrl) ? selectedUrl : "";
       }
 
       function applyGameSettingsControls() {
-        soundSelect.value = gameSettings.sound;
+        const volume = normalizeVolume(gameSettings.volume ?? (gameSettings.sound === "off" ? 0 : 70));
+        soundSelect.value = String(volume);
+        startSoundSelect.value = String(volume);
+        soundValue.textContent = `${volume}%`;
+        startSoundValue.textContent = `${volume}%`;
+        customMusicUrlInput.value = gameSettings.customMusicUrl || "";
+        startCustomMusicUrlInput.value = gameSettings.customMusicUrl || "";
         themeSelect.value = gameSettings.theme;
         fieldSizeSelect.value = gameSettings.fieldSize;
         controlsSelect.value = gameSettings.controls;
-        startSoundSelect.value = gameSettings.sound;
         startThemeSelect.value = gameSettings.theme;
         startFieldSizeSelect.value = gameSettings.fieldSize;
         startControlsSelect.value = gameSettings.controls;
         document.body.dataset.theme = gameSettings.theme;
         document.documentElement.style.setProperty("--app-width", appWidths[gameSettings.fieldSize] || appWidths.normal);
+        renderCustomMusicLists();
       }
 
       function updatePlayerStyle() {
@@ -3541,17 +4474,174 @@
         draw();
       }
 
+      function updateMusicPack() {
+        const pack = musicSelect.value;
+
+        if (!ownsMusicPack(pack)) {
+          applyPlayerStyleControls();
+          settingsMessage.textContent = "Unlock this music pack in Shop or Premium first.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        selectedMusicPack = pack;
+        if (currentAccount?.username) {
+          patchCurrentUser({
+            "equipped/music": selectedMusicPack
+          }).catch(() => {});
+        }
+
+        applyPlayerStyleControls();
+        stopBackgroundMusic();
+        syncBackgroundMusic();
+        settingsMessage.textContent = selectedMusicPack ? `${musicSelect.options[musicSelect.selectedIndex].text} equipped.` : "Standard music equipped.";
+        startSettingsMessage.textContent = settingsMessage.textContent;
+      }
+
       function updateGameSettings() {
+        const volume = normalizeVolume(soundSelect.value);
+
         gameSettings = {
-          sound: soundSelect.value,
+          sound: volume > 0 ? "on" : "off",
+          volume,
           theme: themeSelect.value,
           fieldSize: fieldSizeSelect.value,
-          controls: controlsSelect.value
+          controls: controlsSelect.value,
+          customMusicUrl: gameSettings.customMusicUrl || "",
+          customMusicList: normalizeMusicList(gameSettings.customMusicList),
+          approvedCustomMusicList: normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)
         };
         saveGameSettings();
         applyGameSettingsControls();
         syncBackgroundMusic();
         draw();
+      }
+
+      async function saveCustomMusicUrl(source = "game") {
+        const input = source === "start" ? startCustomMusicUrlInput : customMusicUrlInput;
+        const url = input.value.trim();
+
+        if (!url) {
+          settingsMessage.textContent = "Paste a music link first.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        try {
+          const parsedUrl = new URL(url);
+          if (parsedUrl.protocol !== "https:" || (!isDirectAudioUrl(url) && !isStreamingPageUrl(url))) {
+            throw new Error("Unsupported music link.");
+          }
+        } catch {
+          settingsMessage.textContent = "Use an HTTPS MP3/OGG/WAV, YouTube Music or Spotify link.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        const submissionId = getMusicSubmissionId(url);
+        let approved = Boolean(currentAccount?.isAdmin);
+
+        try {
+          const existingResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`);
+          const existingSubmission = existingResponse.ok ? await existingResponse.json() : null;
+          approved = approved || existingSubmission?.status === "approved";
+          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url,
+              username: currentAccount?.username || "Guest",
+              status: approved ? "approved" : "pending",
+              submittedAt: Date.now(),
+              reviewedBy: approved ? (existingSubmission?.reviewedBy || currentAccount?.username || "Admin") : null
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Could not submit music.");
+          }
+        } catch {
+          settingsMessage.textContent = "Could not send music for moderation.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        const customMusicList = normalizeMusicList([url, ...normalizeMusicList(gameSettings.customMusicList)]);
+        const approvedCustomMusicList = approved
+          ? normalizeApprovedMusicList([url, ...normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)])
+          : normalizeApprovedMusicList(gameSettings.approvedCustomMusicList).filter((item) => item !== url);
+        gameSettings = {
+          ...gameSettings,
+          sound: getGameVolume() > 0 ? "on" : "off",
+          customMusicUrl: approved ? url : "",
+          customMusicList,
+          approvedCustomMusicList
+        };
+        saveGameSettings();
+        applyGameSettingsControls();
+        syncBackgroundMusic();
+        settingsMessage.textContent = approved ? "Music approved and saved." : "Music sent to admins for moderation.";
+        startSettingsMessage.textContent = settingsMessage.textContent;
+      }
+
+      async function selectCustomMusicUrl(source = "game") {
+        const select = source === "start" ? startCustomMusicListSelect : customMusicListSelect;
+
+        if (!select.value) {
+          return;
+        }
+
+        const url = select.value;
+
+        try {
+          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${getMusicSubmissionId(url)}.json`);
+          const submission = response.ok ? await response.json() : null;
+
+          if (submission?.status !== "approved") {
+            settingsMessage.textContent = submission?.status === "rejected" ? "This music was rejected." : "This music is waiting for admin approval.";
+            startSettingsMessage.textContent = settingsMessage.textContent;
+            applyGameSettingsControls();
+            return;
+          }
+
+          gameSettings.approvedCustomMusicList = normalizeApprovedMusicList([url, ...normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)]);
+        } catch {
+          settingsMessage.textContent = "Could not check music approval.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        gameSettings.customMusicUrl = url;
+        saveGameSettings();
+        applyGameSettingsControls();
+        syncBackgroundMusic();
+        settingsMessage.textContent = "Saved music selected.";
+        startSettingsMessage.textContent = settingsMessage.textContent;
+      }
+
+      function deleteCustomMusicUrl(source = "game") {
+        const select = source === "start" ? startCustomMusicListSelect : customMusicListSelect;
+        const url = select.value || (source === "start" ? startCustomMusicUrlInput.value.trim() : customMusicUrlInput.value.trim());
+
+        if (!url) {
+          settingsMessage.textContent = "Choose saved music to delete.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        const customMusicList = normalizeMusicList(gameSettings.customMusicList).filter((savedUrl) => savedUrl !== url);
+        const approvedCustomMusicList = normalizeApprovedMusicList(gameSettings.approvedCustomMusicList).filter((savedUrl) => savedUrl !== url);
+        gameSettings = {
+          ...gameSettings,
+          customMusicUrl: gameSettings.customMusicUrl === url ? "" : gameSettings.customMusicUrl,
+          customMusicList,
+          approvedCustomMusicList
+        };
+        saveGameSettings();
+        applyGameSettingsControls();
+        syncBackgroundMusic();
+        settingsMessage.textContent = "Music link deleted from list.";
+        startSettingsMessage.textContent = settingsMessage.textContent;
       }
 
       function getTheme(colorName) {
@@ -3635,7 +4725,9 @@
       }
 
       function playSound(type) {
-        if (gameSettings.sound !== "on") {
+        const volume = getGameVolume();
+
+        if (volume <= 0) {
           return;
         }
 
@@ -3652,7 +4744,7 @@
 
           oscillator.frequency.value = tones[type] || 440;
           oscillator.type = "square";
-          gain.gain.setValueAtTime(0.06, audioContext.currentTime);
+          gain.gain.setValueAtTime(0.06 * volume, audioContext.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
           oscillator.connect(gain);
           gain.connect(audioContext.destination);
@@ -3673,10 +4765,10 @@
         if (!musicContext) {
           musicContext = new AudioContextClass();
           musicGain = musicContext.createGain();
-          musicGain.gain.value = 0.35;
           musicGain.connect(musicContext.destination);
         }
 
+        musicGain.gain.value = Math.min(1, getGameVolume() * 0.75);
         return musicContext;
       }
 
@@ -3694,7 +4786,7 @@
         oscillator.type = type;
         oscillator.frequency.setValueAtTime(frequency, now);
         gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(volume, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(volume * Math.max(0.05, getGameVolume()), now + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
         oscillator.connect(gain);
         gain.connect(musicGain);
@@ -3784,11 +4876,94 @@
           }
         };
 
-        return patterns[currentGame] || patterns.snake;
+        const basePattern = patterns[currentGame] || patterns.snake;
+        const pack = selectedMusicPack || currentUserData?.equipped?.music || "";
+
+        if (pack === "retro") {
+          return {
+            melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.5 : 0.75)) : 0),
+            bass: basePattern.bass.map((note) => Math.round(note * 0.5)),
+            wave: "square",
+            delay: Math.round(basePattern.delay * 1.12)
+          };
+        }
+
+        if (pack === "chiptune") {
+          return {
+            melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 4 === 0 ? 1.5 : 1.25)) : 0),
+            bass: basePattern.bass.map((note, index) => Math.round(note * (index % 2 ? 1 : 0.75))),
+            wave: "square",
+            delay: Math.max(145, Math.round(basePattern.delay * 0.76))
+          };
+        }
+
+        if (pack === "premium") {
+          return {
+            melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 3 === 0 ? 1.25 : 1)) : 0),
+            bass: basePattern.bass.map((note) => Math.round(note * 1.1)),
+            wave: "triangle",
+            delay: Math.max(160, Math.round(basePattern.delay * 0.88))
+          };
+        }
+
+        if (pack === "boss") {
+          return {
+            melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.85 : 0.65)) : 0),
+            bass: basePattern.bass.map((note) => Math.round(note * 0.6)),
+            wave: "sawtooth",
+            delay: Math.max(170, Math.round(basePattern.delay * 0.82))
+          };
+        }
+
+        return basePattern;
+      }
+
+      function isDirectAudioUrl(url) {
+        return /\.(mp3|ogg|wav|m4a|aac)(\?|#|$)/i.test(url);
+      }
+
+      function isStreamingPageUrl(url) {
+        return /(^|\.)((youtube|youtu|spotify)\.com|youtu\.be)/i.test(url);
+      }
+
+      function stopCustomMusic() {
+        if (!customMusicAudio) {
+          return;
+        }
+
+        customMusicAudio.pause();
+      }
+
+      function syncCustomMusic() {
+        const url = (gameSettings.customMusicUrl || "").trim();
+        const volume = getGameVolume();
+
+        if (!musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !isApprovedCustomMusic(url)) {
+          stopCustomMusic();
+          return false;
+        }
+
+        if (!customMusicAudio) {
+          customMusicAudio = new Audio();
+          customMusicAudio.loop = true;
+          customMusicAudio.preload = "auto";
+        }
+
+        if (customMusicAudio.dataset.sourceUrl !== url) {
+          customMusicAudio.src = url;
+          customMusicAudio.dataset.sourceUrl = url;
+        }
+
+        customMusicAudio.volume = Math.min(1, volume);
+        customMusicAudio.play().catch(() => {
+          settingsMessage.textContent = "Custom music could not play. Use a direct MP3/OGG/WAV link.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+        });
+        return true;
       }
 
       function startBackgroundMusic() {
-        if (!musicUnlocked || gameSettings.sound !== "on" || musicTimer) {
+        if (!musicUnlocked || getGameVolume() <= 0 || musicTimer) {
           return;
         }
 
@@ -3801,7 +4976,7 @@
         audioContext.resume?.();
 
         const tickMusic = () => {
-          if (gameSettings.sound !== "on") {
+          if (getGameVolume() <= 0) {
             stopBackgroundMusic();
             return;
           }
@@ -3832,7 +5007,20 @@
       }
 
       function syncBackgroundMusic() {
-        if (gameSettings.sound === "on") {
+        const customUrl = (gameSettings.customMusicUrl || "").trim();
+        const customPlaying = syncCustomMusic();
+
+        if (customPlaying) {
+          stopBackgroundMusic();
+          return;
+        }
+
+        if (customUrl && isStreamingPageUrl(customUrl)) {
+          settingsMessage.textContent = "YouTube/Spotify links are saved, but browsers cannot play them directly in the background. Use a direct MP3/OGG/WAV link.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+        }
+
+        if (getGameVolume() > 0) {
           startBackgroundMusic();
         } else {
           stopBackgroundMusic();
@@ -3965,8 +5153,11 @@
             skin: currentUserData.equipped.skin || playerStyle.skin,
             color: currentUserData.equipped.color || playerStyle.color
           };
+          selectedMusicPack = currentUserData.equipped.music || "";
           savePlayerStyle();
           applyPlayerStyleControls();
+          stopBackgroundMusic();
+          syncBackgroundMusic();
         }
         return currentUserData;
       }
@@ -3984,7 +5175,7 @@
       }
 
       function isCurrentUserBanned() {
-        return currentUserData?.bannedUntil && currentUserData.bannedUntil > Date.now();
+        return Boolean(currentUserData?.ipBanned) || Boolean(currentUserData?.bannedUntil && currentUserData.bannedUntil > Date.now());
       }
 
       function isCurrentUserMuted() {
@@ -5000,7 +6191,12 @@
       }
 
       function showStartSection(section) {
+        if (section === "admin" && !currentAccount?.isAdmin) {
+          section = "main";
+        }
+
         startGamesMenu.classList.toggle("open", section === "games");
+        startOnlineRoomMenu.classList.toggle("open", section === "onlineRoom");
         startProfileMenu.classList.toggle("open", section === "profile");
         startShopMenu.classList.toggle("open", section === "shop");
         startPremiumMenu.classList.toggle("open", section === "premium");
@@ -5011,13 +6207,32 @@
         startSocialMenu.classList.toggle("open", section === "social");
         startSettingsMenu.classList.toggle("open", section === "settings");
         startAccountMenu.classList.toggle("open", section === "account");
+        startAdminMenu.classList.toggle("open", section === "admin");
         startScreen.classList.toggle("submenu-open", section !== "main");
+        startPanel.scrollTop = 0;
+        if (section === "admin") {
+          startAdminPanelMount.appendChild(adminPanel);
+          startAdminMenu.scrollTop = 0;
+          adminPanelOpen = true;
+          adminPanel.classList.add("open");
+          adminToggleButton.textContent = "Close Admin";
+          loadAdminPanel();
+        } else if (adminPanel.parentElement === startAdminPanelMount) {
+          adminPanelHome.after(adminPanel);
+          adminPanelOpen = false;
+          adminPanel.classList.remove("open");
+          adminToggleButton.textContent = "Admin Panel";
+        }
         if (section === "settings") {
           startSettingsMessage.textContent = "";
           applyPlayerStyleControls();
           applyGameSettingsControls();
         }
         if (section === "games") {
+          updateStartGameShowcase();
+          renderPublicRooms();
+        }
+        if (section === "onlineRoom") {
           updateStartGameShowcase();
           renderPublicRooms();
         }
@@ -5075,6 +6290,7 @@
         themeSelect.value = startThemeSelect.value;
         fieldSizeSelect.value = startFieldSizeSelect.value;
         controlsSelect.value = startControlsSelect.value;
+        customMusicUrlInput.value = startCustomMusicUrlInput.value.trim();
         updateGameSettings();
       }
 
@@ -5082,6 +6298,11 @@
         skinSelect.value = startSkinSelect.value;
         colorSelect.value = startColorSelect.value;
         updatePlayerStyle();
+      }
+
+      function updateMusicPackFromStart() {
+        musicSelect.value = startMusicSelect.value;
+        updateMusicPack();
       }
 
       async function resetRecordFromStart() {
@@ -5111,14 +6332,17 @@
         startAccountMessage.textContent = authMessage.textContent;
       }
 
-      function selectOnlineGameFromStart(gameName) {
+      function selectOnlineGameFromStart(gameName, showRoomPanel = true) {
         selectedStartMode = "online";
         selectedOnlineGame = gameName;
         updateOnlineGameSelection();
         updateStartGameSelection();
         updateStartGameShowcase();
         startStatus.textContent = `${onlineGameNames[gameName]} selected`;
-        startRoomNote.textContent = `${onlineGameNames[gameName]} selected.`;
+        startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
+        if (showRoomPanel) {
+          showStartSection("onlineRoom");
+        }
       }
 
       function selectSoloGameFromStart(gameName) {
@@ -5139,18 +6363,52 @@
           .toUpperCase();
       }
 
+      function decorateStartGameCards() {
+        [...startSoloGameButtons, ...startOnlineGameButtons].forEach((button) => {
+          const gameName = button.dataset.startGame || button.dataset.startOnlineGame;
+          const title = startGameMeta[gameName]?.display || button.textContent.trim();
+          button.innerHTML = `
+            <span class="game-thumb" data-game="${escapeHtml(gameName)}">
+              <span class="game-icon-large">${escapeHtml(getGameInitials(title))}</span>
+            </span>
+            <span class="game-card-title">${escapeHtml(title)}</span>
+            <span class="game-card-play" aria-hidden="true"></span>
+          `;
+        });
+      }
+
+      function playStartCard(button) {
+        const soloGame = button.dataset.startGame;
+        const onlineGame = button.dataset.startOnlineGame;
+
+        if (soloGame) {
+          selectSoloGameFromStart(soloGame);
+          startGame(soloGame);
+          closeStartScreen();
+          if (waitingToPlay && isSinglePlayerGame(currentGame)) {
+            playLocalGame();
+          }
+          return;
+        }
+
+        if (onlineGame) {
+          selectOnlineGameFromStart(onlineGame, true);
+        }
+      }
+
       function updateStartGameShowcase() {
         const gameName = selectedStartMode === "online" ? selectedOnlineGame : selectedStartGame;
         const title = selectedStartMode === "online" ? onlineGameNames[gameName] : games[gameName].title;
         const description = games[gameName]?.help || "Play with your friend.";
 
         startShowcaseThumb.dataset.mode = selectedStartMode;
+        startShowcaseThumb.dataset.game = gameName;
         startShowcaseIcon.textContent = getGameInitials(title);
         startShowcaseTitle.textContent = title;
         startShowcaseType.textContent = selectedStartMode === "online" ? "Online Game" : "Solo Game";
         startShowcaseDescription.textContent = description;
         startShowcaseAction.textContent = selectedStartMode === "online"
-          ? "Create a room or enter a code to join."
+          ? "Create or join a room below."
           : "Click Play to start.";
       }
 
@@ -5175,6 +6433,7 @@
           <div class="profile-card">Achievements <strong>${achievementCount}</strong></div>
           <div class="profile-card">Skin <strong>${escapeHtml(user.equipped.skin)}</strong></div>
           <div class="profile-card">Color <strong>${escapeHtml(user.equipped.color)}</strong></div>
+          <div class="profile-card">Music <strong>${escapeHtml(user.equipped.music || "Game Default")}</strong></div>
         `;
         profileBestScores.innerHTML = Object.entries(user.bestScores || {})
           .map(([game, value]) => `<div class="admin-user-card"><span>${escapeHtml(games[game]?.title || game)}: ${Number(value || 0)}</span></div>`)
@@ -5537,6 +6796,11 @@
           savePlayerStyle();
           applyPlayerStyleControls();
           patch[item.type] = item.value;
+        }
+        if (item.type === "music") {
+          selectedMusicPack = item.value;
+          stopBackgroundMusic();
+          syncBackgroundMusic();
         }
         await patchCurrentUser(patch);
         await renderShopMenu();
@@ -6060,15 +7324,17 @@
           round: 9,
           neon: 8,
           block: 2,
-          sigma: isHead ? 10 : 7
+          glass: isHead ? 8 : 6,
+          sigma: isHead ? 10 : 7,
+          royal: isHead ? 11 : 8
         };
 
         ctx.save();
         ctx.fillStyle = color;
 
-        if (skin === "neon" || skin === "sigma") {
+        if (skin === "neon" || skin === "sigma" || skin === "royal") {
           ctx.shadowColor = color;
-          ctx.shadowBlur = skin === "sigma" ? 20 : 14;
+          ctx.shadowBlur = skin === "royal" ? 24 : skin === "sigma" ? 20 : 14;
         }
 
         roundTile(part.x, part.y, radiusBySkin[skin] ?? 5);
@@ -6083,6 +7349,18 @@
           ctx.strokeStyle = isHead ? "rgba(250, 204, 21, 0.95)" : "rgba(253, 224, 71, 0.48)";
           ctx.lineWidth = isHead ? 3 : 2;
           strokeTile(part.x, part.y, radiusBySkin.sigma);
+        }
+
+        if (skin === "glass") {
+          ctx.strokeStyle = "rgba(224, 242, 254, 0.72)";
+          ctx.lineWidth = 2;
+          strokeTile(part.x, part.y, radiusBySkin.glass);
+        }
+
+        if (skin === "royal") {
+          ctx.strokeStyle = isHead ? "rgba(216, 180, 254, 0.95)" : "rgba(192, 132, 252, 0.58)";
+          ctx.lineWidth = isHead ? 3 : 2;
+          strokeTile(part.x, part.y, radiusBySkin.royal);
         }
 
         ctx.restore();
@@ -6549,6 +7827,154 @@
         return /^[^\s@]+@gmail\.com$/.test(gmail) ? gmail : "";
       }
 
+      function askConfirm(message) {
+        confirmMessage.textContent = message;
+        confirmMenu.classList.add("open");
+        confirmMenu.setAttribute("aria-hidden", "false");
+
+        return new Promise((resolve) => {
+          confirmResolver = resolve;
+        });
+      }
+
+      function closeConfirm(result) {
+        confirmMenu.classList.remove("open");
+        confirmMenu.setAttribute("aria-hidden", "true");
+
+        if (confirmResolver) {
+          confirmResolver(Boolean(result));
+          confirmResolver = null;
+        }
+      }
+
+      async function confirmAdminAction(message) {
+        const confirmed = await askConfirm(message);
+
+        if (!confirmed) {
+          adminMessage.textContent = "Admin action cancelled.";
+        }
+
+        return confirmed;
+      }
+
+      function getAdminUserActionText(action, user, userKey) {
+        const name = user?.username || userKey;
+        const labels = {
+          "copy-name": `use ${name} in the points selector`,
+          "make-admin": `give admin to ${name}`,
+          "remove-admin": `remove admin from ${name}`,
+          "give-vip": `give VIP to ${name}`,
+          "remove-vip": `remove VIP from ${name}`,
+          "give-premium": `give Premium to ${name}`,
+          "remove-premium": `remove Premium from ${name}`,
+          "reset-scores": `reset scores for ${name}`,
+          "add-coins": `add coins to ${name}`,
+          "add-xp": `add XP to ${name}`,
+          "mute-10": `mute ${name} for 10 minutes`,
+          "mute-60": `mute ${name} for 1 hour`,
+          "ban-60": `ban ${name} for 1 hour`,
+          "ban-ip": `ban IP for ${name}`,
+          "clear-limits": `unmute/unban ${name}`,
+          "delete-user": `delete user ${name}`
+        };
+
+        return labels[action] || `run this action for ${name}`;
+      }
+
+      function getAdminRoomActionText(action, code) {
+        const labels = {
+          "use-code": `use room code ${code}`,
+          "spectate-room": `spectate room ${code}`,
+          "delete-room": `delete room ${code}`
+        };
+
+        return labels[action] || `run this room action for ${code}`;
+      }
+
+      function getAdminIpActionText(action, ip) {
+        const labels = {
+          "unban-ip": `unban IP ${ip || "unknown"}`
+        };
+
+        return labels[action] || `run this IP action for ${ip || "unknown"}`;
+      }
+
+      function ipKey(ip) {
+        return btoa(String(ip || "unknown")).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+      }
+
+      async function getClientIp() {
+        if (currentClientIp) {
+          return currentClientIp;
+        }
+
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 2500);
+          const response = await fetch("https://api.ipify.org?format=json", { signal: controller.signal });
+          clearTimeout(timeout);
+
+          if (!response.ok) {
+            return "";
+          }
+
+          const data = await response.json();
+          currentClientIp = String(data?.ip || "");
+          return currentClientIp;
+        } catch {
+          return "";
+        }
+      }
+
+      async function getIpBan(ip) {
+        if (!ip) {
+          return null;
+        }
+
+        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${ipKey(ip)}.json`);
+
+        if (!response.ok) {
+          throw new Error("Could not check IP ban.");
+        }
+
+        return response.json();
+      }
+
+      async function banIpAddress(ip, user) {
+        if (!ip) {
+          throw new Error("No IP saved for this user.");
+        }
+
+        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${ipKey(ip)}.json`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            ip,
+            username: user?.username || "",
+            bannedBy: currentAccount?.username || "admin",
+            createdAt: Date.now()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not ban IP.");
+        }
+
+        return response.json();
+      }
+
+      async function getAllIpBans() {
+        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps.json`);
+
+        if (!response.ok) {
+          throw new Error("Could not load banned IPs.");
+        }
+
+        return response.json();
+      }
+
       async function hashPassword(password) {
         const data = new TextEncoder().encode(password);
         const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -6744,6 +8170,7 @@
             : `Logged in as ${currentAccount.username}`;
           logoutButton.hidden = false;
           adminToggleButton.hidden = !currentAccount.isAdmin;
+          startAdminButton.hidden = !currentAccount.isAdmin;
           phoneModeButton.hidden = !currentAccount.isAdmin;
           adminPanel.classList.toggle("open", Boolean(currentAccount.isAdmin && adminPanelOpen));
           adminToggleButton.textContent = adminPanelOpen ? "Close Admin" : "Admin Panel";
@@ -6758,9 +8185,13 @@
           accountStatus.textContent = "Not logged in";
           logoutButton.hidden = true;
           adminToggleButton.hidden = true;
+          startAdminButton.hidden = true;
           phoneModeButton.hidden = true;
           phonePreviewMode = false;
           adminPanelOpen = false;
+          if (adminPanel.parentElement === startAdminPanelMount) {
+            adminPanelHome.after(adminPanel);
+          }
           adminPanel.classList.remove("open");
           authMenu.classList.add("open");
           authMenu.setAttribute("aria-hidden", "false");
@@ -6807,16 +8238,19 @@
         adminMessage.textContent = "Loading...";
 
         try {
-          const [rooms, usersResponse] = await Promise.all([
+          const [rooms, ipBans, usersResponse, musicResponse] = await Promise.all([
             getAllRooms(),
-            fetch(`${firebaseDatabaseUrl}/users.json`)
+            getAllIpBans(),
+            fetch(`${firebaseDatabaseUrl}/users.json`),
+            fetch(`${firebaseDatabaseUrl}/musicSubmissions.json`)
           ]);
 
-          if (!usersResponse.ok) {
+          if (!usersResponse.ok || !musicResponse.ok) {
             throw new Error("Could not load users.");
           }
 
           const users = await usersResponse.json();
+          const musicSubmissions = await musicResponse.json();
           const roomEntries = Object.entries(rooms || {});
           const activeRoomEntries = roomEntries.filter(([, room]) => Number(room?.players || 0) > 0);
           const userEntries = Object.entries(users || {});
@@ -6828,6 +8262,8 @@
           adminUserCount.textContent = userEntries.length;
           renderAdminUsers(userEntries);
           renderAdminRooms(roomEntries);
+          renderAdminIpBans(Object.entries(ipBans || {}));
+          renderAdminMusic(Object.entries(musicSubmissions || {}));
           updatePointsTargetOptions();
           adminMessage.textContent = "Admin data loaded.";
         } catch {
@@ -6863,17 +8299,18 @@
                 <span class="admin-user-name">${escapeHtml(user?.username || key)}</span>
                 <span class="admin-badge">${user?.isAdmin ? "Admin" : user?.vip ? "VIP" : premium ? "Premium" : "User"}</span>
               </div>
-              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}</div>
+              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
               <div class="admin-user-actions">
                 <button type="button" data-admin-action="${user?.isAdmin ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${user?.isAdmin ? "Remove Admin" : "Make Admin"}</button>
                 <button type="button" data-admin-action="${user?.vip ? "remove-vip" : "give-vip"}" data-user-key="${escapeHtml(key)}">${user?.vip ? "Remove VIP" : "Give VIP"}</button>
                 <button type="button" data-admin-action="${premium ? "remove-premium" : "give-premium"}" data-user-key="${escapeHtml(key)}">${premium ? "Remove Premium" : "Give Premium"}</button>
                 <button type="button" data-admin-action="reset-scores" data-user-key="${escapeHtml(key)}">Reset Scores</button>
-                <button type="button" data-admin-action="add-coins" data-user-key="${escapeHtml(key)}">+100 Coins</button>
-                <button type="button" data-admin-action="add-xp" data-user-key="${escapeHtml(key)}">+100 XP</button>
+                <button type="button" data-admin-action="add-coins" data-user-key="${escapeHtml(key)}">Add Coins</button>
+                <button type="button" data-admin-action="add-xp" data-user-key="${escapeHtml(key)}">Add XP</button>
                 <button type="button" data-admin-action="mute-10" data-user-key="${escapeHtml(key)}">Mute 10m</button>
                 <button type="button" data-admin-action="mute-60" data-user-key="${escapeHtml(key)}">Mute 1h</button>
                 <button type="button" data-admin-action="ban-60" data-user-key="${escapeHtml(key)}" class="admin-danger">Ban 1h</button>
+                <button type="button" data-admin-action="ban-ip" data-user-key="${escapeHtml(key)}" class="admin-danger">Ban IP</button>
                 <button type="button" data-admin-action="clear-limits" data-user-key="${escapeHtml(key)}">Unmute/Unban</button>
                 <button type="button" data-admin-action="delete-user" data-user-key="${escapeHtml(key)}" class="admin-danger">Delete User</button>
                 <button type="button" data-admin-action="copy-name" data-user-key="${escapeHtml(key)}">Use Name</button>
@@ -6914,6 +8351,132 @@
           });
       }
 
+      function renderAdminIpBans(ipBanEntries) {
+        adminIpBansList.innerHTML = "";
+
+        if (!ipBanEntries.length) {
+          adminIpBansList.textContent = "No IP bans.";
+          return;
+        }
+
+        ipBanEntries
+          .sort(([, a], [, b]) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0))
+          .forEach(([key, ban]) => {
+            const card = document.createElement("div");
+            card.className = "admin-room-card";
+            card.innerHTML = `
+              <div class="admin-user-top">
+                <span class="admin-room-code">${escapeHtml(ban?.ip || key)}</span>
+                <span class="admin-badge">IP Ban</span>
+              </div>
+              <div class="admin-user-meta">User: ${escapeHtml(ban?.username || "unknown")} | By: ${escapeHtml(ban?.bannedBy || "admin")}</div>
+              <div class="admin-user-actions">
+                <button type="button" data-ip-action="unban-ip" data-ip-key="${escapeHtml(key)}" data-ip="${escapeHtml(ban?.ip || "")}">Unban IP</button>
+              </div>
+            `;
+            adminIpBansList.appendChild(card);
+          });
+      }
+
+      function renderAdminMusic(musicEntries) {
+        adminMusicList.innerHTML = "";
+        const sortedEntries = musicEntries
+          .filter(([, submission]) => submission?.url)
+          .sort(([, a], [, b]) => {
+            const statusOrder = { pending: 0, approved: 1, rejected: 2 };
+            const statusDifference = (statusOrder[a?.status] ?? 3) - (statusOrder[b?.status] ?? 3);
+            return statusDifference || Number(b?.submittedAt || 0) - Number(a?.submittedAt || 0);
+          });
+
+        if (!sortedEntries.length) {
+          adminMusicList.textContent = "No music requests.";
+          return;
+        }
+
+        sortedEntries.forEach(([key, submission]) => {
+          const status = ["pending", "approved", "rejected"].includes(submission.status) ? submission.status : "pending";
+          const statusLabel = status === "approved" ? "Accepted" : status === "rejected" ? "Declined" : "Pending";
+          const card = document.createElement("div");
+          card.className = "admin-room-card";
+          card.innerHTML = `
+            <div class="admin-user-top">
+              <span class="admin-room-code">${escapeHtml(getMusicUrlLabel(submission.url || "Music"))}</span>
+              <span class="admin-badge">${statusLabel}</span>
+            </div>
+            <div class="admin-user-meta">From: ${escapeHtml(submission.username || "Guest")}${submission.reviewedBy ? ` | Reviewed by: ${escapeHtml(submission.reviewedBy)}` : ""}</div>
+            <div class="admin-user-actions">
+              <button type="button" data-music-action="open" data-music-key="${escapeHtml(key)}" data-music-url="${escapeHtml(submission.url || "")}">Open Link</button>
+              ${status !== "approved" ? `<button type="button" data-music-action="accept" data-music-key="${escapeHtml(key)}">Accept</button>` : ""}
+              ${status !== "rejected" ? `<button type="button" data-music-action="decline" data-music-key="${escapeHtml(key)}" class="admin-danger">Decline</button>` : ""}
+              <button type="button" data-music-action="delete" data-music-key="${escapeHtml(key)}" class="admin-danger">Delete</button>
+            </div>
+          `;
+          adminMusicList.appendChild(card);
+        });
+      }
+
+      async function handleAdminMusicAction(event) {
+        const button = event.target.closest("[data-music-action]");
+
+        if (!button || !currentAccount?.isAdmin) {
+          return;
+        }
+
+        const action = button.dataset.musicAction;
+        const key = button.dataset.musicKey;
+
+        if (action === "open") {
+          const url = button.dataset.musicUrl;
+          if (url) {
+            window.open(url, "_blank", "noopener,noreferrer");
+          }
+          return;
+        }
+
+        if (!(await confirmAdminAction(`Are you sure to ${action} this music request?`))) {
+          return;
+        }
+
+        button.disabled = true;
+
+        try {
+          if (action === "delete") {
+            const deleteResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`, {
+              method: "DELETE"
+            });
+
+            if (!deleteResponse.ok) {
+              throw new Error("Music request deletion failed.");
+            }
+
+            adminMessage.textContent = "Music request deleted.";
+            await loadAdminPanel();
+            return;
+          }
+
+          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              status: action === "accept" ? "approved" : "rejected",
+              reviewedAt: Date.now(),
+              reviewedBy: currentAccount.username
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Music moderation failed.");
+          }
+
+          adminMessage.textContent = action === "accept" ? "Music request accepted." : "Music request declined.";
+          await loadAdminPanel();
+        } catch {
+          adminMessage.textContent = "Could not update music moderation.";
+        } finally {
+          button.disabled = false;
+        }
+      }
+
       function escapeHtml(value) {
         return String(value)
           .replace(/&/g, "&amp;")
@@ -6948,13 +8511,22 @@
         }
       }
 
+      function getAdminAmount() {
+        const amount = Math.floor(Number(pointsInput.value) || 0);
+        pointsInput.value = amount || 1;
+        return amount;
+      }
+
       async function addAdminPoint() {
         if (!currentAccount?.isAdmin) {
           return;
         }
 
-        const points = Math.max(1, Math.floor(Number(pointsInput.value) || 1));
-        pointsInput.value = points;
+        const points = getAdminAmount();
+        if (!points) {
+          adminMessage.textContent = "Enter amount first.";
+          return;
+        }
         const selectedTarget = pointsTargetSelect.value || "local";
 
         if (selectedTarget.startsWith("user:")) {
@@ -7037,6 +8609,10 @@
           return;
         }
 
+        if (!(await confirmAdminAction(`Are you sure to ${getAdminUserActionText(action, user, userKey)}?`))) {
+          return;
+        }
+
         button.disabled = true;
 
         try {
@@ -7076,12 +8652,44 @@
             });
             adminMessage.textContent = `${user.username || userKey} Premium removed.`;
           } else if (action === "add-coins") {
-            await patchUser(userKey, { coins: Number(user.coins || 0) + 100 });
-            adminMessage.textContent = `${user.username || userKey} got 100 coins.`;
+            const coins = getAdminAmount();
+            if (!coins) {
+              adminMessage.textContent = "Enter amount first.";
+              return;
+            }
+
+            await patchUser(userKey, { coins: Number(user.coins || 0) + coins });
+            adminMessage.textContent = `${user.username || userKey} got ${coins} coins.`;
           } else if (action === "add-xp") {
-            const nextXp = Number(user.xp || 0) + 100;
+            const xp = getAdminAmount();
+            if (!xp) {
+              adminMessage.textContent = "Enter amount first.";
+              return;
+            }
+
+            const nextXp = Number(user.xp || 0) + xp;
             await patchUser(userKey, { xp: nextXp, level: getLevelFromXp(nextXp) });
-            adminMessage.textContent = `${user.username || userKey} got 100 XP.`;
+            adminMessage.textContent = `${user.username || userKey} got ${xp} XP.`;
+          } else if (action === "ban-ip") {
+            if (usernameKey(currentAccount.username) === userKey) {
+              adminMessage.textContent = "You cannot IP ban yourself.";
+              return;
+            }
+
+            if (!user.lastIp) {
+              adminMessage.textContent = "This user has no saved IP yet.";
+              return;
+            }
+
+            const myIp = await getClientIp();
+            if (myIp && myIp === user.lastIp) {
+              adminMessage.textContent = "This IP is the same as yours. Not banned.";
+              return;
+            }
+
+            await banIpAddress(user.lastIp, user);
+            await patchUser(userKey, { ipBanned: true });
+            adminMessage.textContent = `${user.username || userKey} IP banned.`;
           } else if (action === "mute-10" || action === "mute-60" || action === "ban-60" || action === "clear-limits") {
             if (usernameKey(currentAccount.username) === userKey) {
               adminMessage.textContent = "You cannot ban or mute yourself.";
@@ -7142,6 +8750,10 @@
         const action = button.dataset.roomAction;
         const code = button.dataset.roomCode;
 
+        if (!(await confirmAdminAction(`Are you sure to ${getAdminRoomActionText(action, code)}?`))) {
+          return;
+        }
+
         if (action === "use-code") {
           roomCodeInput.value = code;
           startRoomCodeInput.value = code;
@@ -7185,6 +8797,45 @@
         }
       }
 
+      async function handleAdminIpAction(event) {
+        const button = event.target.closest("[data-ip-action]");
+
+        if (!button || !currentAccount?.isAdmin) {
+          return;
+        }
+
+        const action = button.dataset.ipAction;
+        const key = button.dataset.ipKey;
+        const ip = button.dataset.ip;
+
+        if (!(await confirmAdminAction(`Are you sure to ${getAdminIpActionText(action, ip)}?`))) {
+          return;
+        }
+
+        if (action === "unban-ip") {
+          button.disabled = true;
+
+          try {
+            const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${key}.json`, {
+              method: "DELETE"
+            });
+
+            if (!response.ok) {
+              throw new Error("Could not unban IP.");
+            }
+
+            const matchingUsers = Object.entries(adminUsersCache || {}).filter(([, user]) => user?.lastIp === ip || user?.ipBanned && user?.lastIp === ip);
+            await Promise.all(matchingUsers.map(([userKey]) => patchUser(userKey, { ipBanned: false })));
+            adminMessage.textContent = `${ip || key} unbanned.`;
+            await loadAdminPanel();
+          } catch {
+            adminMessage.textContent = "Could not unban IP.";
+          } finally {
+            button.disabled = false;
+          }
+        }
+      }
+
       async function patchAllUsers(makePatch, doneMessage) {
         if (!currentAccount?.isAdmin) {
           return;
@@ -7209,8 +8860,12 @@
       }
 
       async function addPointsToAllUsers() {
-        const points = Math.max(1, Math.floor(Number(pointsInput.value) || 1));
-        pointsInput.value = points;
+        const points = getAdminAmount();
+        if (!points) {
+          adminMessage.textContent = "Enter amount first.";
+          return;
+        }
+
         await patchAllUsers(
           (user) => ({ points: Number(user?.points || 0) + points }),
           `Added ${points} points to all users.`
@@ -7253,6 +8908,13 @@
         authMessage.textContent = "Creating account...";
 
         try {
+          const clientIp = await getClientIp();
+          const ipBan = await getIpBan(clientIp);
+          if (ipBan) {
+            authMessage.textContent = "This IP address is banned.";
+            return;
+          }
+
           if (await getUser(userKey)) {
             authMessage.textContent = "Username already exists.";
             return;
@@ -7303,6 +8965,8 @@
             },
             mutedUntil: 0,
             bannedUntil: 0,
+            lastIp: clientIp,
+            lastSeenAt: Date.now(),
             createdAt: Date.now()
           });
 
@@ -7339,6 +9003,13 @@
         authMessage.textContent = "Logging in...";
 
         try {
+          const clientIp = await getClientIp();
+          const ipBan = await getIpBan(clientIp);
+          if (ipBan) {
+            authMessage.textContent = "This IP address is banned.";
+            return;
+          }
+
           const user = await getUser(userKey);
           const passwordHash = await hashPassword(password);
           let firebaseLoginOk = false;
@@ -7357,9 +9028,20 @@
             return;
           }
 
+          if (user.ipBanned) {
+            authMessage.textContent = "This account IP is banned.";
+            return;
+          }
+
           if (firebaseLoginOk && user.passwordHash !== passwordHash) {
             await patchUser(userKey, { passwordHash });
           }
+
+          await patchUser(userKey, {
+            lastIp: clientIp,
+            lastSeenAt: Date.now(),
+            ipBanned: false
+          });
 
           passwordInput.value = "";
           gmailInput.value = user.gmail || "";
@@ -9256,6 +10938,8 @@
 
       document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
       document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
+      decorateStartGameCards();
+      updateStartGameShowcase();
       startPlayButton.addEventListener("click", playFromStartMenu);
       startGamesButton.addEventListener("click", () => {
         showStartSection("games");
@@ -9290,7 +10974,11 @@
       startAccountButton.addEventListener("click", () => {
         showStartSection("account");
       });
+      startAdminButton.addEventListener("click", () => {
+        showStartSection("admin");
+      });
       startBackFromGames.addEventListener("click", () => showStartSection("main"));
+      startBackFromOnlineRoom.addEventListener("click", () => showStartSection("games"));
       startBackFromProfile.addEventListener("click", () => showStartSection("main"));
       startBackFromShop.addEventListener("click", () => showStartSection("main"));
       startBackFromPremium.addEventListener("click", () => showStartSection("main"));
@@ -9301,13 +10989,24 @@
       startBackFromSocial.addEventListener("click", () => showStartSection("main"));
       startBackFromSettings.addEventListener("click", () => showStartSection("main"));
       startBackFromAccount.addEventListener("click", () => showStartSection("main"));
+      startBackFromAdmin.addEventListener("click", () => showStartSection("main"));
       startSoloGameButtons.forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          if (event.target.closest(".game-card-play")) {
+            playStartCard(button);
+            return;
+          }
+
           selectSoloGameFromStart(button.dataset.startGame);
         });
       });
       startOnlineGameButtons.forEach((button) => {
-        button.addEventListener("click", () => {
+        button.addEventListener("click", (event) => {
+          if (event.target.closest(".game-card-play")) {
+            playStartCard(button);
+            return;
+          }
+
           selectOnlineGameFromStart(button.dataset.startOnlineGame);
         });
       });
@@ -9330,9 +11029,14 @@
       [startSoundSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
         select.addEventListener("change", updateGameSettingsFromStart);
       });
+      startSoundSelect.addEventListener("input", updateGameSettingsFromStart);
+      startCustomMusicListSelect.addEventListener("change", () => selectCustomMusicUrl("start"));
+      startSaveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("start"));
+      startDeleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("start"));
       [startSkinSelect, startColorSelect].forEach((select) => {
         select.addEventListener("change", updatePlayerStyleFromStart);
       });
+      startMusicSelect.addEventListener("change", updateMusicPackFromStart);
       startResetRecordButton.addEventListener("click", resetRecordFromStart);
       startLoginButton.addEventListener("click", loginFromStart);
       startRegisterButton.addEventListener("click", registerFromStart);
@@ -9350,6 +11054,8 @@
       });
       loginButton.addEventListener("click", loginAccount);
       registerButton.addEventListener("click", registerAccount);
+      confirmYesButton.addEventListener("click", () => closeConfirm(true));
+      confirmNahButton.addEventListener("click", () => closeConfirm(false));
       saveGmailButton.addEventListener("click", () => saveAccountGmail("account"));
       sendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("account"));
       settingsSaveGmailButton.addEventListener("click", () => saveAccountGmail("settings"));
@@ -9369,23 +11075,54 @@
         settingsRecoveryGmailInput.value = "";
         setStoredAccount(null);
       });
-      refreshAdminButton.addEventListener("click", loadAdminPanel);
-      clearRoomsButton.addEventListener("click", clearAllRooms);
-      addPointsButton.addEventListener("click", addAdminPoint);
-      addPointsAllButton.addEventListener("click", addPointsToAllUsers);
-      clearUserPointsButton.addEventListener("click", clearAllUserPoints);
-      resetAllScoresButton.addEventListener("click", resetAllUserScores);
+      refreshAdminButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to refresh admin panel?")) {
+          loadAdminPanel();
+        }
+      });
+      clearRoomsButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to clear all rooms?")) {
+          clearAllRooms();
+        }
+      });
+      addPointsButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to add points?")) {
+          addAdminPoint();
+        }
+      });
+      addPointsAllButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to add points to all users?")) {
+          addPointsToAllUsers();
+        }
+      });
+      clearUserPointsButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to clear all user points?")) {
+          clearAllUserPoints();
+        }
+      });
+      resetAllScoresButton.addEventListener("click", async () => {
+        if (await confirmAdminAction("Are you sure to reset all scores?")) {
+          resetAllUserScores();
+        }
+      });
       adminUsersList.addEventListener("click", handleAdminUserAction);
       adminUserSearchInput.addEventListener("input", () => {
         renderAdminUsers(Object.entries(adminUsersCache || {}));
       });
       adminRoomsList.addEventListener("click", handleAdminRoomAction);
+      adminIpBansList.addEventListener("click", handleAdminIpAction);
+      adminMusicList.addEventListener("click", handleAdminMusicAction);
       soundSelect.addEventListener("change", updateGameSettings);
+      soundSelect.addEventListener("input", updateGameSettings);
       themeSelect.addEventListener("change", updateGameSettings);
       fieldSizeSelect.addEventListener("change", updateGameSettings);
       controlsSelect.addEventListener("change", updateGameSettings);
+      customMusicListSelect.addEventListener("change", () => selectCustomMusicUrl("game"));
+      saveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("game"));
+      deleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("game"));
       skinSelect.addEventListener("change", updatePlayerStyle);
       colorSelect.addEventListener("change", updatePlayerStyle);
+      musicSelect.addEventListener("change", updateMusicPack);
       resetRecordButton.addEventListener("click", resetCurrentRecord);
       accountSettingsButton.addEventListener("click", openAccountSettings);
       passwordInput.addEventListener("keydown", (event) => {
