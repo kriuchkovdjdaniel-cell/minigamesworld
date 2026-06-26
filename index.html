@@ -924,24 +924,6 @@
         line-height: 1.25;
       }
 
-      .game-card-stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        padding: 0 0.95rem;
-      }
-
-      .game-card-stat {
-        width: fit-content;
-        padding: 0.25rem 0.5rem;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.09);
-        color: #e5e7eb;
-        font-size: 0.78rem;
-        font-weight: 900;
-        line-height: 1;
-      }
-
       #startGamesMenu .showcase-copy p:last-child {
         width: auto;
         min-height: 0;
@@ -1088,6 +1070,10 @@
       }
 
       .start-screen.loaded .loading-bar {
+        display: none;
+      }
+
+      .start-screen.loaded #startStatus {
         display: none;
       }
 
@@ -3114,8 +3100,7 @@
         line-height: 1.15;
       }
 
-      body.phone-device-mode .game-card-meta,
-      body.phone-device-mode .game-card-stats {
+      body.phone-device-mode .game-card-meta {
         display: none;
       }
 
@@ -4221,20 +4206,20 @@
         "online-battle": "Online Battle Arena"
       };
       const startGameMeta = {
-        snake: { display: "Snake Classic", rating: "95%", players: "1.2K active", creator: "Sigma Studio" },
-        catcher: { display: "Apple Catcher", rating: "94%", players: "840 active", creator: "Danya Games" },
-        dodger: { display: "Gem Runner", rating: "91%", players: "683 active", creator: "Sigma Studio" },
-        "solo-pong": { display: "Brick Pong", rating: "98%", players: "2.4K active", creator: "Danya Arcade" },
-        "coin-rush": { display: "Coin Rush", rating: "90%", players: "517 active", creator: "Sigma Studio" },
-        "laser-dodge": { display: "Laser Dodge", rating: "89%", players: "321 active", creator: "Danya Labs" },
-        "sigma-rpg": { display: "Sigma RPG", rating: "96%", players: "1.6K active", creator: "Sigma RPG Team" },
-        "online-snake": { display: "Online Snake", rating: "97%", players: "2 players", creator: "Sigma Online" },
-        "online-tanks": { display: "Online Tanks", rating: "96%", players: "2 players", creator: "Sigma Online" },
-        "online-pong": { display: "Online Pong", rating: "93%", players: "2 players", creator: "Sigma Online" },
-        "online-tag": { display: "Online Tag", rating: "92%", players: "2 players", creator: "Sigma Online" },
-        "online-soccer": { display: "Online Soccer", rating: "94%", players: "2 players", creator: "Sigma Online" },
-        "online-maze": { display: "Online Maze Race", rating: "90%", players: "2 players", creator: "Sigma Online" },
-        "online-battle": { display: "Online Battle Arena", rating: "91%", players: "2 players", creator: "Sigma Online" }
+        snake: { display: "Snake Classic", creator: "Sigma Studio" },
+        catcher: { display: "Apple Catcher", creator: "Danya Games" },
+        dodger: { display: "Gem Runner", creator: "Sigma Studio" },
+        "solo-pong": { display: "Brick Pong", creator: "Danya Arcade" },
+        "coin-rush": { display: "Coin Rush", creator: "Sigma Studio" },
+        "laser-dodge": { display: "Laser Dodge", creator: "Danya Labs" },
+        "sigma-rpg": { display: "Sigma RPG", creator: "Sigma RPG Team" },
+        "online-snake": { display: "Online Snake", creator: "Sigma Online" },
+        "online-tanks": { display: "Online Tanks", creator: "Sigma Online" },
+        "online-pong": { display: "Online Pong", creator: "Sigma Online" },
+        "online-tag": { display: "Online Tag", creator: "Sigma Online" },
+        "online-soccer": { display: "Online Soccer", creator: "Sigma Online" },
+        "online-maze": { display: "Online Maze Race", creator: "Sigma Online" },
+        "online-battle": { display: "Online Battle Arena", creator: "Sigma Online" }
       };
 
       let currentGame = "snake";
@@ -4276,6 +4261,9 @@
       let gameOver;
       let paused;
       let waitingToPlay = false;
+      let startShieldUntil = 0;
+      let comboCount = 0;
+      let lastPointTime = 0;
       let timer;
       let waitingTimer;
       let pauseMenuLevel = "main";
@@ -4321,7 +4309,9 @@
       let selectedMusicPack = "";
       let customMusicAudio = null;
       let loadingMusicAudio = null;
+      let loadingMusicTimer = null;
       let loadingMusicStopped = false;
+      let loadingMusicReady = false;
       let localMusicObjectUrl = "";
       let localMusicFileName = "";
       let localMusicApprovalRef = null;
@@ -4715,7 +4705,7 @@
       }
 
       function startLoadingMusic() {
-        if (loadingMusicStopped || getGameVolume() <= 0) {
+        if (!loadingMusicReady || loadingMusicStopped || getGameVolume() <= 0) {
           return;
         }
 
@@ -4733,6 +4723,8 @@
 
       function stopLoadingMusic() {
         loadingMusicStopped = true;
+        clearTimeout(loadingMusicTimer);
+        loadingMusicTimer = null;
 
         if (!loadingMusicAudio) {
           return;
@@ -4740,6 +4732,16 @@
 
         loadingMusicAudio.pause();
         loadingMusicAudio.currentTime = 0;
+      }
+
+      function scheduleLoadingMusic() {
+        clearTimeout(loadingMusicTimer);
+        loadingMusicReady = false;
+        loadingMusicStopped = false;
+        loadingMusicTimer = window.setTimeout(() => {
+          loadingMusicReady = true;
+          startLoadingMusic();
+        }, 2200);
       }
 
       function normalizeMusicList(list) {
@@ -6216,6 +6218,8 @@
         gameOver = false;
         coinFlames = [];
         scoreBursts = [];
+        comboCount = 0;
+        lastPointTime = 0;
         waitingToPlay = !restartAfterDeath;
         paused = false;
         updateShootButton();
@@ -6226,11 +6230,13 @@
         pauseMenu.setAttribute("aria-hidden", "true");
         resetPauseMenu();
         if (waitingToPlay) {
+          startShieldUntil = 0;
           showPlayOverlay();
           statusEl.textContent = "Press Play to start.";
         } else {
+          activateStartShield();
           hidePlayOverlay();
-          statusEl.textContent = games[currentGame].help;
+          statusEl.textContent = hasStartShield() ? "Shield active. Move now." : games[currentGame].help;
         }
         clearInterval(timer);
 
@@ -6663,6 +6669,12 @@
           addPoint();
           resetApple();
         } else if (apple.y > canvas.height) {
+          if (blockShieldHit("Shield caught the missed apple.")) {
+            resetApple();
+            draw();
+            return;
+          }
+
           endGame();
           return;
         }
@@ -6705,7 +6717,7 @@
           dodger.y + dodger.size > block.y
         );
 
-        if (hit) {
+        if (hit && !blockShieldHit("Shield saved you.")) {
           endGame();
           return;
         }
@@ -6906,6 +6918,13 @@
         }
 
         if (rectsTouch(coinPlayer.x, coinPlayer.y, coinPlayer.size, coinPlayer.size, coinEnemy.x, coinEnemy.y, coinEnemy.size, coinEnemy.size)) {
+          if (blockShieldHit("Shield blocked enemy.")) {
+            coinEnemy.x = 24;
+            coinEnemy.y = 24;
+            draw();
+            return;
+          }
+
           endGame();
           return;
         }
@@ -6946,7 +6965,7 @@
           return laserPlayer.x < laser.position + 10 && laserPlayer.x + laserPlayer.size > laser.position - 10;
         });
 
-        if (hit) {
+        if (hit && !blockShieldHit("Shield blocked laser.")) {
           endGame();
           return;
         }
@@ -6989,7 +7008,7 @@
           rectsTouch(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, enemy.x, enemy.y, enemy.size, enemy.size)
         );
 
-        if (touchedEnemy) {
+        if (touchedEnemy && !blockShieldHit("Shield blocked monster.")) {
           endGame();
           return;
         }
@@ -7030,9 +7049,80 @@
         player.y = Math.max(0, Math.min(canvas.height - player.size, player.y + dy));
       }
 
+      function shieldedGames() {
+        return ["catcher", "dodger", "coin-rush", "laser-dodge", "sigma-rpg"].includes(currentGame);
+      }
+
+      function activateStartShield() {
+        startShieldUntil = shieldedGames() ? Date.now() + 2200 : 0;
+      }
+
+      function hasStartShield() {
+        return shieldedGames() && Date.now() < startShieldUntil;
+      }
+
+      function blockShieldHit(message = "Shield blocked hit.") {
+        if (!hasStartShield()) {
+          return false;
+        }
+
+        statusEl.textContent = message;
+        spawnScoreBurst();
+        return true;
+      }
+
+      function getShieldCenter() {
+        const playerMap = {
+          catcher,
+          dodger,
+          "coin-rush": coinPlayer,
+          "laser-dodge": laserPlayer,
+          "sigma-rpg": rpgPlayer
+        };
+        const player = playerMap[currentGame];
+
+        if (!player) {
+          return null;
+        }
+
+        return {
+          x: player.x + (player.width || player.size) / 2,
+          y: player.y + (player.height || player.size) / 2,
+          radius: Math.max(player.width || player.size, player.height || player.size) * 0.72
+        };
+      }
+
+      function drawStartShield() {
+        if (!hasStartShield()) {
+          return;
+        }
+
+        const center = getShieldCenter();
+
+        if (!center) {
+          return;
+        }
+
+        const pulse = 0.5 + Math.sin(Date.now() / 90) * 0.12;
+        ctx.save();
+        ctx.globalAlpha = 0.45 + pulse * 0.25;
+        ctx.strokeStyle = "#67e8f9";
+        ctx.lineWidth = 4;
+        ctx.shadowColor = "#22d3ee";
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(center.x, center.y, center.radius + pulse * 8, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = "#22d3ee";
+        ctx.fill();
+        ctx.restore();
+      }
+
       function addPoint() {
         score += 1;
         scoreEl.textContent = score;
+        updateCombo();
         spawnScoreBurst();
         spawnCoinFlame();
         playSound("point");
@@ -7040,6 +7130,16 @@
           best = score;
           bestEl.textContent = best;
           saveBestScore(currentGame, best);
+        }
+      }
+
+      function updateCombo() {
+        const now = Date.now();
+        comboCount = now - lastPointTime < 1800 ? comboCount + 1 : 1;
+        lastPointTime = now;
+
+        if (comboCount >= 3) {
+          statusEl.textContent = `Combo x${comboCount}!`;
         }
       }
 
@@ -7261,10 +7361,11 @@
         unlockBackgroundMusic();
         waitingToPlay = false;
         paused = false;
+        activateStartShield();
         updatePauseButton();
         hidePlayOverlay();
         pauseButton.textContent = "Menu";
-        statusEl.textContent = games[currentGame].help;
+        statusEl.textContent = hasStartShield() ? "Shield active. Move now." : games[currentGame].help;
       }
 
       function closeStartScreen() {
@@ -7471,10 +7572,6 @@
             </span>
             <span class="game-card-title">${escapeHtml(title)}</span>
             <span class="game-card-meta">${escapeHtml(meta.creator || "MiniGameWorld")}</span>
-            <span class="game-card-stats">
-              <span class="game-card-stat">${escapeHtml(meta.rating || "95%")} Rating</span>
-              <span class="game-card-stat">${escapeHtml(meta.players || "Active")}</span>
-            </span>
             <span class="game-card-play" aria-hidden="true"></span>
           `;
         });
@@ -8233,6 +8330,7 @@
         } else {
           drawOnlineGame();
         }
+        drawStartShield();
         drawCoinFlames();
       }
 
@@ -12345,8 +12443,8 @@
       setupInstallAppButton();
       document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
       document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
-      document.addEventListener("pointerdown", startLoadingMusic, { once: true });
-      document.addEventListener("keydown", startLoadingMusic, { once: true });
+      document.addEventListener("pointerdown", startLoadingMusic);
+      document.addEventListener("keydown", startLoadingMusic);
       document.addEventListener("visibilitychange", () => {
         if (!document.hidden && musicUnlocked) {
           syncBackgroundMusic();
@@ -12609,7 +12707,7 @@
       refreshStoredAccountRole();
       applyPlayerStyleControls();
       applyGameSettingsControls();
-      startLoadingMusic();
+      scheduleLoadingMusic();
       startGame("snake", false);
       window.setTimeout(showLoadedStartMenu, 900);
     </script>
