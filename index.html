@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#052e16">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Sigma Studio">
+    <meta name="apple-mobile-web-app-title" content="MiniGameWorld">
     <link rel="manifest" href="manifest.json">
-    <title>Snake - Danya</title>
+    <title>MiniGameWorld</title>
     <style>
       :root {
         color-scheme: dark;
@@ -452,7 +452,10 @@
       .start-panel h2 {
         margin: 0;
         font-family: Impact, Arial Black, Arial, sans-serif;
-        font-size: clamp(4rem, 9vw, 7.2rem);
+        width: 100%;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        font-size: clamp(3rem, 7.4vw, 6rem);
         line-height: 1;
         color: #f8fafc;
         filter: drop-shadow(0 0 18px rgba(94, 234, 212, 0.18));
@@ -2436,7 +2439,7 @@
         }
 
         .start-panel h2 {
-          font-size: clamp(2.25rem, 13vw, 3.8rem);
+          font-size: clamp(2rem, 11vw, 3.2rem);
         }
 
         .start-splash {
@@ -2476,35 +2479,46 @@
         }
 
         #startGamesMenu .start-showcase {
-          grid-template-columns: 1fr;
-          min-height: 0;
+          display: none;
         }
 
-        #startGamesMenu .showcase-thumb {
-          min-height: 9rem;
-          aspect-ratio: 16 / 9;
+        #startGamesMenu {
+          gap: 0.6rem;
         }
 
         .game-card-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 0.65rem;
+          gap: 0.55rem;
         }
 
         .game-card-grid button[data-start-game],
         .game-card-grid button[data-start-online-game] {
-          min-height: 11rem;
+          min-height: 10.2rem;
+          border-radius: 14px;
         }
 
         .game-thumb {
-          min-height: 6.4rem;
+          min-height: 5.75rem;
+          border-radius: 12px;
+        }
+
+        .game-icon-large {
+          font-size: 1.55rem;
+          padding: 0.25rem 0.48rem;
         }
 
         .game-card-title {
-          font-size: 0.8rem;
+          padding-inline: 0.55rem;
+          font-size: 0.82rem;
+          line-height: 1.15;
         }
 
-        .game-card-meta {
-          font-size: 0.7rem;
+        .game-card-play {
+          width: calc(100% - 1rem);
+          min-height: 2.35rem;
+          margin: auto 0.5rem 0.55rem;
+          border-radius: 10px;
+          font-size: 0.84rem;
         }
 
         .online-room-panel {
@@ -2945,7 +2959,7 @@
       }
 
       body.phone-preview-mode .start-panel h2 {
-        font-size: clamp(3.2rem, 18vw, 5.4rem);
+        font-size: clamp(2rem, 10vw, 3.2rem);
       }
 
       body.phone-preview-mode .start-actions {
@@ -2992,6 +3006,10 @@
           linear-gradient(145deg, rgba(2, 6, 23, 0.92), var(--theme-panel));
       }
 
+      body.phone-device-mode .start-panel h2 {
+        font-size: clamp(2rem, 10vw, 3.2rem);
+      }
+
       body.phone-device-mode .start-actions {
         grid-template-columns: 1fr;
         gap: 0.45rem;
@@ -3016,6 +3034,49 @@
 
       body.phone-device-mode .start-showcase {
         grid-template-columns: 1fr;
+      }
+
+      body.phone-device-mode #startGamesMenu .start-showcase {
+        display: none;
+      }
+
+      body.phone-device-mode #startGamesMenu {
+        gap: 0.6rem;
+      }
+
+      body.phone-device-mode .game-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.55rem;
+      }
+
+      body.phone-device-mode .game-card-grid button[data-start-game],
+      body.phone-device-mode .game-card-grid button[data-start-online-game] {
+        min-height: 10.2rem;
+        border-radius: 14px;
+      }
+
+      body.phone-device-mode .game-thumb {
+        min-height: 5.75rem;
+        border-radius: 12px;
+      }
+
+      body.phone-device-mode .game-icon-large {
+        font-size: 1.55rem;
+        padding: 0.25rem 0.48rem;
+      }
+
+      body.phone-device-mode .game-card-title {
+        padding-inline: 0.55rem;
+        font-size: 0.82rem;
+        line-height: 1.15;
+      }
+
+      body.phone-device-mode .game-card-play {
+        width: calc(100% - 1rem);
+        min-height: 2.35rem;
+        margin: auto 0.5rem 0.55rem;
+        border-radius: 10px;
+        font-size: 0.84rem;
       }
 
       body.phone-preview-mode main {
@@ -3277,7 +3338,7 @@
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
       <div class="start-panel" id="startPanel">
-        <h2>Sigma Studio</h2>
+        <h2>MiniGameWorld</h2>
         <div class="start-splash">Danya editor!</div>
         <p id="startStatus">Loading...</p>
         <div class="start-pass-strip" id="startPassStrip" aria-label="Battle pass progress">
@@ -3393,7 +3454,7 @@
           <h3>Donate</h3>
           <div class="start-showcase donate-showcase">
             <div class="showcase-copy">
-              <strong>Support Sigma Studio</strong>
+              <strong>Support MiniGameWorld</strong>
               <span>Donations help keep the game online and add new updates.</span>
               <p>Connect your real donation link in the code, then these buttons will open it.</p>
             </div>
@@ -4165,6 +4226,7 @@
       let rpgEnemies;
       let rpgPortal;
       let rpgLevel = 1;
+      let coinFlames = [];
       let catcherMove = 0;
       let tankMove = 0;
       let pongMove = 0;
@@ -4349,6 +4411,7 @@
       };
       const donationPacks = [
         { id: "supporter", name: "Supporter", price: "$1", perk: "Thank-you badge idea" },
+        { id: "coin-flames", name: "Coin Flames", price: "$2", perk: "Paid coin flame effect. Admin gifts it after donation." },
         { id: "vip", name: "VIP Donate", price: "$3", perk: "VIP cosmetic idea" },
         { id: "premium", name: "Premium Donate", price: "$5", perk: "Premium cosmetics idea" },
         { id: "legend", name: "Sigma Legend", price: "$10", perk: "Special profile frame idea" }
@@ -5778,6 +5841,7 @@
             skin: user.equipped?.skin || user.skin || playerStyle.skin || "classic",
             color: user.equipped?.color || user.color || playerStyle.color || "teal",
             trail: user.equipped?.trail || "",
+            effect: user.equipped?.effect || "",
             music: user.equipped?.music || ""
           },
           achievements: user.achievements || {},
@@ -6060,6 +6124,7 @@
 
         score = 0;
         gameOver = false;
+        coinFlames = [];
         waitingToPlay = !restartAfterDeath;
         paused = false;
         updateShootButton();
@@ -6877,12 +6942,106 @@
       function addPoint() {
         score += 1;
         scoreEl.textContent = score;
+        spawnCoinFlame();
         playSound("point");
         if (score > best) {
           best = score;
           bestEl.textContent = best;
           saveBestScore(currentGame, best);
         }
+      }
+
+      function hasCoinFlamesEquipped() {
+        return Boolean(
+          currentUserData?.ownedItems?.["effect-coin-flames"] &&
+          currentUserData?.equipped?.effect === "coin-flames"
+        );
+      }
+
+      function getPointEffectPosition() {
+        if (currentGame === "snake" && food) {
+          return { x: food.x * gridSize + gridSize / 2, y: food.y * gridSize + gridSize / 2 };
+        }
+
+        if (currentGame === "catcher" && apple) {
+          return { x: apple.x, y: apple.y };
+        }
+
+        if (currentGame === "dodger" && dodgeGem) {
+          return { x: dodgeGem.x + dodgeGem.size / 2, y: dodgeGem.y + dodgeGem.size / 2 };
+        }
+
+        if (currentGame === "coin-rush" && coinTarget) {
+          return { x: coinTarget.x + coinTarget.size / 2, y: coinTarget.y + coinTarget.size / 2 };
+        }
+
+        if (currentGame === "sigma-rpg" && rpgPlayer) {
+          return { x: rpgPlayer.x + rpgPlayer.size / 2, y: rpgPlayer.y + rpgPlayer.size / 2 };
+        }
+
+        return {
+          x: canvas.width / 2 + (Math.random() - 0.5) * 120,
+          y: canvas.height / 2 + (Math.random() - 0.5) * 120
+        };
+      }
+
+      function spawnCoinFlame() {
+        if (!hasCoinFlamesEquipped()) {
+          return;
+        }
+
+        const origin = getPointEffectPosition();
+        for (let index = 0; index < 8; index += 1) {
+          coinFlames.push({
+            x: origin.x + (Math.random() - 0.5) * 18,
+            y: origin.y + (Math.random() - 0.5) * 18,
+            dx: (Math.random() - 0.5) * 2.4,
+            dy: -1.8 - Math.random() * 2.2,
+            size: 7 + Math.random() * 9,
+            life: 30 + Math.floor(Math.random() * 14),
+            maxLife: 44
+          });
+        }
+
+        coinFlames = coinFlames.slice(-80);
+      }
+
+      function drawCoinFlames() {
+        if (!coinFlames.length) {
+          return;
+        }
+
+        coinFlames = coinFlames
+          .map((flame) => ({
+            ...flame,
+            x: flame.x + flame.dx,
+            y: flame.y + flame.dy,
+            dy: flame.dy + 0.08,
+            life: flame.life - 1
+          }))
+          .filter((flame) => flame.life > 0);
+
+        coinFlames.forEach((flame) => {
+          const alpha = Math.max(0, flame.life / flame.maxLife);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = "#f97316";
+          ctx.shadowBlur = 18;
+          ctx.fillStyle = "#f97316";
+          ctx.beginPath();
+          ctx.arc(flame.x, flame.y + flame.size * 0.35, flame.size * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#facc15";
+          ctx.beginPath();
+          ctx.arc(flame.x, flame.y, flame.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#fff7ed";
+          ctx.font = `900 ${Math.max(9, flame.size)}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("$", flame.x, flame.y + 1);
+          ctx.restore();
+        });
       }
 
       function endGame() {
@@ -7224,6 +7383,7 @@
           <div class="profile-card">Achievements <strong>${achievementCount}</strong></div>
           <div class="profile-card">Skin <strong>${escapeHtml(user.equipped.skin)}</strong></div>
           <div class="profile-card">Color <strong>${escapeHtml(user.equipped.color)}</strong></div>
+          <div class="profile-card">Effect <strong>${escapeHtml(user.equipped.effect || "None")}</strong></div>
           <div class="profile-card">Music <strong>${escapeHtml(user.equipped.music || "Game Default")}</strong></div>
         `;
         profileBestScores.innerHTML = Object.entries(user.bestScores || {})
@@ -7940,6 +8100,7 @@
         } else {
           drawOnlineGame();
         }
+        drawCoinFlames();
       }
 
       function drawBoard() {
@@ -8775,6 +8936,8 @@
           "remove-vip": `remove VIP from ${name}`,
           "give-premium": `give Premium to ${name}`,
           "remove-premium": `remove Premium from ${name}`,
+          "gift-coin-flames": `gift Coin Flames to ${name}`,
+          "remove-coin-flames": `remove Coin Flames from ${name}`,
           "reset-scores": `reset scores for ${name}`,
           "add-coins": `add coins to ${name}`,
           "add-xp": `add XP to ${name}`,
@@ -9201,6 +9364,7 @@
             const banned = Number(user?.bannedUntil || 0) > Date.now();
             const premium = Boolean(user?.premium || user?.battlePass?.premium);
             const musicBanned = Boolean(user?.musicBanned);
+            const hasCoinFlames = Boolean(user?.ownedItems?.["effect-coin-flames"]);
             const card = document.createElement("div");
             card.className = "admin-user-card";
             card.innerHTML = `
@@ -9213,6 +9377,7 @@
                 <button type="button" data-admin-action="${user?.isAdmin ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${user?.isAdmin ? "Remove Admin" : "Make Admin"}</button>
                 <button type="button" data-admin-action="${user?.vip ? "remove-vip" : "give-vip"}" data-user-key="${escapeHtml(key)}">${user?.vip ? "Remove VIP" : "Give VIP"}</button>
                 <button type="button" data-admin-action="${premium ? "remove-premium" : "give-premium"}" data-user-key="${escapeHtml(key)}">${premium ? "Remove Premium" : "Give Premium"}</button>
+                <button type="button" data-admin-action="${hasCoinFlames ? "remove-coin-flames" : "gift-coin-flames"}" data-user-key="${escapeHtml(key)}">${hasCoinFlames ? "Remove Coin Flames" : "Gift Coin Flames"}</button>
                 <button type="button" data-admin-action="reset-scores" data-user-key="${escapeHtml(key)}">Reset Scores</button>
                 <button type="button" data-admin-action="add-coins" data-user-key="${escapeHtml(key)}">Add Coins</button>
                 <button type="button" data-admin-action="add-xp" data-user-key="${escapeHtml(key)}">Add XP</button>
@@ -9660,6 +9825,18 @@
               "battlePass/premium": false
             });
             adminMessage.textContent = `${user.username || userKey} Premium removed.`;
+          } else if (action === "gift-coin-flames") {
+            await patchUser(userKey, {
+              "ownedItems/effect-coin-flames": true,
+              "equipped/effect": "coin-flames"
+            });
+            adminMessage.textContent = `${user.username || userKey} got Coin Flames.`;
+          } else if (action === "remove-coin-flames") {
+            await patchUser(userKey, {
+              "ownedItems/effect-coin-flames": null,
+              "equipped/effect": ""
+            });
+            adminMessage.textContent = `${user.username || userKey} Coin Flames removed.`;
           } else if (action === "add-coins") {
             const coins = getAdminAmount();
             if (!coins) {
@@ -11989,7 +12166,7 @@
         window.addEventListener("appinstalled", () => {
           deferredInstallPrompt = null;
           startInstallButton.hidden = true;
-          startStatus.textContent = "Sigma Studio installed.";
+          startStatus.textContent = "MiniGameWorld installed.";
         });
       }
 
@@ -12004,7 +12181,7 @@
         deferredInstallPrompt = null;
         startInstallButton.hidden = true;
         startStatus.textContent = result.outcome === "accepted"
-          ? "Sigma Studio install started."
+          ? "MiniGameWorld install started."
           : "Install canceled.";
       }
 

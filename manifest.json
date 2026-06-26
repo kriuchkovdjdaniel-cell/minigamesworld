@@ -1,7 +1,7 @@
 {
-  "name": "Sigma Studio",
-  "short_name": "Sigma",
-  "description": "Sigma Studio arcade games by Danya.",
+  "name": "MiniGameWorld",
+  "short_name": "MiniGameWorld",
+  "description": "MiniGameWorld arcade games by Danya.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

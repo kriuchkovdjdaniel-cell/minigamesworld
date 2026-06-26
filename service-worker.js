@@ -1,4 +1,4 @@
-const CACHE_NAME = "sigma-studio-v1";
+const CACHE_NAME = "minigameworld-v1";
 const APP_SHELL = [
   "./",
   "./index.html",
