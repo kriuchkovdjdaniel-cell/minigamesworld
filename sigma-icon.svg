@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="104" fill="#052e16"/>
+  <path d="M96 322c48 70 128 102 224 80 59-14 96-52 96-108 0-54-40-89-112-104l-83-18c-24-5-37-16-37-32 0-19 19-32 53-32 48 0 83 19 112 54l64-64C368 42 309 18 237 18 136 18 64 69 64 152c0 62 43 99 125 117l78 17c27 6 40 16 40 32 0 22-22 35-61 35-51 0-91-22-123-64L96 322Z" fill="#5eead4"/>
+  <text x="256" y="474" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="82" fill="#fff">STUDIO</text>
+</svg>

@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#052e16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Sigma Studio">
+    <link rel="manifest" href="manifest.json">
     <title>Snake - Danya</title>
     <style>
       :root {
@@ -490,6 +494,44 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.12),
           0 10px 22px rgba(0, 0, 0, 0.22),
           0 0 18px rgba(250, 204, 21, 0.08);
+      }
+
+      .start-pass-strip {
+        width: min(100%, 34rem);
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 0.75rem;
+        margin: 0 auto 0.35rem;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid rgba(250, 204, 21, 0.48);
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 12% 50%, rgba(250, 204, 21, 0.18), transparent 5rem),
+          linear-gradient(135deg, rgba(49, 46, 129, 0.92), rgba(88, 28, 135, 0.72));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
+          0 0 22px rgba(250, 204, 21, 0.16);
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 1000;
+        text-shadow: 1px 1px 0 #000;
+      }
+
+      .start-pass-meter {
+        overflow: hidden;
+        height: 0.85rem;
+        border: 2px solid rgba(15, 23, 42, 0.82);
+        border-radius: 999px;
+        background: rgba(2, 6, 23, 0.54);
+      }
+
+      .start-pass-meter-fill {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+        background: repeating-linear-gradient(90deg, #facc15 0 24px, #f97316 24px 28px);
+        transition: width 180ms ease;
       }
 
       .loading-bar {
@@ -1490,6 +1532,14 @@
           0 0 34px rgba(34, 197, 94, 0.12);
       }
 
+      .pause-menu.settings-open .pause-panel {
+        width: min(94vw, 560px);
+        max-height: min(88vh, 760px);
+        overflow: auto;
+        gap: 1rem;
+        padding: 1.15rem;
+      }
+
       .pause-panel h2 {
         margin: 0 0 0.25rem;
         font-size: 1.5rem;
@@ -1516,6 +1566,10 @@
 
       .game-list.open {
         display: grid;
+      }
+
+      .pause-menu.settings-open .game-list.open {
+        gap: 1rem;
       }
 
       .room-form {
@@ -2315,13 +2369,13 @@
 
       .settings-controls {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
       }
 
       .settings-actions {
         display: grid;
-        gap: 0.75rem;
+        gap: 0.9rem;
       }
 
       .settings-account {
@@ -2331,9 +2385,23 @@
 
       .settings-controls label {
         display: grid;
-        gap: 0.35rem;
+        gap: 0.45rem;
         color: #cbd5e1;
+        font-size: 1.02rem;
         font-weight: 800;
+      }
+
+      .settings-controls select,
+      .settings-controls input {
+        min-height: 52px;
+        font-size: 0.98rem;
+      }
+
+      .settings-controls .custom-music-field,
+      .settings-controls label:has(#customMusicUrlInput),
+      .settings-controls label:has(#localMusicFileInput),
+      .settings-controls label:has(#customMusicListSelect) {
+        grid-column: 1 / -1;
       }
 
       .settings-controls select {
@@ -2533,6 +2601,12 @@
 
         .settings-controls {
           grid-template-columns: 1fr;
+        }
+
+        .pause-menu.settings-open .pause-panel {
+          width: min(96vw, 430px);
+          max-height: 90vh;
+          padding: 1rem;
         }
 
         .start-showcase {
@@ -3206,6 +3280,13 @@
         <h2>Sigma Studio</h2>
         <div class="start-splash">Danya editor!</div>
         <p id="startStatus">Loading...</p>
+        <div class="start-pass-strip" id="startPassStrip" aria-label="Battle pass progress">
+          <span id="startPassLevel">Season 1/30</span>
+          <div class="start-pass-meter" aria-hidden="true">
+            <div class="start-pass-meter-fill" id="startPassMeterFill"></div>
+          </div>
+          <span id="startPassCoins">0 coins</span>
+        </div>
         <div class="loading-bar" aria-hidden="true">
           <div class="loading-fill"></div>
         </div>
@@ -3222,6 +3303,7 @@
           <button type="button" id="startSocialButton">Social</button>
           <button type="button" id="startSettingsButton">Settings</button>
           <button type="button" id="startAccountButton">Account</button>
+          <button type="button" id="startInstallButton" hidden>Install App</button>
           <button type="button" id="startAdminButton" hidden>Admin Panel</button>
         </div>
         <div class="start-submenu" id="startGamesMenu" aria-label="Main menu games">
@@ -3245,6 +3327,7 @@
             <button type="button" data-start-game="solo-pong">Brick Pong</button>
             <button type="button" data-start-game="coin-rush">Coin Rush</button>
             <button type="button" data-start-game="laser-dodge">Laser Dodge</button>
+            <button type="button" data-start-game="sigma-rpg">Sigma RPG</button>
           </div>
           <h3>Online</h3>
           <div class="game-card-grid">
@@ -3358,6 +3441,11 @@
               <span class="settings-slider-title">Volume <span id="startSoundValue">70%</span></span>
               <input id="startSoundSelect" type="range" min="0" max="100" value="70" aria-label="Volume">
             </label>
+            <select id="startLanguageSelect" aria-label="Language">
+              <option value="en">English</option>
+              <option value="ru">Русский</option>
+              <option value="uk">Українська</option>
+            </select>
             <select id="startThemeSelect" aria-label="Theme">
               <option value="midnight">Midnight</option>
               <option value="forest">Forest</option>
@@ -3406,6 +3494,7 @@
               <option value="boss">Boss Music</option>
             </select>
             <input class="custom-music-field" id="startCustomMusicUrlInput" type="url" maxlength="300" placeholder="Music URL: MP3/OGG/WAV, YouTube Music or Spotify">
+            <input class="custom-music-field" id="startLocalMusicFileInput" type="file" accept="audio/*,.mp3,.ogg,.wav,.m4a,.aac" aria-label="Choose local music file">
             <select class="custom-music-field" id="startCustomMusicListSelect" aria-label="Saved music list">
               <option value="">Saved music list</option>
             </select>
@@ -3531,11 +3620,11 @@
       <div class="pause-panel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
         <h2 id="pauseTitle">Menu</h2>
         <button type="button" id="resume">Resume</button>
+        <button type="button" id="settings">Settings</button>
         <button type="button" id="returnMainMenu">Return to Main Menu</button>
         <button type="button" id="leaveRoom" hidden>Leave Room</button>
         <button type="button" id="back" hidden>Back</button>
         <button type="button" id="games">Games</button>
-        <button type="button" id="settings">Settings</button>
         <div class="game-options" id="gameOptions" aria-label="Game modes">
           <button type="button" id="singlePlayer">Single Player</button>
           <button type="button" id="online">Online</button>
@@ -3545,6 +3634,14 @@
             <label>
               <span class="settings-slider-title">Volume <span id="soundValue">70%</span></span>
               <input id="soundSelect" type="range" min="0" max="100" value="70" aria-label="Volume">
+            </label>
+            <label>
+              Language
+              <select id="languageSelect">
+                <option value="en">English</option>
+                <option value="ru">Русский</option>
+                <option value="uk">Українська</option>
+              </select>
             </label>
             <label>
               Theme
@@ -3616,6 +3713,10 @@
               <input id="customMusicUrlInput" type="url" maxlength="300" placeholder="MP3/OGG/WAV, YouTube Music or Spotify">
             </label>
             <label class="custom-music-field">
+              Local Audio File
+              <input id="localMusicFileInput" type="file" accept="audio/*,.mp3,.ogg,.wav,.m4a,.aac">
+            </label>
+            <label class="custom-music-field">
               Saved Music
               <select id="customMusicListSelect" aria-label="Saved music list">
                 <option value="">Saved music list</option>
@@ -3626,14 +3727,6 @@
           </div>
           <div class="settings-actions">
             <button type="button" id="resetRecordButton">Reset Record</button>
-            <button type="button" id="accountSettingsButton">Account</button>
-            <div class="settings-account" aria-label="Account recovery">
-              <input id="settingsGmailInput" type="email" maxlength="64" placeholder="Gmail" autocomplete="email">
-              <input id="settingsCurrentPasswordInput" type="password" maxlength="32" placeholder="Current password for Gmail recovery" autocomplete="current-password">
-              <button type="button" id="settingsSaveGmailButton">Save Gmail</button>
-              <input id="settingsRecoveryGmailInput" type="email" maxlength="64" placeholder="Recovery Gmail" autocomplete="email">
-              <button type="button" id="settingsSendRecoveryEmailButton">Send Recovery Email</button>
-            </div>
             <p class="room-note" id="settingsMessage"></p>
           </div>
         </div>
@@ -3644,6 +3737,7 @@
           <button type="button" id="soloPong">Solo Pong</button>
           <button type="button" id="coinRush">Coin Rush</button>
           <button type="button" id="laserDodge">Laser Dodge</button>
+          <button type="button" id="sigmaRpg">Sigma RPG</button>
         </div>
         <div class="game-list" id="onlineGames" aria-label="Online games">
           <button type="button" class="selected" data-online-game="online-snake">Online Snake</button>
@@ -3723,6 +3817,9 @@
       const startScreen = document.getElementById("startScreen");
       const startPanel = document.getElementById("startPanel");
       const startStatus = document.getElementById("startStatus");
+      const startPassLevel = document.getElementById("startPassLevel");
+      const startPassMeterFill = document.getElementById("startPassMeterFill");
+      const startPassCoins = document.getElementById("startPassCoins");
       const startPlayButton = document.getElementById("startPlayButton");
       const startGamesButton = document.getElementById("startGamesButton");
       const startProfileButton = document.getElementById("startProfileButton");
@@ -3735,6 +3832,7 @@
       const startSocialButton = document.getElementById("startSocialButton");
       const startSettingsButton = document.getElementById("startSettingsButton");
       const startAccountButton = document.getElementById("startAccountButton");
+      const startInstallButton = document.getElementById("startInstallButton");
       const startAdminButton = document.getElementById("startAdminButton");
       const startGamesMenu = document.getElementById("startGamesMenu");
       const startOnlineRoomMenu = document.getElementById("startOnlineRoomMenu");
@@ -3771,6 +3869,7 @@
       const startAdminPanelMount = document.getElementById("startAdminPanelMount");
       const startSoundSelect = document.getElementById("startSoundSelect");
       const startSoundValue = document.getElementById("startSoundValue");
+      const startLanguageSelect = document.getElementById("startLanguageSelect");
       const startThemeSelect = document.getElementById("startThemeSelect");
       const startFieldSizeSelect = document.getElementById("startFieldSizeSelect");
       const startControlsSelect = document.getElementById("startControlsSelect");
@@ -3778,6 +3877,7 @@
       const startColorSelect = document.getElementById("startColorSelect");
       const startMusicSelect = document.getElementById("startMusicSelect");
       const startCustomMusicUrlInput = document.getElementById("startCustomMusicUrlInput");
+      const startLocalMusicFileInput = document.getElementById("startLocalMusicFileInput");
       const startCustomMusicListSelect = document.getElementById("startCustomMusicListSelect");
       const startSaveCustomMusicButton = document.getElementById("startSaveCustomMusicButton");
       const startDeleteCustomMusicButton = document.getElementById("startDeleteCustomMusicButton");
@@ -3878,6 +3978,7 @@
       const shootButton = document.getElementById("shootButton");
       const pauseButton = document.getElementById("pause");
       const pauseMenu = document.getElementById("pauseMenu");
+      const pauseTitle = document.getElementById("pauseTitle");
       const resumeButton = document.getElementById("resume");
       const returnMainMenuButton = document.getElementById("returnMainMenu");
       const leaveRoomButton = document.getElementById("leaveRoom");
@@ -3896,6 +3997,7 @@
       const soloPongButton = document.getElementById("soloPong");
       const coinRushButton = document.getElementById("coinRush");
       const laserDodgeButton = document.getElementById("laserDodge");
+      const sigmaRpgButton = document.getElementById("sigmaRpg");
       const createRoomButton = document.getElementById("createRoom");
       const joinRoomButton = document.getElementById("joinRoom");
       const roomCodeInput = document.getElementById("roomCodeInput");
@@ -3906,6 +4008,7 @@
       const startOnlineGameButtons = document.querySelectorAll("[data-start-online-game]");
       const soundSelect = document.getElementById("soundSelect");
       const soundValue = document.getElementById("soundValue");
+      const languageSelect = document.getElementById("languageSelect");
       const themeSelect = document.getElementById("themeSelect");
       const fieldSizeSelect = document.getElementById("fieldSizeSelect");
       const controlsSelect = document.getElementById("controlsSelect");
@@ -3913,11 +4016,11 @@
       const colorSelect = document.getElementById("colorSelect");
       const musicSelect = document.getElementById("musicSelect");
       const customMusicUrlInput = document.getElementById("customMusicUrlInput");
+      const localMusicFileInput = document.getElementById("localMusicFileInput");
       const customMusicListSelect = document.getElementById("customMusicListSelect");
       const saveCustomMusicButton = document.getElementById("saveCustomMusicButton");
       const deleteCustomMusicButton = document.getElementById("deleteCustomMusicButton");
       const resetRecordButton = document.getElementById("resetRecordButton");
-      const accountSettingsButton = document.getElementById("accountSettingsButton");
       const settingsGmailInput = document.getElementById("settingsGmailInput");
       const settingsCurrentPasswordInput = document.getElementById("settingsCurrentPasswordInput");
       const settingsSaveGmailButton = document.getElementById("settingsSaveGmailButton");
@@ -3961,6 +4064,11 @@
           title: "Laser Dodge",
           bestKey: "laser-dodge-best",
           help: "Move with WASD/arrows and dodge the lasers."
+        },
+        "sigma-rpg": {
+          title: "Sigma RPG",
+          bestKey: "sigma-rpg-best",
+          help: "Collect crystals, avoid enemies, and enter the portal."
         },
         "online-snake": {
           title: "Online Snake",
@@ -4020,6 +4128,7 @@
         "solo-pong": { display: "Brick Pong", rating: "98%", players: "2.4K active", creator: "Danya Arcade" },
         "coin-rush": { display: "Coin Rush", rating: "90%", players: "517 active", creator: "Sigma Studio" },
         "laser-dodge": { display: "Laser Dodge", rating: "89%", players: "321 active", creator: "Danya Labs" },
+        "sigma-rpg": { display: "Sigma RPG", rating: "96%", players: "1.6K active", creator: "Sigma RPG Team" },
         "online-snake": { display: "Online Snake", rating: "97%", players: "2 players", creator: "Sigma Online" },
         "online-tanks": { display: "Online Tanks", rating: "96%", players: "2 players", creator: "Sigma Online" },
         "online-pong": { display: "Online Pong", rating: "93%", players: "2 players", creator: "Sigma Online" },
@@ -4051,6 +4160,11 @@
       let laserPlayer;
       let lasers;
       let laserTicks = 0;
+      let rpgPlayer;
+      let rpgCrystals;
+      let rpgEnemies;
+      let rpgPortal;
+      let rpgLevel = 1;
       let catcherMove = 0;
       let tankMove = 0;
       let pongMove = 0;
@@ -4095,6 +4209,7 @@
       let adminPanelOpen = false;
       let phonePreviewMode = false;
       let currentUserData = null;
+      let currentUserModerationRef = null;
       let currentClientIp = "";
       let confirmResolver = null;
       let musicContext = null;
@@ -4104,6 +4219,13 @@
       let musicUnlocked = false;
       let selectedMusicPack = "";
       let customMusicAudio = null;
+      let localMusicObjectUrl = "";
+      let localMusicFileName = "";
+      let localMusicApprovalRef = null;
+      let adminMusicPreviewAudio = null;
+      let adminMusicPreviewKey = "";
+      let adminMusicPreviewButton = null;
+      let deferredInstallPrompt = null;
       const colorThemes = {
         teal: { head: "#5eead4", body: "#14b8a6", top: "#99f6e4" },
         green: { head: "#86efac", body: "#22c55e", top: "#bbf7d0" },
@@ -4179,7 +4301,48 @@
         { level: 21, free: "420 XP core", premium: "Boss crown trail", coins: 0, xp: 420, premiumItem: "trail-crown" },
         { level: 22, free: "Spark trail", premium: "Ice boss color", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "color-ice" },
         { level: 23, free: "Retro music pack", premium: "Royal finale music", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
-        { level: 24, free: "1000 coin finale", premium: "Sigma champion skin", coins: 1000, xp: 0, premiumItem: "skin-sigma" }
+        { level: 24, free: "1000 coin finale", premium: "Sigma champion skin", coins: 1000, xp: 0, premiumItem: "skin-sigma" },
+        { level: 25, free: "Neon skin", premium: "Royal neon skin", coins: 0, xp: 0, freeItem: "skin-neon", premiumItem: "skin-royal" },
+        { level: 26, free: "650 XP engine", premium: "Premium bass music", coins: 0, xp: 650, premiumItem: "music-premium" },
+        { level: 27, free: "Block skin", premium: "Crown spark trail", coins: 0, xp: 0, freeItem: "skin-block", premiumItem: "trail-crown" },
+        { level: 28, free: "1400 coin vault", premium: "Ruby royal color", coins: 1400, xp: 0, premiumItem: "color-ruby" },
+        { level: 29, free: "Round skin", premium: "Sigma boss mix", coins: 0, xp: 0, freeItem: "skin-round", premiumItem: "music-boss" },
+        { level: 30, free: "2000 coin trophy", premium: "Season champion bundle", coins: 2000, xp: 0, premiumItem: "skin-sigma" },
+        { level: 31, free: "720 XP booster", premium: "Golden royal color", coins: 0, xp: 720, premiumItem: "color-gold" },
+        { level: 32, free: "Spark trail token", premium: "VIP comet trail", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "trail-vip" },
+        { level: 33, free: "1650 coin box", premium: "Ice crown color", coins: 1650, xp: 0, premiumItem: "color-ice" },
+        { level: 34, free: "Neon arcade tune", premium: "Premium arcade tune", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
+        { level: 35, free: "Glass hero skin", premium: "Royal hero skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-royal" },
+        { level: 36, free: "850 XP crystal", premium: "Ruby crown color", coins: 0, xp: 850, premiumItem: "color-ruby" },
+        { level: 37, free: "1850 coin crate", premium: "Boss crown song", coins: 1850, xp: 0, premiumItem: "music-boss" },
+        { level: 38, free: "Cyan wave color", premium: "Ice wave color", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "color-ice" },
+        { level: 39, free: "Comet burst trail", premium: "Crown burst trail", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "trail-crown" },
+        { level: 40, free: "2500 coin mega chest", premium: "Sigma mega skin", coins: 2500, xp: 0, premiumItem: "skin-sigma" },
+        { level: 41, free: "950 XP battery", premium: "Premium battery music", coins: 0, xp: 950, premiumItem: "music-premium" },
+        { level: 42, free: "Lime speed color", premium: "Gold speed color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-gold" },
+        { level: 43, free: "2050 coin safe", premium: "Royal safe skin", coins: 2050, xp: 0, premiumItem: "skin-royal" },
+        { level: 44, free: "Retro boss beat", premium: "Boss finale beat", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
+        { level: 45, free: "Block champion skin", premium: "Sigma champion frame", coins: 0, xp: 0, freeItem: "skin-block", premiumItem: "skin-sigma" },
+        { level: 46, free: "1100 XP relic", premium: "Ruby relic color", coins: 0, xp: 1100, premiumItem: "color-ruby" },
+        { level: 47, free: "2300 coin drop", premium: "VIP drop trail", coins: 2300, xp: 0, premiumItem: "trail-vip" },
+        { level: 48, free: "Purple storm color", premium: "Ice storm color", coins: 0, xp: 0, freeItem: "color-purple", premiumItem: "color-ice" },
+        { level: 49, free: "Round legend skin", premium: "Royal legend skin", coins: 0, xp: 0, freeItem: "skin-round", premiumItem: "skin-royal" },
+        { level: 50, free: "3000 coin crown", premium: "Premium crown bundle", coins: 3000, xp: 0, premiumItem: "trail-crown" },
+        { level: 51, free: "1250 XP capsule", premium: "Boss capsule music", coins: 0, xp: 1250, premiumItem: "music-boss" },
+        { level: 52, free: "Orange flame color", premium: "Gold flame color", coins: 0, xp: 0, freeItem: "color-orange", premiumItem: "color-gold" },
+        { level: 53, free: "2550 coin stash", premium: "Ruby stash color", coins: 2550, xp: 0, premiumItem: "color-ruby" },
+        { level: 54, free: "Neon pulse skin", premium: "Sigma pulse skin", coins: 0, xp: 0, freeItem: "skin-neon", premiumItem: "skin-sigma" },
+        { level: 55, free: "Comet pulse trail", premium: "Crown pulse trail", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "trail-crown" },
+        { level: 56, free: "1400 XP reactor", premium: "Premium reactor music", coins: 0, xp: 1400, premiumItem: "music-premium" },
+        { level: 57, free: "Cyan reactor color", premium: "Ice reactor color", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "color-ice" },
+        { level: 58, free: "3200 coin reactor", premium: "Royal reactor skin", coins: 3200, xp: 0, premiumItem: "skin-royal" },
+        { level: 59, free: "Glass galaxy skin", premium: "Sigma galaxy skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-sigma" },
+        { level: 60, free: "4000 coin grand prize", premium: "Grand premium bundle", coins: 4000, xp: 0, premiumItem: "skin-sigma" },
+        { level: 61, free: "1600 XP overdrive", premium: "Boss overdrive music", coins: 0, xp: 1600, premiumItem: "music-boss" },
+        { level: 62, free: "Spark overdrive trail", premium: "VIP overdrive trail", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "trail-vip" },
+        { level: 63, free: "3600 coin vault key", premium: "Gold vault color", coins: 3600, xp: 0, premiumItem: "color-gold" },
+        { level: 64, free: "Lime final color", premium: "Ruby final color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-ruby" },
+        { level: 65, free: "5000 coin season end", premium: "Sigma Studio mythic bundle", coins: 5000, xp: 0, premiumItem: "skin-sigma" }
       ];
       const donationLinks = {
         main: "https://boosty.to/sigmaboyko228/posts/c185c4d3-f370-4a43-8fda-5e7580eb8e64"
@@ -4190,6 +4353,140 @@
         { id: "premium", name: "Premium Donate", price: "$5", perk: "Premium cosmetics idea" },
         { id: "legend", name: "Sigma Legend", price: "$10", perk: "Special profile frame idea" }
       ];
+      const translations = {
+        en: {
+          play: "Play",
+          games: "Games",
+          profile: "Profile",
+          shop: "Shop",
+          premium: "Premium",
+          donate: "Donate",
+          battlePass: "Battle Pass",
+          leaderboard: "Leaderboard",
+          quests: "Quests",
+          social: "Social",
+          settings: "Settings",
+          account: "Account",
+          installApp: "Install App",
+          adminPanel: "Admin Panel",
+          back: "Back",
+          menu: "Menu",
+          resume: "Resume",
+          returnMainMenu: "Return to Main Menu",
+          leaveRoom: "Leave Room",
+          singlePlayer: "Single Player",
+          online: "Online",
+          restart: "Restart",
+          shoot: "Shoot",
+          up: "Up",
+          down: "Down",
+          left: "Left",
+          right: "Right",
+          volume: "Volume",
+          language: "Language",
+          theme: "Theme",
+          fieldSize: "Field Size",
+          controls: "Controls",
+          skin: "Skin",
+          color: "Color",
+          music: "Music",
+          resetRecord: "Reset Record",
+          saveMusic: "Save Music",
+          deleteMusic: "Delete Music",
+          standardMusic: "Standard Music",
+          musicUrl: "Music URL: MP3/OGG/WAV, YouTube Music or Spotify",
+          savedMusic: "Saved music list",
+          selected: "selected"
+        },
+        ru: {
+          play: "Играть",
+          games: "Игры",
+          profile: "Профиль",
+          shop: "Магазин",
+          premium: "Премиум",
+          donate: "Донат",
+          battlePass: "Боевой пропуск",
+          leaderboard: "Лидеры",
+          quests: "Квесты",
+          social: "Друзья",
+          settings: "Настройки",
+          account: "Аккаунт",
+          installApp: "Установить",
+          adminPanel: "Админ панель",
+          back: "Назад",
+          menu: "Меню",
+          resume: "Продолжить",
+          returnMainMenu: "В главное меню",
+          leaveRoom: "Выйти из комнаты",
+          singlePlayer: "Одиночная",
+          online: "Онлайн",
+          restart: "Рестарт",
+          shoot: "Стрелять",
+          up: "Вверх",
+          down: "Вниз",
+          left: "Влево",
+          right: "Вправо",
+          volume: "Громкость",
+          language: "Язык",
+          theme: "Тема",
+          fieldSize: "Размер поля",
+          controls: "Управление",
+          skin: "Скин",
+          color: "Цвет",
+          music: "Музыка",
+          resetRecord: "Сбросить рекорд",
+          saveMusic: "Сохранить музыку",
+          deleteMusic: "Удалить музыку",
+          standardMusic: "Стандартная музыка",
+          musicUrl: "Ссылка на музыку: MP3/OGG/WAV, YouTube Music или Spotify",
+          savedMusic: "Список музыки",
+          selected: "выбрано"
+        },
+        uk: {
+          play: "Грати",
+          games: "Ігри",
+          profile: "Профіль",
+          shop: "Магазин",
+          premium: "Преміум",
+          donate: "Донат",
+          battlePass: "Бойовий пропуск",
+          leaderboard: "Лідери",
+          quests: "Квести",
+          social: "Друзі",
+          settings: "Налаштування",
+          account: "Акаунт",
+          installApp: "Встановити",
+          adminPanel: "Адмін панель",
+          back: "Назад",
+          menu: "Меню",
+          resume: "Продовжити",
+          returnMainMenu: "У головне меню",
+          leaveRoom: "Вийти з кімнати",
+          singlePlayer: "Одиночна",
+          online: "Онлайн",
+          restart: "Рестарт",
+          shoot: "Стріляти",
+          up: "Вгору",
+          down: "Вниз",
+          left: "Вліво",
+          right: "Вправо",
+          volume: "Гучність",
+          language: "Мова",
+          theme: "Тема",
+          fieldSize: "Розмір поля",
+          controls: "Керування",
+          skin: "Скін",
+          color: "Колір",
+          music: "Музика",
+          resetRecord: "Скинути рекорд",
+          saveMusic: "Зберегти музику",
+          deleteMusic: "Видалити музику",
+          standardMusic: "Стандартна музика",
+          musicUrl: "Посилання на музику: MP3/OGG/WAV, YouTube Music або Spotify",
+          savedMusic: "Список музики",
+          selected: "вибрано"
+        }
+      };
 
       function updatePhoneDeviceMode() {
         const isTouch = navigator.maxTouchPoints > 0 || window.matchMedia("(pointer: coarse)").matches;
@@ -4240,7 +4537,7 @@
       }
 
       function isSinglePlayerGame(gameName) {
-        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge"].includes(gameName);
+        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg"].includes(gameName);
       }
 
       function getLocalBestScore(gameName) {
@@ -4336,6 +4633,10 @@
         return normalizeApprovedMusicList(gameSettings.approvedCustomMusicList).includes(url);
       }
 
+      function canPlayMusicInPage(url) {
+        return isDirectAudioUrl(url) || String(url || "").startsWith("data:audio/");
+      }
+
       function getMusicUrlLabel(url) {
         try {
           const parsedUrl = new URL(url);
@@ -4354,6 +4655,7 @@
           return {
             sound: volume > 0 ? "on" : "off",
             volume,
+            language: ["en", "ru", "uk"].includes(storedSettings?.language) ? storedSettings.language : "en",
             theme: storedSettings?.theme || "midnight",
             fieldSize: storedSettings?.fieldSize || "normal",
             controls: storedSettings?.controls || "all",
@@ -4365,6 +4667,7 @@
           return {
             sound: "on",
             volume: 70,
+            language: "en",
             theme: "midnight",
             fieldSize: "normal",
             controls: "all",
@@ -4381,6 +4684,81 @@
 
       function savePlayerStyle() {
         localStorage.setItem(styleStorageKey, JSON.stringify(playerStyle));
+      }
+
+      function currentText(key) {
+        const language = translations[gameSettings.language] ? gameSettings.language : "en";
+        return translations[language][key] || translations.en[key] || key;
+      }
+
+      function setText(element, key) {
+        if (element) {
+          element.textContent = currentText(key);
+        }
+      }
+
+      function setOptionText(select, value, text) {
+        const option = [...select.options].find((item) => item.value === value);
+        if (option) {
+          option.textContent = text;
+        }
+      }
+
+      function applyLanguage() {
+        document.documentElement.lang = gameSettings.language || "en";
+        setText(startPlayButton, "play");
+        setText(startGamesButton, "games");
+        setText(startProfileButton, "profile");
+        setText(startShopButton, "shop");
+        setText(startPremiumButton, "premium");
+        setText(startDonateButton, "donate");
+        setText(startBattlePassButton, "battlePass");
+        setText(startLeaderboardButton, "leaderboard");
+        setText(startQuestsButton, "quests");
+        setText(startSocialButton, "social");
+        setText(startSettingsButton, "settings");
+        setText(startAccountButton, "account");
+        setText(startInstallButton, "installApp");
+        setText(startAdminButton, "adminPanel");
+        setText(startBackFromGames, "back");
+        setText(startBackFromOnlineRoom, "back");
+        setText(startBackFromProfile, "back");
+        setText(startBackFromShop, "back");
+        setText(startBackFromPremium, "back");
+        setText(startBackFromDonate, "back");
+        setText(startBackFromBattlePass, "back");
+        setText(startBackFromLeaderboard, "back");
+        setText(startBackFromQuests, "back");
+        setText(startBackFromSocial, "back");
+        setText(startBackFromSettings, "back");
+        setText(startBackFromAccount, "back");
+        setText(startBackFromAdmin, "back");
+        setText(pauseButton, "menu");
+        setText(pauseTitle, "menu");
+        setText(resumeButton, "resume");
+        setText(settingsButton, "settings");
+        setText(returnMainMenuButton, "returnMainMenu");
+        setText(leaveRoomButton, "leaveRoom");
+        setText(backButton, "back");
+        setText(gamesButton, "games");
+        setText(singlePlayerButton, "singlePlayer");
+        setText(onlineButton, "online");
+        setText(restartButton, "restart");
+        setText(shootButton, "shoot");
+        document.querySelector('[data-direction="up"]').textContent = currentText("up");
+        document.querySelector('[data-direction="down"]').textContent = currentText("down");
+        document.querySelector('[data-direction="left"]').textContent = currentText("left");
+        document.querySelector('[data-direction="right"]').textContent = currentText("right");
+        startCustomMusicUrlInput.placeholder = currentText("musicUrl");
+        customMusicUrlInput.placeholder = currentText("musicUrl");
+        setText(startSaveCustomMusicButton, "saveMusic");
+        setText(startDeleteCustomMusicButton, "deleteMusic");
+        setText(saveCustomMusicButton, "saveMusic");
+        setText(deleteCustomMusicButton, "deleteMusic");
+        setText(startResetRecordButton, "resetRecord");
+        setText(resetRecordButton, "resetRecord");
+        setOptionText(startMusicSelect, "", currentText("standardMusic"));
+        setOptionText(musicSelect, "", currentText("standardMusic"));
       }
 
       function applyPlayerStyleControls() {
@@ -4406,9 +4784,13 @@
 
       function renderCustomMusicLists() {
         const customMusicList = normalizeMusicList(gameSettings.customMusicList);
+        const accountMusic = Object.entries(currentUserData?.savedMusic || {})
+          .filter(([, music]) => ["approved", "rejected"].includes(music?.status) && music?.reviewedAt)
+          .sort(([, a], [, b]) => Number(b?.reviewedAt || 0) - Number(a?.reviewedAt || 0));
         const selectedUrl = gameSettings.customMusicUrl || "";
         const listHtml = [
-          `<option value="">Saved music list</option>`,
+          `<option value="">${escapeHtml(currentText("savedMusic"))}</option>`,
+          ...accountMusic.map(([key, music]) => `<option value="account:${escapeHtml(key)}"${music.status === "rejected" ? " disabled" : ""}>${escapeHtml(music.fileName || getMusicUrlLabel(music.url || "Saved music"))} - ${music.status === "approved" ? "Approved" : "Declined"}</option>`),
           ...customMusicList.map((url) => `<option value="${escapeHtml(url)}">${escapeHtml(getMusicUrlLabel(url))}${isApprovedCustomMusic(url) ? " - Approved" : " - Pending"}</option>`)
         ].join("");
 
@@ -4426,6 +4808,8 @@
         startSoundValue.textContent = `${volume}%`;
         customMusicUrlInput.value = gameSettings.customMusicUrl || "";
         startCustomMusicUrlInput.value = gameSettings.customMusicUrl || "";
+        languageSelect.value = gameSettings.language || "en";
+        startLanguageSelect.value = gameSettings.language || "en";
         themeSelect.value = gameSettings.theme;
         fieldSizeSelect.value = gameSettings.fieldSize;
         controlsSelect.value = gameSettings.controls;
@@ -4435,6 +4819,7 @@
         document.body.dataset.theme = gameSettings.theme;
         document.documentElement.style.setProperty("--app-width", appWidths[gameSettings.fieldSize] || appWidths.normal);
         renderCustomMusicLists();
+        applyLanguage();
       }
 
       function updatePlayerStyle() {
@@ -4504,6 +4889,7 @@
         gameSettings = {
           sound: volume > 0 ? "on" : "off",
           volume,
+          language: languageSelect.value,
           theme: themeSelect.value,
           fieldSize: fieldSizeSelect.value,
           controls: controlsSelect.value,
@@ -4517,13 +4903,197 @@
         draw();
       }
 
+      function clearLocalMusicSelection() {
+        if (localMusicApprovalRef) {
+          localMusicApprovalRef.off();
+          localMusicApprovalRef = null;
+        }
+
+        if (localMusicObjectUrl) {
+          URL.revokeObjectURL(localMusicObjectUrl);
+        }
+
+        localMusicObjectUrl = "";
+        localMusicFileName = "";
+        startLocalMusicFileInput.value = "";
+        localMusicFileInput.value = "";
+      }
+
+      function arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        const chunkSize = 0x8000;
+        let binary = "";
+
+        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+        }
+
+        return btoa(binary);
+      }
+
+      async function canSubmitMusic() {
+        if (!currentAccount?.username) {
+          settingsMessage.textContent = "Log in before submitting music.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return false;
+        }
+
+        try {
+          await refreshCurrentUserData();
+        } catch {
+          settingsMessage.textContent = "Could not check your music permissions.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return false;
+        }
+
+        if (currentUserData?.musicBanned) {
+          settingsMessage.textContent = "You are banned from submitting music.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return false;
+        }
+
+        return true;
+      }
+
+      async function chooseLocalMusicFile(source = "game") {
+        const input = source === "start" ? startLocalMusicFileInput : localMusicFileInput;
+        const file = input.files?.[0];
+
+        if (!file) {
+          return;
+        }
+
+        if (!(await canSubmitMusic())) {
+          input.value = "";
+          return;
+        }
+
+        const supportedName = /\.(mp3|ogg|wav|m4a|aac)$/i.test(file.name);
+        if (!file.type.startsWith("audio/") && !supportedName) {
+          input.value = "";
+          settingsMessage.textContent = "Choose an MP3, OGG, WAV, M4A or AAC audio file.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          input.value = "";
+          settingsMessage.textContent = "Music files for moderation must be 5 MB or smaller.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        stopCustomMusic();
+        clearLocalMusicSelection();
+        customMusicUrlInput.value = "";
+        startCustomMusicUrlInput.value = "";
+        settingsMessage.textContent = "Checking music approval...";
+        startSettingsMessage.textContent = settingsMessage.textContent;
+
+        try {
+          const fileBuffer = await file.arrayBuffer();
+          const hashBuffer = await crypto.subtle.digest("SHA-256", fileBuffer);
+          const fileHash = Array.from(new Uint8Array(hashBuffer))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("");
+          const audioData = `data:${file.type || "audio/mpeg"};base64,${arrayBufferToBase64(fileBuffer)}`;
+          const submissionId = `local_${fileHash.slice(0, 40)}`;
+          const submissionRef = firebaseDb.ref(`musicSubmissions/${submissionId}`);
+          const savedMusicRef = firebaseDb.ref(`users/${getUserKeyFromAccount()}/savedMusic/${submissionId}`);
+          const savedMusicSnapshot = await savedMusicRef.once("value");
+          const savedMusic = savedMusicSnapshot.val();
+          const existingSnapshot = await submissionRef.once("value");
+          const existingSubmission = existingSnapshot.val();
+
+          localMusicObjectUrl = URL.createObjectURL(file);
+          localMusicFileName = file.name;
+          localMusicApprovalRef = submissionRef;
+
+          if (!savedMusic && !existingSubmission) {
+            await submissionRef.set({
+              url: `local-file:${fileHash}`,
+              fileHash,
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type || "audio",
+              audioData,
+              localFile: true,
+              username: currentAccount?.username || "Guest",
+              status: "pending",
+              submittedAt: Date.now(),
+              reviewedBy: null
+            });
+          } else if (!savedMusic) {
+            const submissionUpdate = {
+              fileName: file.name,
+              fileSize: file.size,
+              fileType: file.type || "audio",
+              audioData
+            };
+
+            if (existingSubmission.status === "approved" && !existingSubmission.reviewedAt) {
+              submissionUpdate.status = "pending";
+              submissionUpdate.reviewedBy = null;
+            }
+
+            await submissionRef.update(submissionUpdate);
+          }
+
+          const applyApproval = async (snapshot) => {
+            let submission = snapshot.val();
+
+            if (!submission) {
+              const savedSnapshot = await savedMusicRef.once("value");
+              submission = savedSnapshot.val();
+            }
+
+            if (submission?.status === "approved" && submission?.reviewedAt) {
+              musicUnlocked = true;
+              syncBackgroundMusic();
+              settingsMessage.textContent = `${file.name} approved and playing on this device.`;
+            } else if (submission?.status === "rejected") {
+              stopCustomMusic();
+              settingsMessage.textContent = `${file.name} was declined by an admin.`;
+            } else {
+              stopCustomMusic();
+              settingsMessage.textContent = `${file.name}: waiting for admin approval.`;
+            }
+
+            startSettingsMessage.textContent = settingsMessage.textContent;
+          };
+
+          if (savedMusic) {
+            localMusicApprovalRef = savedMusicRef;
+            savedMusicRef.on("value", applyApproval);
+          } else {
+            submissionRef.on("value", applyApproval);
+          }
+        } catch {
+          clearLocalMusicSelection();
+          settingsMessage.textContent = "Could not send this file for music approval.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+        } finally {
+          input.value = "";
+        }
+      }
+
       async function saveCustomMusicUrl(source = "game") {
         const input = source === "start" ? startCustomMusicUrlInput : customMusicUrlInput;
         const url = input.value.trim();
 
+        if (url.startsWith("file:")) {
+          settingsMessage.textContent = "Local file paths cannot work on a website. Use Choose Local Audio File.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
         if (!url) {
           settingsMessage.textContent = "Paste a music link first.";
           startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        if (!(await canSubmitMusic())) {
           return;
         }
 
@@ -4539,26 +5109,40 @@
         }
 
         const submissionId = getMusicSubmissionId(url);
-        let approved = Boolean(currentAccount?.isAdmin);
+        let approved = false;
+
+        clearLocalMusicSelection();
 
         try {
-          const existingResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`);
-          const existingSubmission = existingResponse.ok ? await existingResponse.json() : null;
-          approved = approved || existingSubmission?.status === "approved";
-          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              url,
-              username: currentAccount?.username || "Guest",
-              status: approved ? "approved" : "pending",
-              submittedAt: Date.now(),
-              reviewedBy: approved ? (existingSubmission?.reviewedBy || currentAccount?.username || "Admin") : null
-            })
-          });
+          const savedMusic = currentUserData?.savedMusic?.[submissionId];
 
-          if (!response.ok) {
-            throw new Error("Could not submit music.");
+          if (savedMusic?.status === "rejected") {
+            settingsMessage.textContent = "This music was declined by an admin.";
+            startSettingsMessage.textContent = settingsMessage.textContent;
+            return;
+          }
+
+          approved = savedMusic?.status === "approved" && Boolean(savedMusic?.reviewedAt);
+
+          if (!savedMusic) {
+            const existingResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`);
+            const existingSubmission = existingResponse.ok ? await existingResponse.json() : null;
+            approved = existingSubmission?.status === "approved" && Boolean(existingSubmission?.reviewedAt);
+            const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                url,
+                username: currentAccount?.username || "Guest",
+                status: approved ? "approved" : "pending",
+                submittedAt: Date.now(),
+                reviewedBy: approved ? (existingSubmission?.reviewedBy || "Admin") : null
+              })
+            });
+
+            if (!response.ok) {
+              throw new Error("Could not submit music.");
+            }
           }
         } catch {
           settingsMessage.textContent = "Could not send music for moderation.";
@@ -4591,13 +5175,60 @@
           return;
         }
 
+        if (select.value.startsWith("account:")) {
+          const savedKey = select.value.slice("account:".length);
+          const savedMusic = currentUserData?.savedMusic?.[savedKey];
+
+          if (!savedMusic || savedMusic.status !== "approved") {
+            settingsMessage.textContent = "This saved music is not approved.";
+            startSettingsMessage.textContent = settingsMessage.textContent;
+            return;
+          }
+
+          clearLocalMusicSelection();
+          if (savedMusic.audioData) {
+            localMusicObjectUrl = savedMusic.audioData;
+            localMusicFileName = savedMusic.fileName || "Saved music";
+            gameSettings.customMusicUrl = "";
+            musicUnlocked = true;
+            syncBackgroundMusic();
+            settingsMessage.textContent = `${localMusicFileName} selected and playing.`;
+          } else if (savedMusic.url) {
+            if (!canPlayMusicInPage(savedMusic.url)) {
+              settingsMessage.textContent = "This approved link is YouTube/Spotify. Browser games can only play direct MP3/OGG/WAV links inside the page.";
+              startSettingsMessage.textContent = settingsMessage.textContent;
+              return;
+            }
+
+            gameSettings.customMusicUrl = savedMusic.url;
+            gameSettings.approvedCustomMusicList = normalizeApprovedMusicList([
+              savedMusic.url,
+              ...normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)
+            ]);
+            saveGameSettings();
+            syncBackgroundMusic();
+            settingsMessage.textContent = "Approved account music selected and playing.";
+          } else {
+            settingsMessage.textContent = "This approved music has no playable audio file.";
+          }
+
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
         const url = select.value;
+        clearLocalMusicSelection();
 
         try {
           const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${getMusicSubmissionId(url)}.json`);
-          const submission = response.ok ? await response.json() : null;
+          let submission = response.ok ? await response.json() : null;
 
-          if (submission?.status !== "approved") {
+          if (!submission && currentAccount?.username) {
+            const savedSnapshot = await firebaseDb.ref(`users/${getUserKeyFromAccount()}/savedMusic/${getMusicSubmissionId(url)}`).once("value");
+            submission = savedSnapshot.val();
+          }
+
+          if (submission?.status !== "approved" || !submission?.reviewedAt) {
             settingsMessage.textContent = submission?.status === "rejected" ? "This music was rejected." : "This music is waiting for admin approval.";
             startSettingsMessage.textContent = settingsMessage.textContent;
             applyGameSettingsControls();
@@ -4611,6 +5242,12 @@
           return;
         }
 
+        if (!canPlayMusicInPage(url)) {
+          settingsMessage.textContent = "This link is approved, but it is not a direct MP3/OGG/WAV file.";
+          startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
         gameSettings.customMusicUrl = url;
         saveGameSettings();
         applyGameSettingsControls();
@@ -4619,13 +5256,28 @@
         startSettingsMessage.textContent = settingsMessage.textContent;
       }
 
-      function deleteCustomMusicUrl(source = "game") {
+      async function deleteCustomMusicUrl(source = "game") {
         const select = source === "start" ? startCustomMusicListSelect : customMusicListSelect;
         const url = select.value || (source === "start" ? startCustomMusicUrlInput.value.trim() : customMusicUrlInput.value.trim());
 
         if (!url) {
           settingsMessage.textContent = "Choose saved music to delete.";
           startSettingsMessage.textContent = settingsMessage.textContent;
+          return;
+        }
+
+        if (url.startsWith("account:") && currentAccount?.username) {
+          const savedKey = url.slice("account:".length);
+          try {
+            await firebaseDb.ref(`users/${getUserKeyFromAccount()}/savedMusic/${savedKey}`).remove();
+            clearLocalMusicSelection();
+            await refreshCurrentUserData();
+            settingsMessage.textContent = "Account music deleted.";
+            startSettingsMessage.textContent = settingsMessage.textContent;
+          } catch {
+            settingsMessage.textContent = "Could not delete account music.";
+            startSettingsMessage.textContent = settingsMessage.textContent;
+          }
           return;
         }
 
@@ -4919,7 +5571,7 @@
       }
 
       function isDirectAudioUrl(url) {
-        return /\.(mp3|ogg|wav|m4a|aac)(\?|#|$)/i.test(url);
+        return url.startsWith("blob:") || url.startsWith("data:audio/") || /\.(mp3|ogg|wav|m4a|aac)(\?|#|$)/i.test(url);
       }
 
       function isStreamingPageUrl(url) {
@@ -4935,10 +5587,11 @@
       }
 
       function syncCustomMusic() {
-        const url = (gameSettings.customMusicUrl || "").trim();
+        const url = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
         const volume = getGameVolume();
+        const approved = url === localMusicObjectUrl || isApprovedCustomMusic(url);
 
-        if (!musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !isApprovedCustomMusic(url)) {
+        if (!musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !approved) {
           stopCustomMusic();
           return false;
         }
@@ -4956,7 +5609,9 @@
 
         customMusicAudio.volume = Math.min(1, volume);
         customMusicAudio.play().catch(() => {
-          settingsMessage.textContent = "Custom music could not play. Use a direct MP3/OGG/WAV link.";
+          settingsMessage.textContent = localMusicFileName
+            ? `Could not play ${localMusicFileName}. Try another audio file.`
+            : "Custom music could not play. Use a direct MP3/OGG/WAV link.";
           startSettingsMessage.textContent = settingsMessage.textContent;
         });
         return true;
@@ -5007,7 +5662,7 @@
       }
 
       function syncBackgroundMusic() {
-        const customUrl = (gameSettings.customMusicUrl || "").trim();
+        const customUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
         const customPlaying = syncCustomMusic();
 
         if (customPlaying) {
@@ -5148,6 +5803,7 @@
 
         const user = await getUser(userKey);
         currentUserData = normalizeUserProgress(user || {});
+        renderCustomMusicLists();
         if (currentUserData.equipped) {
           playerStyle = {
             skin: currentUserData.equipped.skin || playerStyle.skin,
@@ -5196,6 +5852,7 @@
             level: getLevelFromXp(nextXp),
             coins: nextCoins
           });
+          await renderStartPassStrip();
           statusEl.textContent = `${reason}: +${xp} XP, +${coins} coins.`;
         } catch {
           statusEl.textContent = "Reward saved locally failed. Check Firebase.";
@@ -5257,17 +5914,23 @@
       async function loadAccountGmail() {
         if (!currentAccount?.username) {
           gmailInput.value = "";
-          settingsGmailInput.value = "";
+          if (settingsGmailInput) {
+            settingsGmailInput.value = "";
+          }
           return;
         }
 
         try {
           const user = await getUser(usernameKey(currentAccount.username));
           gmailInput.value = user?.gmail || "";
-          settingsGmailInput.value = user?.gmail || "";
+          if (settingsGmailInput) {
+            settingsGmailInput.value = user?.gmail || "";
+          }
         } catch {
           gmailInput.value = "";
-          settingsGmailInput.value = "";
+          if (settingsGmailInput) {
+            settingsGmailInput.value = "";
+          }
         }
       }
 
@@ -5276,8 +5939,13 @@
         const inputEl = source === "settings" ? settingsGmailInput : gmailInput;
         const buttonEl = source === "settings" ? settingsSaveGmailButton : saveGmailButton;
         const currentPassword = source === "settings"
-          ? settingsCurrentPasswordInput.value
+          ? settingsCurrentPasswordInput?.value || ""
           : passwordInput.value;
+
+        if (!inputEl || !buttonEl) {
+          messageEl.textContent = "Use Account menu to edit Gmail.";
+          return;
+        }
 
         if (!currentAccount?.username) {
           messageEl.textContent = "Log in first.";
@@ -5313,7 +5981,9 @@
 
           await patchUser(userKey, patch);
           gmailInput.value = gmail;
-          settingsGmailInput.value = gmail;
+          if (settingsGmailInput) {
+            settingsGmailInput.value = gmail;
+          }
           messageEl.textContent = patch.authUid
             ? "Gmail saved. Recovery email enabled."
             : "Gmail saved. Enter current password and save Gmail to enable email recovery.";
@@ -5347,6 +6017,11 @@
         const gmailEl = source === "settings" ? settingsRecoveryGmailInput : changeGmailInput;
         const fallbackGmailEl = source === "settings" ? settingsGmailInput : gmailInput;
         const buttonEl = source === "settings" ? settingsSendRecoveryEmailButton : sendRecoveryEmailButton;
+
+        if (!gmailEl || !fallbackGmailEl || !buttonEl) {
+          messageEl.textContent = "Use Account menu for recovery email.";
+          return;
+        }
         const gmail = normalizeGmail(gmailEl.value || fallbackGmailEl.value);
 
         if (!gmail) {
@@ -5418,6 +6093,9 @@
         } else if (currentGame === "laser-dodge") {
           resetLaserDodge();
           timer = setInterval(tickLaserDodge, 34);
+        } else if (currentGame === "sigma-rpg") {
+          resetSigmaRpg();
+          timer = setInterval(tickSigmaRpg, 34);
         } else {
           resetCatcher();
           timer = setInterval(tickCatcher, 28);
@@ -5613,6 +6291,45 @@
         };
       }
 
+      function resetSigmaRpg() {
+        dodgeMove = { x: 0, y: 0 };
+        rpgLevel = Math.max(1, Math.floor(score / 5) + 1);
+        rpgPlayer = {
+          x: 38,
+          y: canvas.height / 2 - 14,
+          size: 28,
+          hp: 3
+        };
+        rpgPortal = {
+          x: canvas.width - 58,
+          y: canvas.height / 2 - 26,
+          size: 52
+        };
+        rpgCrystals = Array.from({ length: 5 }, () => makeRpgCrystal());
+        rpgEnemies = Array.from({ length: Math.min(3 + rpgLevel, 8) }, makeRpgEnemy);
+      }
+
+      function makeRpgCrystal() {
+        return {
+          x: 64 + Math.random() * (canvas.width - 150),
+          y: 44 + Math.random() * (canvas.height - 88),
+          size: 18
+        };
+      }
+
+      function makeRpgEnemy() {
+        const size = 26;
+        const speed = 1.25 + Math.random() * 0.9 + Math.min(rpgLevel * 0.08, 0.8);
+
+        return {
+          x: 120 + Math.random() * (canvas.width - 210),
+          y: 36 + Math.random() * (canvas.height - 72),
+          size,
+          dx: (Math.random() > 0.5 ? 1 : -1) * speed,
+          dy: (Math.random() > 0.5 ? 1 : -1) * speed
+        };
+      }
+
       function resetApple() {
         apple = {
           x: 20 + Math.random() * (canvas.width - 40),
@@ -5701,6 +6418,11 @@
         }
 
         if (currentGame === "coin-rush" || currentGame === "laser-dodge") {
+          dodgeMove = newDirection;
+          return;
+        }
+
+        if (currentGame === "sigma-rpg") {
           dodgeMove = newDirection;
           return;
         }
@@ -6080,6 +6802,73 @@
         draw();
       }
 
+      function tickSigmaRpg() {
+        if (waitingToPlay || paused || gameOver) {
+          return;
+        }
+
+        moveRectPlayer(rpgPlayer, dodgeMove.x * 4.2, dodgeMove.y * 4.2);
+
+        rpgEnemies = rpgEnemies.map((enemy) => {
+          const nextEnemy = {
+            ...enemy,
+            x: enemy.x + enemy.dx,
+            y: enemy.y + enemy.dy
+          };
+
+          if (nextEnemy.x <= 0 || nextEnemy.x + nextEnemy.size >= canvas.width) {
+            nextEnemy.dx *= -1;
+            nextEnemy.x = Math.max(0, Math.min(canvas.width - nextEnemy.size, nextEnemy.x));
+          }
+
+          if (nextEnemy.y <= 0 || nextEnemy.y + nextEnemy.size >= canvas.height) {
+            nextEnemy.dy *= -1;
+            nextEnemy.y = Math.max(0, Math.min(canvas.height - nextEnemy.size, nextEnemy.y));
+          }
+
+          return nextEnemy;
+        });
+
+        const touchedEnemy = rpgEnemies.some((enemy) =>
+          rectsTouch(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, enemy.x, enemy.y, enemy.size, enemy.size)
+        );
+
+        if (touchedEnemy) {
+          endGame();
+          return;
+        }
+
+        const beforeCrystals = rpgCrystals.length;
+        rpgCrystals = rpgCrystals.filter((crystal) => {
+          const collected = rectsTouch(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, crystal.x, crystal.y, crystal.size, crystal.size);
+          if (collected) {
+            addPoint();
+          }
+          return !collected;
+        });
+
+        if (beforeCrystals !== rpgCrystals.length && rpgCrystals.length === 0) {
+          statusEl.textContent = "Portal opened.";
+        }
+
+        if (
+          rpgCrystals.length === 0 &&
+          rectsTouch(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, rpgPortal.x, rpgPortal.y, rpgPortal.size, rpgPortal.size)
+        ) {
+          rpgLevel += 1;
+          for (let bonus = 0; bonus < 2; bonus += 1) {
+            addPoint();
+          }
+          statusEl.textContent = `Sigma RPG floor ${rpgLevel}.`;
+          const savedScore = score;
+          resetSigmaRpg();
+          score = savedScore;
+          scoreEl.textContent = score;
+        }
+
+        draw();
+      }
+
       function moveRectPlayer(player, dx, dy) {
         player.x = Math.max(0, Math.min(canvas.width - player.size, player.x + dx));
         player.y = Math.max(0, Math.min(canvas.height - player.size, player.y + dy));
@@ -6185,8 +6974,9 @@
         startScreen.classList.remove("submenu-open");
         startScreen.setAttribute("aria-hidden", "false");
         startStatus.textContent = selectedStartMode === "online"
-          ? `${onlineGameNames[selectedOnlineGame]} selected`
-          : `${games[selectedStartGame].title} selected`;
+          ? `${onlineGameNames[selectedOnlineGame]} ${currentText("selected")}`
+          : `${games[selectedStartGame].title} ${currentText("selected")}`;
+        renderStartPassStrip();
         showStartSection("main");
       }
 
@@ -6287,6 +7077,7 @@
 
       function updateGameSettingsFromStart() {
         soundSelect.value = startSoundSelect.value;
+        languageSelect.value = startLanguageSelect.value;
         themeSelect.value = startThemeSelect.value;
         fieldSizeSelect.value = startFieldSizeSelect.value;
         controlsSelect.value = startControlsSelect.value;
@@ -6338,7 +7129,7 @@
         updateOnlineGameSelection();
         updateStartGameSelection();
         updateStartGameShowcase();
-        startStatus.textContent = `${onlineGameNames[gameName]} selected`;
+        startStatus.textContent = `${onlineGameNames[gameName]} ${currentText("selected")}`;
         startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
         if (showRoomPanel) {
           showStartSection("onlineRoom");
@@ -6350,7 +7141,7 @@
         selectedStartGame = gameName;
         updateStartGameSelection();
         updateStartGameShowcase();
-        startStatus.textContent = `${games[gameName].title} selected`;
+        startStatus.textContent = `${games[gameName].title} ${currentText("selected")}`;
         startRoomNote.textContent = `${games[gameName].title} selected. Click Play to start.`;
       }
 
@@ -6522,10 +7313,31 @@
         window.open(donationLinks.main, "_blank", "noopener,noreferrer");
       }
 
+      async function renderStartPassStrip() {
+        const maxLevel = Math.max(...battlePassRewards.map((reward) => reward.level));
+        let user = currentUserData;
+
+        if (currentAccount?.username) {
+          try {
+            user = await refreshCurrentUserData();
+          } catch {
+            user = currentUserData;
+          }
+        }
+
+        const level = Math.min(maxLevel, Number(user?.level || 1));
+        const coins = Number(user?.coins || 0);
+        const progress = Math.min(100, Math.round((level / maxLevel) * 100));
+        startPassLevel.textContent = `Season ${level}/${maxLevel}`;
+        startPassMeterFill.style.width = `${progress}%`;
+        startPassCoins.textContent = `${coins} coins`;
+      }
+
       async function renderBattlePassMenu() {
         if (!currentAccount?.username) {
           battlePassList.textContent = "Log in first.";
           battlePassMessage.textContent = "";
+          await renderStartPassStrip();
           return;
         }
 
@@ -6585,6 +7397,7 @@
           </div>
         `;
         battlePassMessage.textContent = `Your level: ${user.level}. ${hasPremium ? "Premium track active." : "Premium track locked."}`;
+        await renderStartPassStrip();
       }
 
       async function renderLeaderboardMenu() {
@@ -7085,9 +7898,9 @@
         firebaseAuth.signOut();
         gmailInput.value = "";
         changeGmailInput.value = "";
-        settingsGmailInput.value = "";
-        settingsCurrentPasswordInput.value = "";
-        settingsRecoveryGmailInput.value = "";
+        if (settingsGmailInput) settingsGmailInput.value = "";
+        if (settingsCurrentPasswordInput) settingsCurrentPasswordInput.value = "";
+        if (settingsRecoveryGmailInput) settingsRecoveryGmailInput.value = "";
         setStoredAccount(null);
         startAccountMessage.textContent = "Logged out.";
       }
@@ -7122,6 +7935,8 @@
           drawCoinRush();
         } else if (currentGame === "laser-dodge") {
           drawLaserDodge();
+        } else if (currentGame === "sigma-rpg") {
+          drawSigmaRpg();
         } else {
           drawOnlineGame();
         }
@@ -7318,6 +8133,47 @@
         ctx.fill();
       }
 
+      function drawSigmaRpg() {
+        const theme = getTheme(playerStyle.color);
+        const portalOpen = rpgCrystals.length === 0;
+
+        ctx.fillStyle = portalOpen ? "rgba(168, 85, 247, 0.8)" : "rgba(71, 85, 105, 0.65)";
+        ctx.shadowColor = portalOpen ? "#a855f7" : "transparent";
+        ctx.shadowBlur = portalOpen ? 18 : 0;
+        ctx.beginPath();
+        ctx.roundRect(rpgPortal.x, rpgPortal.y, rpgPortal.size, rpgPortal.size, 12);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        rpgCrystals.forEach((crystal) => {
+          drawDiamond(crystal.x, crystal.y, crystal.size, "#facc15");
+        });
+
+        rpgEnemies.forEach((enemy) => {
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath();
+          ctx.roundRect(enemy.x, enemy.y, enemy.size, enemy.size, 8);
+          ctx.fill();
+          ctx.fillStyle = "#fecaca";
+          ctx.beginPath();
+          ctx.arc(enemy.x + enemy.size / 2, enemy.y + enemy.size / 2, 5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.fillStyle = theme.body;
+        ctx.beginPath();
+        ctx.roundRect(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, playerStyle.skin === "block" ? 3 : 9);
+        ctx.fill();
+        ctx.fillStyle = theme.head;
+        ctx.beginPath();
+        ctx.arc(rpgPlayer.x + rpgPlayer.size / 2, rpgPlayer.y + rpgPlayer.size / 2, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(248, 250, 252, 0.86)";
+        ctx.font = "800 15px Arial";
+        ctx.fillText(`Floor ${rpgLevel} | Crystals ${5 - rpgCrystals.length}/5`, 16, canvas.height - 16);
+      }
+
       function drawSnakeTile(part, color, skin, isHead) {
         const radiusBySkin = {
           classic: isHead ? 7 : 5,
@@ -7451,7 +8307,7 @@
           return;
         }
 
-        if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge") {
+        if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
           if (releasedDirection(event, dodgeMove)) {
             dodgeMove = { x: 0, y: 0 };
           }
@@ -7504,7 +8360,7 @@
           if (isOnlineArcadeGame(currentGame)) {
             onlineMove = { x: 0, y: 0 };
           }
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -7544,7 +8400,7 @@
             return;
           }
 
-          if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge") {
+          if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
             event.preventDefault();
             dodgeMove = directions[button.dataset.direction];
             button.setPointerCapture(event.pointerId);
@@ -7592,7 +8448,7 @@
             catcherMove = 0;
           }
 
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -7616,7 +8472,7 @@
             catcherMove = 0;
           }
 
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -7644,9 +8500,10 @@
         leaveRoomButton.hidden = true;
         backButton.hidden = true;
         gamesButton.hidden = true;
-        settingsButton.hidden = true;
+        settingsButton.hidden = false;
         gameOptions.classList.remove("open");
         settingsMenu.classList.remove("open");
+        pauseMenu.classList.remove("settings-open");
         singlePlayerGames.classList.remove("open");
         onlineGames.classList.remove("open");
       }
@@ -7660,6 +8517,7 @@
         settingsButton.hidden = true;
         gameOptions.classList.add("open");
         settingsMenu.classList.remove("open");
+        pauseMenu.classList.remove("settings-open");
         singlePlayerGames.classList.remove("open");
         onlineGames.classList.remove("open");
       }
@@ -7675,6 +8533,7 @@
         settingsButton.hidden = true;
         gameOptions.classList.remove("open");
         settingsMenu.classList.add("open");
+        pauseMenu.classList.add("settings-open");
         singlePlayerGames.classList.remove("open");
         onlineGames.classList.remove("open");
       }
@@ -7688,6 +8547,7 @@
         settingsButton.hidden = true;
         gameOptions.classList.remove("open");
         settingsMenu.classList.remove("open");
+        pauseMenu.classList.remove("settings-open");
         singlePlayerGames.classList.toggle("open", list === "single");
         onlineGames.classList.toggle("open", list === "online");
         if (list === "online") {
@@ -7788,6 +8648,53 @@
         }
 
         updateAccountUi();
+        subscribeCurrentUserModeration();
+      }
+
+      function subscribeCurrentUserModeration() {
+        if (currentUserModerationRef) {
+          currentUserModerationRef.off();
+          currentUserModerationRef = null;
+        }
+
+        const userKey = getUserKeyFromAccount();
+        if (!userKey) {
+          return;
+        }
+
+        currentUserModerationRef = firebaseDb.ref(`users/${userKey}`);
+        currentUserModerationRef.on("value", (snapshot) => {
+          const user = snapshot.val();
+          if (!user || !currentAccount) {
+            return;
+          }
+
+          currentUserData = normalizeUserProgress(user);
+          renderCustomMusicLists();
+          const timedBanActive = Number(user.bannedUntil || 0) > Date.now();
+          const ipBanActive = Boolean(user.ipBanned);
+
+          if (!timedBanActive && !ipBanActive) {
+            return;
+          }
+
+          const message = ipBanActive
+            ? "This account is IP banned."
+            : `You are banned until ${new Date(Number(user.bannedUntil)).toLocaleString()}.`;
+
+          currentUserModerationRef.off();
+          currentUserModerationRef = null;
+          if (onlineRoomCode) {
+            leaveOnlineRoom().catch(() => {});
+          }
+          firebaseAuth.signOut().catch(() => {});
+          setStoredAccount(null);
+          showMainMenu();
+          authMessage.textContent = message;
+          startAccountMessage.textContent = message;
+          authMenu.classList.add("open");
+          authMenu.setAttribute("aria-hidden", "false");
+        });
       }
 
       async function refreshStoredAccountRole() {
@@ -7811,6 +8718,7 @@
         }
 
         updateAccountUi();
+        subscribeCurrentUserModeration();
         syncBestScoresFromAccount();
       }
 
@@ -7874,6 +8782,8 @@
           "mute-60": `mute ${name} for 1 hour`,
           "ban-60": `ban ${name} for 1 hour`,
           "ban-ip": `ban IP for ${name}`,
+          "music-ban": `block music submissions from ${name}`,
+          "music-unban": `allow music submissions from ${name}`,
           "clear-limits": `unmute/unban ${name}`,
           "delete-user": `delete user ${name}`
         };
@@ -8201,9 +9111,7 @@
       }
 
       function updateSettingsAccountUi() {
-        accountSettingsButton.textContent = currentAccount
-          ? `Account: ${currentAccount.username}`
-          : "Account: log in";
+        // Account controls live in the main menu now.
       }
 
       function toggleAdminPanel() {
@@ -8292,6 +9200,7 @@
             const muted = Number(user?.mutedUntil || 0) > Date.now();
             const banned = Number(user?.bannedUntil || 0) > Date.now();
             const premium = Boolean(user?.premium || user?.battlePass?.premium);
+            const musicBanned = Boolean(user?.musicBanned);
             const card = document.createElement("div");
             card.className = "admin-user-card";
             card.innerHTML = `
@@ -8299,7 +9208,7 @@
                 <span class="admin-user-name">${escapeHtml(user?.username || key)}</span>
                 <span class="admin-badge">${user?.isAdmin ? "Admin" : user?.vip ? "VIP" : premium ? "Premium" : "User"}</span>
               </div>
-              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
+              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${musicBanned ? " | Music Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
               <div class="admin-user-actions">
                 <button type="button" data-admin-action="${user?.isAdmin ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${user?.isAdmin ? "Remove Admin" : "Make Admin"}</button>
                 <button type="button" data-admin-action="${user?.vip ? "remove-vip" : "give-vip"}" data-user-key="${escapeHtml(key)}">${user?.vip ? "Remove VIP" : "Give VIP"}</button>
@@ -8311,6 +9220,7 @@
                 <button type="button" data-admin-action="mute-60" data-user-key="${escapeHtml(key)}">Mute 1h</button>
                 <button type="button" data-admin-action="ban-60" data-user-key="${escapeHtml(key)}" class="admin-danger">Ban 1h</button>
                 <button type="button" data-admin-action="ban-ip" data-user-key="${escapeHtml(key)}" class="admin-danger">Ban IP</button>
+                <button type="button" data-admin-action="${musicBanned ? "music-unban" : "music-ban"}" data-user-key="${escapeHtml(key)}" class="${musicBanned ? "" : "admin-danger"}">${musicBanned ? "Unban Music" : "Ban Music"}</button>
                 <button type="button" data-admin-action="clear-limits" data-user-key="${escapeHtml(key)}">Unmute/Unban</button>
                 <button type="button" data-admin-action="delete-user" data-user-key="${escapeHtml(key)}" class="admin-danger">Delete User</button>
                 <button type="button" data-admin-action="copy-name" data-user-key="${escapeHtml(key)}">Use Name</button>
@@ -8394,25 +9304,48 @@
         }
 
         sortedEntries.forEach(([key, submission]) => {
-          const status = ["pending", "approved", "rejected"].includes(submission.status) ? submission.status : "pending";
+          const storedStatus = ["pending", "approved", "rejected"].includes(submission.status) ? submission.status : "pending";
+          const status = storedStatus === "approved" && !submission.reviewedAt ? "pending" : storedStatus;
           const statusLabel = status === "approved" ? "Accepted" : status === "rejected" ? "Declined" : "Pending";
+          const musicLabel = submission.localFile
+            ? submission.fileName || "Local audio file"
+            : getMusicUrlLabel(submission.url || "Music");
+          const canOpenMusic = /^https:\/\//i.test(submission.url || "");
+          const canPlayMusic = Boolean(submission.audioData) || (canOpenMusic && isDirectAudioUrl(submission.url || ""));
           const card = document.createElement("div");
           card.className = "admin-room-card";
           card.innerHTML = `
             <div class="admin-user-top">
-              <span class="admin-room-code">${escapeHtml(getMusicUrlLabel(submission.url || "Music"))}</span>
+              <span class="admin-room-code">${escapeHtml(musicLabel)}</span>
               <span class="admin-badge">${statusLabel}</span>
             </div>
-            <div class="admin-user-meta">From: ${escapeHtml(submission.username || "Guest")}${submission.reviewedBy ? ` | Reviewed by: ${escapeHtml(submission.reviewedBy)}` : ""}</div>
+            <div class="admin-user-meta">From: ${escapeHtml(submission.username || "Guest")}${submission.localFile ? ` | Local file: ${Math.max(1, Math.round(Number(submission.fileSize || 0) / 1024))} KB` : ""}${submission.reviewedBy ? ` | Reviewed by: ${escapeHtml(submission.reviewedBy)}` : ""}</div>
             <div class="admin-user-actions">
-              <button type="button" data-music-action="open" data-music-key="${escapeHtml(key)}" data-music-url="${escapeHtml(submission.url || "")}">Open Link</button>
+              ${canPlayMusic ? `<button type="button" data-music-action="play" data-music-key="${escapeHtml(key)}">Play</button>` : ""}
+              ${canOpenMusic ? `<button type="button" data-music-action="open" data-music-key="${escapeHtml(key)}" data-music-url="${escapeHtml(submission.url || "")}">Open Link</button>` : ""}
               ${status !== "approved" ? `<button type="button" data-music-action="accept" data-music-key="${escapeHtml(key)}">Accept</button>` : ""}
               ${status !== "rejected" ? `<button type="button" data-music-action="decline" data-music-key="${escapeHtml(key)}" class="admin-danger">Decline</button>` : ""}
+              ${submission.username && submission.username !== "Guest" ? `<button type="button" data-music-action="ban-user" data-music-key="${escapeHtml(key)}" data-music-username="${escapeHtml(submission.username)}" class="admin-danger">Ban Music User</button>` : ""}
               <button type="button" data-music-action="delete" data-music-key="${escapeHtml(key)}" class="admin-danger">Delete</button>
             </div>
           `;
           adminMusicList.appendChild(card);
         });
+      }
+
+      function stopAdminMusicPreview() {
+        if (adminMusicPreviewAudio) {
+          adminMusicPreviewAudio.pause();
+          adminMusicPreviewAudio.currentTime = 0;
+          adminMusicPreviewAudio = null;
+        }
+
+        if (adminMusicPreviewButton?.isConnected) {
+          adminMusicPreviewButton.textContent = "Play";
+        }
+
+        adminMusicPreviewKey = "";
+        adminMusicPreviewButton = null;
       }
 
       async function handleAdminMusicAction(event) {
@@ -8424,6 +9357,73 @@
 
         const action = button.dataset.musicAction;
         const key = button.dataset.musicKey;
+
+        if (action === "ban-user") {
+          const username = button.dataset.musicUsername || "";
+          const userKey = usernameKey(username);
+
+          if (!userKey || userKey === usernameKey(currentAccount.username)) {
+            adminMessage.textContent = "You cannot music-ban yourself.";
+            return;
+          }
+
+          if (!(await confirmAdminAction(`Are you sure to ban ${username} from submitting music?`))) {
+            return;
+          }
+
+          button.disabled = true;
+          try {
+            await patchUser(userKey, { musicBanned: true });
+            stopAdminMusicPreview();
+            adminMessage.textContent = `${username} is banned from submitting music.`;
+            await loadAdminPanel();
+          } catch {
+            adminMessage.textContent = "Could not ban this music user.";
+          } finally {
+            button.disabled = false;
+          }
+          return;
+        }
+
+        if (action === "play") {
+          if (adminMusicPreviewKey === key && adminMusicPreviewAudio && !adminMusicPreviewAudio.paused) {
+            stopAdminMusicPreview();
+            adminMessage.textContent = "Music preview stopped.";
+            return;
+          }
+
+          stopAdminMusicPreview();
+          button.disabled = true;
+
+          try {
+            const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`);
+            const submission = response.ok ? await response.json() : null;
+            const source = submission?.audioData || (isDirectAudioUrl(submission?.url || "") ? submission.url : "");
+
+            if (!source) {
+              throw new Error("No playable preview.");
+            }
+
+            adminMusicPreviewAudio = new Audio(source);
+            adminMusicPreviewAudio.volume = Math.max(0.2, getGameVolume());
+            adminMusicPreviewKey = key;
+            adminMusicPreviewButton = button;
+            adminMusicPreviewAudio.addEventListener("ended", () => {
+              stopAdminMusicPreview();
+              adminMessage.textContent = "Music preview finished.";
+            }, { once: true });
+            await adminMusicPreviewAudio.play();
+            button.textContent = "Stop";
+            adminMessage.textContent = `Playing ${submission.fileName || getMusicUrlLabel(submission.url || "music")}.`;
+          } catch {
+            stopAdminMusicPreview();
+            adminMessage.textContent = "Could not play this music preview.";
+          } finally {
+            button.disabled = false;
+          }
+
+          return;
+        }
 
         if (action === "open") {
           const url = button.dataset.musicUrl;
@@ -8437,6 +9437,7 @@
           return;
         }
 
+        stopAdminMusicPreview();
         button.disabled = true;
 
         try {
@@ -8454,21 +9455,29 @@
             return;
           }
 
-          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              status: action === "accept" ? "approved" : "rejected",
-              reviewedAt: Date.now(),
-              reviewedBy: currentAccount.username
-            })
-          });
+          const submissionSnapshot = await firebaseDb.ref(`musicSubmissions/${key}`).once("value");
+          const submission = submissionSnapshot.val();
+          const userKey = usernameKey(submission?.username || "");
 
-          if (!response.ok) {
-            throw new Error("Music moderation failed.");
+          if (!submission || !userKey) {
+            throw new Error("Music submission user not found.");
           }
 
-          adminMessage.textContent = action === "accept" ? "Music request accepted." : "Music request declined.";
+          const decision = {
+            ...submission,
+            status: action === "accept" ? "approved" : "rejected",
+            reviewedAt: Date.now(),
+            reviewedBy: currentAccount.username
+          };
+
+          await firebaseDb.ref().update({
+            [`users/${userKey}/savedMusic/${key}`]: decision,
+            [`musicSubmissions/${key}`]: null
+          });
+
+          adminMessage.textContent = action === "accept"
+            ? "Music accepted, saved to the user, and removed from requests."
+            : "Music declined, saved to the user, and removed from requests.";
           await loadAdminPanel();
         } catch {
           adminMessage.textContent = "Could not update music moderation.";
@@ -8670,6 +9679,17 @@
             const nextXp = Number(user.xp || 0) + xp;
             await patchUser(userKey, { xp: nextXp, level: getLevelFromXp(nextXp) });
             adminMessage.textContent = `${user.username || userKey} got ${xp} XP.`;
+          } else if (action === "music-ban" || action === "music-unban") {
+            if (usernameKey(currentAccount.username) === userKey) {
+              adminMessage.textContent = "You cannot music-ban yourself.";
+              return;
+            }
+
+            const musicBanned = action === "music-ban";
+            await patchUser(userKey, { musicBanned });
+            adminMessage.textContent = musicBanned
+              ? `${user.username || userKey} cannot submit music now.`
+              : `${user.username || userKey} can submit music again.`;
           } else if (action === "ban-ip") {
             if (usernameKey(currentAccount.username) === userKey) {
               adminMessage.textContent = "You cannot IP ban yourself.";
@@ -8677,13 +9697,15 @@
             }
 
             if (!user.lastIp) {
-              adminMessage.textContent = "This user has no saved IP yet.";
+              await patchUser(userKey, { ipBanned: true });
+              adminMessage.textContent = `${user.username || userKey} account banned. No IP was available.`;
               return;
             }
 
             const myIp = await getClientIp();
             if (myIp && myIp === user.lastIp) {
-              adminMessage.textContent = "This IP is the same as yours. Not banned.";
+              await patchUser(userKey, { ipBanned: true });
+              adminMessage.textContent = `${user.username || userKey} account banned. Shared admin IP was not blocked.`;
               return;
             }
 
@@ -8697,7 +9719,7 @@
             }
 
             if (action === "clear-limits") {
-              await patchUser(userKey, { mutedUntil: 0, bannedUntil: 0 });
+              await patchUser(userKey, { mutedUntil: 0, bannedUntil: 0, ipBanned: false });
               adminMessage.textContent = `${user.username || userKey} unmuted/unbanned.`;
             } else {
               const minutes = action === "mute-10" ? 10 : 60;
@@ -8976,7 +9998,9 @@
           }
 
           passwordInput.value = "";
-          settingsGmailInput.value = gmail;
+          if (settingsGmailInput) {
+            settingsGmailInput.value = gmail;
+          }
           authMessage.textContent = "";
           setStoredAccount({ username, isAdmin: false });
           syncBestScoresFromAccount();
@@ -9011,6 +10035,16 @@
           }
 
           const user = await getUser(userKey);
+          if (user?.ipBanned) {
+            authMessage.textContent = "This account IP is banned.";
+            return;
+          }
+
+          if (Number(user?.bannedUntil || 0) > Date.now()) {
+            authMessage.textContent = `This account is banned until ${new Date(Number(user.bannedUntil)).toLocaleString()}.`;
+            return;
+          }
+
           const passwordHash = await hashPassword(password);
           let firebaseLoginOk = false;
 
@@ -9028,11 +10062,6 @@
             return;
           }
 
-          if (user.ipBanned) {
-            authMessage.textContent = "This account IP is banned.";
-            return;
-          }
-
           if (firebaseLoginOk && user.passwordHash !== passwordHash) {
             await patchUser(userKey, { passwordHash });
           }
@@ -9045,7 +10074,9 @@
 
           passwordInput.value = "";
           gmailInput.value = user.gmail || "";
-          settingsGmailInput.value = user.gmail || "";
+          if (settingsGmailInput) {
+            settingsGmailInput.value = user.gmail || "";
+          }
           authMessage.textContent = "";
           setStoredAccount({
             username: user.username || username,
@@ -10936,6 +11967,49 @@
         });
       }
 
+      async function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) {
+          return;
+        }
+
+        try {
+          await navigator.serviceWorker.register("service-worker.js");
+        } catch {
+          startStatus.textContent = "Offline install is not available here.";
+        }
+      }
+
+      function setupInstallAppButton() {
+        window.addEventListener("beforeinstallprompt", (event) => {
+          event.preventDefault();
+          deferredInstallPrompt = event;
+          startInstallButton.hidden = false;
+        });
+
+        window.addEventListener("appinstalled", () => {
+          deferredInstallPrompt = null;
+          startInstallButton.hidden = true;
+          startStatus.textContent = "Sigma Studio installed.";
+        });
+      }
+
+      async function installSigmaApp() {
+        if (!deferredInstallPrompt) {
+          startStatus.textContent = "Use browser menu -> Add to Home screen.";
+          return;
+        }
+
+        deferredInstallPrompt.prompt();
+        const result = await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        startInstallButton.hidden = true;
+        startStatus.textContent = result.outcome === "accepted"
+          ? "Sigma Studio install started."
+          : "Install canceled.";
+      }
+
+      registerServiceWorker();
+      setupInstallAppButton();
       document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
       document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
       decorateStartGameCards();
@@ -10974,6 +12048,7 @@
       startAccountButton.addEventListener("click", () => {
         showStartSection("account");
       });
+      startInstallButton.addEventListener("click", installSigmaApp);
       startAdminButton.addEventListener("click", () => {
         showStartSection("admin");
       });
@@ -11026,11 +12101,12 @@
       startRoomCodeInput.addEventListener("input", () => {
         startRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
       });
-      [startSoundSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
+      [startSoundSelect, startLanguageSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
         select.addEventListener("change", updateGameSettingsFromStart);
       });
       startSoundSelect.addEventListener("input", updateGameSettingsFromStart);
       startCustomMusicListSelect.addEventListener("change", () => selectCustomMusicUrl("start"));
+      startLocalMusicFileInput.addEventListener("change", () => chooseLocalMusicFile("start"));
       startSaveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("start"));
       startDeleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("start"));
       [startSkinSelect, startColorSelect].forEach((select) => {
@@ -11058,8 +12134,8 @@
       confirmNahButton.addEventListener("click", () => closeConfirm(false));
       saveGmailButton.addEventListener("click", () => saveAccountGmail("account"));
       sendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("account"));
-      settingsSaveGmailButton.addEventListener("click", () => saveAccountGmail("settings"));
-      settingsSendRecoveryEmailButton.addEventListener("click", () => sendPasswordRecoveryEmail("settings"));
+      settingsSaveGmailButton?.addEventListener("click", () => saveAccountGmail("settings"));
+      settingsSendRecoveryEmailButton?.addEventListener("click", () => sendPasswordRecoveryEmail("settings"));
       accountBackButton.addEventListener("click", closeAccountSettings);
       adminToggleButton.addEventListener("click", toggleAdminPanel);
       phoneModeButton.addEventListener("click", togglePhonePreviewMode);
@@ -11070,9 +12146,9 @@
         adminPanelOpen = false;
         gmailInput.value = "";
         changeGmailInput.value = "";
-        settingsGmailInput.value = "";
-        settingsCurrentPasswordInput.value = "";
-        settingsRecoveryGmailInput.value = "";
+        if (settingsGmailInput) settingsGmailInput.value = "";
+        if (settingsCurrentPasswordInput) settingsCurrentPasswordInput.value = "";
+        if (settingsRecoveryGmailInput) settingsRecoveryGmailInput.value = "";
         setStoredAccount(null);
       });
       refreshAdminButton.addEventListener("click", async () => {
@@ -11114,17 +12190,18 @@
       adminMusicList.addEventListener("click", handleAdminMusicAction);
       soundSelect.addEventListener("change", updateGameSettings);
       soundSelect.addEventListener("input", updateGameSettings);
+      languageSelect.addEventListener("change", updateGameSettings);
       themeSelect.addEventListener("change", updateGameSettings);
       fieldSizeSelect.addEventListener("change", updateGameSettings);
       controlsSelect.addEventListener("change", updateGameSettings);
       customMusicListSelect.addEventListener("change", () => selectCustomMusicUrl("game"));
+      localMusicFileInput.addEventListener("change", () => chooseLocalMusicFile("game"));
       saveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("game"));
       deleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("game"));
       skinSelect.addEventListener("change", updatePlayerStyle);
       colorSelect.addEventListener("change", updatePlayerStyle);
       musicSelect.addEventListener("change", updateMusicPack);
       resetRecordButton.addEventListener("click", resetCurrentRecord);
-      accountSettingsButton.addEventListener("click", openAccountSettings);
       passwordInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           loginAccount();
@@ -11165,6 +12242,9 @@
       });
       laserDodgeButton.addEventListener("click", () => {
         startGame("laser-dodge");
+      });
+      sigmaRpgButton.addEventListener("click", () => {
+        startGame("sigma-rpg");
       });
       onlineGameButtons.forEach((button) => {
         button.addEventListener("click", () => {

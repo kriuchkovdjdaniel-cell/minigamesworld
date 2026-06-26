@@ -1,0 +1,26 @@
+{
+  "name": "Sigma Studio",
+  "short_name": "Sigma",
+  "description": "Sigma Studio arcade games by Danya.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#052e16",
+  "theme_color": "#052e16",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "sigma-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "sigma-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
