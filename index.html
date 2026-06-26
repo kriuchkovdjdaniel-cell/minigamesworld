@@ -217,7 +217,8 @@
           linear-gradient(135deg, rgba(2, 6, 23, 0.4), rgba(20, 83, 45, 0.22));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 12px 30px rgba(0, 0, 0, 0.18);
+          0 12px 30px rgba(0, 0, 0, 0.18),
+          0 0 28px color-mix(in srgb, var(--theme-accent-a) 12%, transparent);
       }
 
       h1 {
@@ -272,24 +273,30 @@
         position: relative;
         display: grid;
         gap: 0.9rem;
-        padding: 0.85rem;
-        border: 1px solid rgba(134, 239, 172, 0.16);
-        border-radius: 24px;
+        padding: 1rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 28%, transparent);
+        border-radius: 28px;
         background:
-          linear-gradient(145deg, rgba(2, 6, 23, 0.34), rgba(5, 46, 22, 0.2));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-a) 10%, transparent) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-b) 9%, transparent) 1px, transparent 1px) 0 0 / 28px 28px,
+          radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--theme-accent-a) 14%, transparent), transparent 18rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.48), color-mix(in srgb, var(--theme-panel) 82%, rgba(2, 6, 23, 0.26)));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 16px 36px rgba(0, 0, 0, 0.2);
+          inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+          0 22px 52px rgba(0, 0, 0, 0.24),
+          0 0 34px color-mix(in srgb, var(--theme-accent-a) 12%, transparent);
       }
 
       .game::before,
       .game::after {
         content: "";
         position: absolute;
-        width: 74px;
-        height: 74px;
-        border: 2px solid rgba(94, 234, 212, 0.38);
+        width: 7rem;
+        height: 7rem;
+        border: 2px solid color-mix(in srgb, var(--theme-accent-a) 42%, transparent);
         pointer-events: none;
+        opacity: 0.75;
       }
 
       .game::before {
@@ -317,8 +324,8 @@
         padding: 1rem;
         border-radius: 18px;
         background:
-          radial-gradient(circle at center, rgba(20, 184, 166, 0.12), transparent 16rem),
-          rgba(2, 6, 23, 0.68);
+          radial-gradient(circle at center, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 17rem),
+          rgba(2, 6, 23, 0.72);
         backdrop-filter: blur(4px);
       }
 
@@ -327,23 +334,29 @@
       }
 
       .play-panel {
-        width: min(74vw, 260px);
+        width: min(80vw, 340px);
         display: grid;
         gap: 0.75rem;
-        padding: 1rem;
-        border: 1px solid rgba(134, 239, 172, 0.28);
-        border-radius: 20px;
+        padding: 1.15rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 42%, transparent);
+        border-radius: 24px;
         background:
-          linear-gradient(145deg, rgba(15, 23, 42, 0.92), rgba(5, 46, 22, 0.76));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-a) 10%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-b) 8%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(145deg, rgba(15, 23, 42, 0.96), color-mix(in srgb, var(--theme-panel) 88%, rgba(2, 6, 23, 0.84)));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.1),
-          0 18px 40px rgba(0, 0, 0, 0.32);
+          0 24px 60px rgba(0, 0, 0, 0.42),
+          0 0 42px color-mix(in srgb, var(--theme-accent-a) 18%, transparent);
         text-align: center;
       }
 
       .play-panel h2 {
         margin: 0;
-        font-size: 1.75rem;
+        font-size: 2rem;
+        text-shadow:
+          0 2px 0 #020617,
+          0 0 18px color-mix(in srgb, var(--theme-accent-a) 34%, transparent);
       }
 
       .play-panel p {
@@ -1346,34 +1359,37 @@
         width: 100%;
         aspect-ratio: 1;
         display: block;
-        border: 2px solid rgba(134, 239, 172, 0.28);
-        border-radius: 18px;
+        border: 2px solid color-mix(in srgb, var(--theme-accent-a) 42%, transparent);
+        border-radius: 22px;
         background:
           radial-gradient(circle at center, rgba(20, 184, 166, 0.04), transparent 15rem),
           #020617;
         box-shadow:
-          inset 0 0 32px rgba(34, 197, 94, 0.08),
+          inset 0 0 42px color-mix(in srgb, var(--theme-accent-a) 12%, transparent),
           inset 0 0 0 1px rgba(255, 255, 255, 0.04),
           0 18px 50px rgba(0, 0, 0, 0.34),
-          0 0 34px rgba(20, 184, 166, 0.12);
+          0 0 38px color-mix(in srgb, var(--theme-accent-a) 16%, transparent);
       }
 
       .controls {
         display: flex;
         justify-content: space-between;
         gap: 0.75rem;
-        padding: 0.55rem;
-        border: 1px solid rgba(134, 239, 172, 0.18);
-        border-radius: 22px;
+        padding: 0.7rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 24%, transparent);
+        border-radius: 26px;
         background:
-          linear-gradient(135deg, rgba(2, 6, 23, 0.42), rgba(20, 83, 45, 0.22));
+          radial-gradient(circle at center, color-mix(in srgb, var(--theme-accent-a) 9%, transparent), transparent 9rem),
+          linear-gradient(135deg, rgba(2, 6, 23, 0.54), rgba(20, 83, 45, 0.28));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.07),
-          0 10px 24px rgba(0, 0, 0, 0.16);
+          0 12px 28px rgba(0, 0, 0, 0.18);
       }
 
       .controls button {
         min-width: 7rem;
+        min-height: 50px;
+        text-transform: uppercase;
       }
 
       #restart {
@@ -1440,28 +1456,32 @@
         margin: 0 auto;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 0.6rem;
-        padding: 0.7rem;
-        border: 1px solid rgba(134, 239, 172, 0.12);
-        border-radius: 24px;
+        gap: 0.72rem;
+        padding: 0.85rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 20%, transparent);
+        border-radius: 28px;
         background:
-          radial-gradient(circle at center, rgba(94, 234, 212, 0.06), transparent 7rem),
-          rgba(2, 6, 23, 0.22);
+          radial-gradient(circle at center, color-mix(in srgb, var(--theme-accent-a) 10%, transparent), transparent 7rem),
+          linear-gradient(145deg, rgba(2, 6, 23, 0.5), rgba(15, 23, 42, 0.28));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.06),
-          0 12px 26px rgba(0, 0, 0, 0.16);
+          0 14px 32px rgba(0, 0, 0, 0.18);
       }
 
       .pad button {
-        min-height: 76px;
+        min-height: 86px;
         aspect-ratio: 1.18;
         padding: 0;
         background:
-          linear-gradient(135deg, rgba(15, 23, 42, 0.86), rgba(20, 83, 45, 0.5));
+          radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12), transparent 45%),
+          linear-gradient(135deg, rgba(15, 23, 42, 0.9), color-mix(in srgb, var(--theme-accent-a) 38%, rgba(20, 83, 45, 0.54)));
         color: #f8fafc;
-        border-radius: 18px;
-        border-color: rgba(134, 239, 172, 0.22);
-        font-size: 1.05rem;
+        border-radius: 22px;
+        border-color: color-mix(in srgb, var(--theme-accent-a) 32%, transparent);
+        font-size: 1.1rem;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          0 10px 22px rgba(0, 0, 0, 0.2);
       }
 
       .pad button:hover {
@@ -1509,12 +1529,14 @@
         place-items: center;
         padding: 1rem;
         background:
-          radial-gradient(circle at center, rgba(34, 197, 94, 0.1), transparent 22rem),
-          rgba(2, 6, 23, 0.76);
+          radial-gradient(circle at center, color-mix(in srgb, var(--theme-accent-a) 18%, transparent), transparent 22rem),
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-a) 7%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-b) 7%, transparent) 1px, transparent 1px) 0 0 / 32px 32px,
+          rgba(2, 6, 23, 0.8);
         opacity: 0;
         pointer-events: none;
         transition: opacity 160ms ease;
-        backdrop-filter: blur(6px);
+        backdrop-filter: blur(8px);
       }
 
       .pause-menu.open {
@@ -1523,18 +1545,20 @@
       }
 
       .pause-panel {
-        width: min(88vw, 320px);
+        width: min(90vw, 380px);
         display: grid;
-        gap: 0.75rem;
-        padding: 1rem;
-        border: 1px solid rgba(134, 239, 172, 0.28);
-        border-radius: 20px;
+        gap: 0.85rem;
+        padding: 1.15rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 42%, transparent);
+        border-radius: 26px;
         background:
-          linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(5, 46, 22, 0.88));
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-a) 10%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-b) 8%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(145deg, rgba(15, 23, 42, 0.97), color-mix(in srgb, var(--theme-panel) 86%, rgba(2, 6, 23, 0.86)));
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.1),
           0 24px 60px rgba(0, 0, 0, 0.42),
-          0 0 34px rgba(34, 197, 94, 0.12);
+          0 0 46px color-mix(in srgb, var(--theme-accent-a) 18%, transparent);
       }
 
       .pause-menu.settings-open .pause-panel {
@@ -1547,12 +1571,12 @@
 
       .pause-panel h2 {
         margin: 0 0 0.25rem;
-        font-size: 1.5rem;
+        font-size: 1.9rem;
         text-align: center;
         color: #ecfeff;
         text-shadow:
           0 2px 0 #052e16,
-          0 0 18px rgba(94, 234, 212, 0.22);
+          0 0 22px color-mix(in srgb, var(--theme-accent-a) 34%, transparent);
       }
 
       .game-options {
@@ -4229,6 +4253,7 @@
       let rpgPortal;
       let rpgLevel = 1;
       let coinFlames = [];
+      let scoreBursts = [];
       let catcherMove = 0;
       let tankMove = 0;
       let pongMove = 0;
@@ -4577,6 +4602,8 @@
       ];
 
       function startGame(gameName) {
+        unlockBackgroundMusic();
+
         if (isSinglePlayerGame(gameName)) {
           clearInterval(waitingTimer);
           unsubscribeFromRoom();
@@ -5682,8 +5709,20 @@
         return true;
       }
 
+      function resumeMusicContextSafely(audioContext = musicContext) {
+        try {
+          const resumePromise = audioContext?.resume?.();
+          resumePromise?.catch?.(() => {});
+        } catch {
+          // Mobile PWA audio resume is best-effort.
+        }
+      }
+
       function startBackgroundMusic() {
         if (!musicUnlocked || getGameVolume() <= 0 || musicTimer) {
+          if (musicUnlocked && musicContext?.state === "suspended") {
+            resumeMusicContextSafely();
+          }
           return;
         }
 
@@ -5693,7 +5732,7 @@
           return;
         }
 
-        audioContext.resume?.();
+        resumeMusicContextSafely(audioContext);
 
         const tickMusic = () => {
           if (getGameVolume() <= 0) {
@@ -5749,6 +5788,12 @@
 
       function unlockBackgroundMusic() {
         musicUnlocked = true;
+        if (musicContext?.state === "suspended") {
+          resumeMusicContextSafely();
+        }
+        if (customMusicAudio?.paused === false) {
+          customMusicAudio.play().catch(() => {});
+        }
         syncBackgroundMusic();
       }
 
@@ -6127,6 +6172,7 @@
         score = 0;
         gameOver = false;
         coinFlames = [];
+        scoreBursts = [];
         waitingToPlay = !restartAfterDeath;
         paused = false;
         updateShootButton();
@@ -6944,6 +6990,7 @@
       function addPoint() {
         score += 1;
         scoreEl.textContent = score;
+        spawnScoreBurst();
         spawnCoinFlame();
         playSound("point");
         if (score > best) {
@@ -6951,6 +6998,25 @@
           bestEl.textContent = best;
           saveBestScore(currentGame, best);
         }
+      }
+
+      function spawnScoreBurst() {
+        const origin = getPointEffectPosition();
+        for (let index = 0; index < 6; index += 1) {
+          const angle = (Math.PI * 2 * index) / 6 + Math.random() * 0.4;
+          const speed = 1.5 + Math.random() * 2.4;
+          scoreBursts.push({
+            x: origin.x,
+            y: origin.y,
+            dx: Math.cos(angle) * speed,
+            dy: Math.sin(angle) * speed,
+            size: 3 + Math.random() * 3,
+            life: 18 + Math.floor(Math.random() * 10),
+            maxLife: 28
+          });
+        }
+
+        scoreBursts = scoreBursts.slice(-90);
       }
 
       function hasCoinFlamesEquipped() {
@@ -7010,6 +7076,7 @@
 
       function drawCoinFlames() {
         if (!coinFlames.length) {
+          drawScoreBursts();
           return;
         }
 
@@ -7042,6 +7109,38 @@
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText("$", flame.x, flame.y + 1);
+          ctx.restore();
+        });
+
+        drawScoreBursts();
+      }
+
+      function drawScoreBursts() {
+        if (!scoreBursts.length) {
+          return;
+        }
+
+        scoreBursts = scoreBursts
+          .map((spark) => ({
+            ...spark,
+            x: spark.x + spark.dx,
+            y: spark.y + spark.dy,
+            dx: spark.dx * 0.94,
+            dy: spark.dy * 0.94,
+            life: spark.life - 1
+          }))
+          .filter((spark) => spark.life > 0);
+
+        scoreBursts.forEach((spark) => {
+          const alpha = Math.max(0, spark.life / spark.maxLife);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = "#5eead4";
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = "#fef08a";
+          ctx.beginPath();
+          ctx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2);
+          ctx.fill();
           ctx.restore();
         });
       }
@@ -7116,6 +7215,7 @@
           return;
         }
 
+        unlockBackgroundMusic();
         waitingToPlay = false;
         paused = false;
         updatePauseButton();
@@ -7223,6 +7323,8 @@
       }
 
       function playFromStartMenu() {
+        unlockBackgroundMusic();
+
         if (selectedStartMode === "online") {
           showStartSection("games");
           startRoomNote.textContent = `${onlineGameNames[selectedOnlineGame]} selected. Create a room or enter a code and join.`;
@@ -7330,6 +7432,8 @@
       }
 
       function playStartCard(button) {
+        unlockBackgroundMusic();
+
         const soloGame = button.dataset.startGame;
         const onlineGame = button.dataset.startOnlineGame;
 
@@ -8106,10 +8210,24 @@
       }
 
       function drawBoard() {
+        const boardGradient = ctx.createRadialGradient(
+          canvas.width * 0.5,
+          canvas.height * 0.18,
+          20,
+          canvas.width * 0.5,
+          canvas.height * 0.55,
+          canvas.width * 0.76
+        );
+        boardGradient.addColorStop(0, "rgba(20, 184, 166, 0.13)");
+        boardGradient.addColorStop(0.45, "rgba(15, 23, 42, 0.08)");
+        boardGradient.addColorStop(1, "rgba(2, 6, 23, 0.72)");
+
         ctx.fillStyle = getBoardColor();
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = boardGradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.12)";
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.105)";
         ctx.lineWidth = 1;
         for (let line = 0; line <= tileCount; line += 1) {
           const position = line * gridSize;
@@ -8122,6 +8240,15 @@
           ctx.lineTo(canvas.width, position);
           ctx.stroke();
         }
+
+        ctx.save();
+        ctx.strokeStyle = "rgba(94, 234, 212, 0.18)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
+        ctx.strokeStyle = "rgba(250, 204, 21, 0.08)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+        ctx.restore();
       }
 
       function drawSnake() {
@@ -12191,6 +12318,11 @@
       setupInstallAppButton();
       document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
       document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && musicUnlocked) {
+          syncBackgroundMusic();
+        }
+      });
       decorateStartGameCards();
       updateStartGameShowcase();
       startPlayButton.addEventListener("click", playFromStartMenu);
