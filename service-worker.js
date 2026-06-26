@@ -1,9 +1,10 @@
-const CACHE_NAME = "minigameworld-v2";
+const CACHE_NAME = "minigameworld-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./minigameworld-icon.png"
+  "./minigameworld-icon.png",
+  "./loading-music.mp3"
 ];
 
 self.addEventListener("install", (event) => {
