@@ -514,44 +514,6 @@
           0 0 18px rgba(250, 204, 21, 0.08);
       }
 
-      .start-pass-strip {
-        width: min(100%, 34rem);
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 0.75rem;
-        margin: 0 auto 0.35rem;
-        padding: 0.55rem 0.75rem;
-        border: 1px solid rgba(250, 204, 21, 0.48);
-        border-radius: 999px;
-        background:
-          radial-gradient(circle at 12% 50%, rgba(250, 204, 21, 0.18), transparent 5rem),
-          linear-gradient(135deg, rgba(49, 46, 129, 0.92), rgba(88, 28, 135, 0.72));
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.16),
-          0 0 22px rgba(250, 204, 21, 0.16);
-        color: #fff;
-        font-size: 0.82rem;
-        font-weight: 1000;
-        text-shadow: 1px 1px 0 #000;
-      }
-
-      .start-pass-meter {
-        overflow: hidden;
-        height: 0.85rem;
-        border: 2px solid rgba(15, 23, 42, 0.82);
-        border-radius: 999px;
-        background: rgba(2, 6, 23, 0.54);
-      }
-
-      .start-pass-meter-fill {
-        width: 0%;
-        height: 100%;
-        border-radius: inherit;
-        background: repeating-linear-gradient(90deg, #facc15 0 24px, #f97316 24px 28px);
-        transition: width 180ms ease;
-      }
-
       .loading-bar {
         height: 18px;
         overflow: hidden;
@@ -3427,13 +3389,6 @@
         <h2>MiniGameWorld</h2>
         <div class="start-splash">Danya editor!</div>
         <p id="startStatus">Loading...</p>
-        <div class="start-pass-strip" id="startPassStrip" aria-label="Battle pass progress">
-          <span id="startPassLevel">Season 1/30</span>
-          <div class="start-pass-meter" aria-hidden="true">
-            <div class="start-pass-meter-fill" id="startPassMeterFill"></div>
-          </div>
-          <span id="startPassCoins">0 coins</span>
-        </div>
         <div class="loading-bar" aria-hidden="true">
           <div class="loading-fill"></div>
         </div>
@@ -3964,9 +3919,6 @@
       const startScreen = document.getElementById("startScreen");
       const startPanel = document.getElementById("startPanel");
       const startStatus = document.getElementById("startStatus");
-      const startPassLevel = document.getElementById("startPassLevel");
-      const startPassMeterFill = document.getElementById("startPassMeterFill");
-      const startPassCoins = document.getElementById("startPassCoins");
       const startPlayButton = document.getElementById("startPlayButton");
       const startGamesButton = document.getElementById("startGamesButton");
       const startProfileButton = document.getElementById("startProfileButton");
@@ -6055,7 +6007,6 @@
             level: getLevelFromXp(nextXp),
             coins: nextCoins
           });
-          await renderStartPassStrip();
           statusEl.textContent = `${reason}: +${xp} XP, +${coins} coins.`;
         } catch {
           statusEl.textContent = "Reward saved locally failed. Check Firebase.";
@@ -7330,7 +7281,6 @@
         startStatus.textContent = selectedStartMode === "online"
           ? `${onlineGameNames[selectedOnlineGame]} ${currentText("selected")}`
           : `${games[selectedStartGame].title} ${currentText("selected")}`;
-        renderStartPassStrip();
         showStartSection("main");
       }
 
@@ -7678,31 +7628,10 @@
         window.open(donationLinks.main, "_blank", "noopener,noreferrer");
       }
 
-      async function renderStartPassStrip() {
-        const maxLevel = Math.max(...battlePassRewards.map((reward) => reward.level));
-        let user = currentUserData;
-
-        if (currentAccount?.username) {
-          try {
-            user = await refreshCurrentUserData();
-          } catch {
-            user = currentUserData;
-          }
-        }
-
-        const level = Math.min(maxLevel, Number(user?.level || 1));
-        const coins = Number(user?.coins || 0);
-        const progress = Math.min(100, Math.round((level / maxLevel) * 100));
-        startPassLevel.textContent = `Season ${level}/${maxLevel}`;
-        startPassMeterFill.style.width = `${progress}%`;
-        startPassCoins.textContent = `${coins} coins`;
-      }
-
       async function renderBattlePassMenu() {
         if (!currentAccount?.username) {
           battlePassList.textContent = "Log in first.";
           battlePassMessage.textContent = "";
-          await renderStartPassStrip();
           return;
         }
 
@@ -7762,7 +7691,6 @@
           </div>
         `;
         battlePassMessage.textContent = `Your level: ${user.level}. ${hasPremium ? "Premium track active." : "Premium track locked."}`;
-        await renderStartPassStrip();
       }
 
       async function renderLeaderboardMenu() {
