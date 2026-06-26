@@ -3,7 +3,7 @@ const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./sigma-icon.svg"
+  "./minigameworld-icon.png"
 ];
 
 self.addEventListener("install", (event) => {

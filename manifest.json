@@ -11,15 +11,15 @@
   "categories": ["games", "entertainment"],
   "icons": [
     {
-      "src": "sigma-icon.svg",
+      "src": "minigameworld-icon.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "sigma-icon.svg",
+      "src": "minigameworld-icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
