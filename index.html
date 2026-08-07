@@ -5959,7 +5959,25 @@
         }
 
         const user = await getUser(userKey);
-        currentUserData = normalizeUserProgress(user || {});
+        const shouldBootstrapAdmin = isBootstrapAdminUsername(user?.username || currentAccount.username || userKey);
+        if (shouldBootstrapAdmin && !user?.isAdmin) {
+          await patchUser(userKey, { isAdmin: true });
+        }
+
+        currentUserData = normalizeUserProgress({
+          ...(user || {}),
+          username: user?.username || currentAccount.username || userKey,
+          isAdmin: Boolean(user?.isAdmin || shouldBootstrapAdmin)
+        });
+        if (currentAccount && currentAccount.isAdmin !== currentUserData.isAdmin) {
+          currentAccount = {
+            ...currentAccount,
+            username: currentUserData.username || currentAccount.username,
+            isAdmin: currentUserData.isAdmin
+          };
+          localStorage.setItem(accountStorageKey, JSON.stringify(currentAccount));
+          updateAccountUi();
+        }
         renderCustomMusicLists();
         if (currentUserData.equipped) {
           playerStyle = {
@@ -7803,6 +7821,7 @@
               xp: Number(user?.xp || 0),
               coins: Number(user?.coins || 0),
               points: Number(user?.points || 0),
+              isAdmin: Boolean(user?.isAdmin || isBootstrapAdminUsername(user?.username || key)),
               vip: Boolean(user?.vip),
               premium: Boolean(user?.premium || user?.battlePass?.premium),
               bestTotal: Object.values(user?.bestScores || {}).reduce((sum, value) => sum + Number(value || 0), 0)
@@ -7814,7 +7833,7 @@
             <div class="admin-user-card leaderboard-card">
               <div class="admin-user-top">
                 <span class="admin-user-name">#${index + 1} ${escapeHtml(entry.username)}</span>
-                <span class="admin-badge">${entry.vip ? "VIP" : entry.premium ? "Premium" : "Player"}</span>
+                <span class="admin-badge">${entry.isAdmin ? "Admin" : entry.vip ? "VIP" : entry.premium ? "Premium" : "Player"}</span>
               </div>
               <div class="admin-user-meta">XP: ${entry.xp} | Best: ${entry.bestTotal} | Points: ${entry.points} | Coins: ${entry.coins}</div>
             </div>
@@ -9120,11 +9139,15 @@
 
         try {
           const user = await getUser(usernameKey(currentAccount.username));
+          const shouldBootstrapAdmin = isBootstrapAdminUsername(user?.username || currentAccount.username);
+          if (shouldBootstrapAdmin && !user?.isAdmin) {
+            await patchUser(usernameKey(currentAccount.username), { isAdmin: true });
+          }
 
           if (user) {
             currentAccount = {
               username: user.username || currentAccount.username,
-              isAdmin: Boolean(user.isAdmin)
+              isAdmin: Boolean(user.isAdmin || shouldBootstrapAdmin)
             };
             localStorage.setItem(accountStorageKey, JSON.stringify(currentAccount));
           }
@@ -9143,6 +9166,10 @@
 
       function usernameKey(value) {
         return sanitizeUsername(value).toLowerCase();
+      }
+
+      function isBootstrapAdminUsername(value) {
+        return usernameKey(value) === "admin";
       }
 
       function normalizeGmail(value) {
@@ -9293,13 +9320,64 @@
       }
 
       async function getAllIpBans() {
-        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps.json`);
+        return firebaseRead("bannedIps");
+      }
 
-        if (!response.ok) {
-          throw new Error("Could not load banned IPs.");
+      async function firebaseRead(path) {
+        try {
+          const snapshot = await firebaseDb.ref(path).once("value");
+          return snapshot.val();
+        } catch {
+          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`);
+
+          if (!response.ok) {
+            throw new Error(`Could not read ${path}.`);
+          }
+
+          return response.json();
         }
+      }
 
-        return response.json();
+      async function firebaseSet(path, value) {
+        try {
+          await firebaseDb.ref(path).set(value);
+          return value;
+        } catch {
+          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(value)
+          });
+
+          if (!response.ok) {
+            throw new Error(`Could not save ${path}.`);
+          }
+
+          return response.json();
+        }
+      }
+
+      async function firebaseUpdate(path, patch) {
+        try {
+          await firebaseDb.ref(path).update(patch);
+          return patch;
+        } catch {
+          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(patch)
+          });
+
+          if (!response.ok) {
+            throw new Error(`Could not update ${path}.`);
+          }
+
+          return response.json();
+        }
       }
 
       async function hashPassword(password) {
@@ -9311,45 +9389,15 @@
       }
 
       async function getUser(username) {
-        const response = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`);
-
-        if (!response.ok) {
-          throw new Error("Could not reach account server.");
-        }
-
-        return response.json();
+        return firebaseRead(`users/${username}`);
       }
 
       async function saveUser(username, user) {
-        const response = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(user)
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not save account.");
-        }
-
-        return response.json();
+        return firebaseSet(`users/${username}`, user);
       }
 
       async function patchUser(username, patch) {
-        const response = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(patch)
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not update account.");
-        }
-
-        return response.json();
+        return firebaseUpdate(`users/${username}`, patch);
       }
 
       function getLocalBestScores() {
@@ -9430,23 +9478,11 @@
       }
 
       async function getAllUsers() {
-        const response = await fetch(`${firebaseDatabaseUrl}/users.json`);
-
-        if (!response.ok) {
-          throw new Error("Could not load users.");
-        }
-
-        return response.json();
+        return firebaseRead("users");
       }
 
       async function getAllRooms() {
-        const response = await fetch(`${firebaseDatabaseUrl}/rooms.json`);
-
-        if (!response.ok) {
-          throw new Error("Could not load rooms.");
-        }
-
-        return response.json();
+        return firebaseRead("rooms");
       }
 
       async function createUserIfAvailable(username, user) {
@@ -9563,19 +9599,12 @@
         adminMessage.textContent = "Loading...";
 
         try {
-          const [rooms, ipBans, usersResponse, musicResponse] = await Promise.all([
+          const [rooms, ipBans, users, musicSubmissions] = await Promise.all([
             getAllRooms(),
             getAllIpBans(),
-            fetch(`${firebaseDatabaseUrl}/users.json`),
-            fetch(`${firebaseDatabaseUrl}/musicSubmissions.json`)
+            getAllUsers(),
+            firebaseRead("musicSubmissions")
           ]);
-
-          if (!usersResponse.ok || !musicResponse.ok) {
-            throw new Error("Could not load users.");
-          }
-
-          const users = await usersResponse.json();
-          const musicSubmissions = await musicResponse.json();
           const roomEntries = Object.entries(rooms || {});
           const activeRoomEntries = roomEntries.filter(([, room]) => Number(room?.players || 0) > 0);
           const userEntries = Object.entries(users || {});
@@ -9619,16 +9648,17 @@
             const premium = Boolean(user?.premium || user?.battlePass?.premium);
             const musicBanned = Boolean(user?.musicBanned);
             const hasCoinFlames = Boolean(user?.ownedItems?.["effect-coin-flames"]);
+            const isAdminUser = Boolean(user?.isAdmin || isBootstrapAdminUsername(user?.username || key));
             const card = document.createElement("div");
             card.className = "admin-user-card";
             card.innerHTML = `
               <div class="admin-user-top">
                 <span class="admin-user-name">${escapeHtml(user?.username || key)}</span>
-                <span class="admin-badge">${user?.isAdmin ? "Admin" : user?.vip ? "VIP" : premium ? "Premium" : "User"}</span>
+                <span class="admin-badge">${isAdminUser ? "Admin" : user?.vip ? "VIP" : premium ? "Premium" : "User"}</span>
               </div>
               <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${musicBanned ? " | Music Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
               <div class="admin-user-actions">
-                <button type="button" data-admin-action="${user?.isAdmin ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${user?.isAdmin ? "Remove Admin" : "Make Admin"}</button>
+                <button type="button" data-admin-action="${isAdminUser ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${isAdminUser ? "Remove Admin" : "Make Admin"}</button>
                 <button type="button" data-admin-action="${user?.vip ? "remove-vip" : "give-vip"}" data-user-key="${escapeHtml(key)}">${user?.vip ? "Remove VIP" : "Give VIP"}</button>
                 <button type="button" data-admin-action="${premium ? "remove-premium" : "give-premium"}" data-user-key="${escapeHtml(key)}">${premium ? "Remove Premium" : "Give Premium"}</button>
                 <button type="button" data-admin-action="${hasCoinFlames ? "remove-coin-flames" : "gift-coin-flames"}" data-user-key="${escapeHtml(key)}">${hasCoinFlames ? "Remove Coin Flames" : "Gift Coin Flames"}</button>
@@ -10391,6 +10421,7 @@
             level: 1,
             coins: 100,
             points: 0,
+            isAdmin: isBootstrapAdminUsername(username),
             vip: false,
             premium: false,
             battlePass: {
@@ -10433,7 +10464,7 @@
             settingsGmailInput.value = gmail;
           }
           authMessage.textContent = "";
-          setStoredAccount({ username, isAdmin: false });
+          setStoredAccount({ username, isAdmin: isBootstrapAdminUsername(username) });
           syncBestScoresFromAccount();
         } catch {
           authMessage.textContent = "Could not register. Check Firebase rules.";
@@ -10511,7 +10542,7 @@
           authMessage.textContent = "";
           setStoredAccount({
             username: user.username || username,
-            isAdmin: Boolean(user.isAdmin)
+            isAdmin: Boolean(user.isAdmin || isBootstrapAdminUsername(user.username || username))
           });
           syncBestScoresFromAccount();
         } catch {
