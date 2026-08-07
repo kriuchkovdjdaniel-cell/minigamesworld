@@ -4300,6 +4300,7 @@
       let currentUserData = null;
       let currentUserModerationRef = null;
       let currentClientIp = "";
+      let firebaseSessionPromise = null;
       let confirmResolver = null;
       let musicContext = null;
       let musicGain = null;
@@ -5263,24 +5264,15 @@
           approved = savedMusic?.status === "approved" && Boolean(savedMusic?.reviewedAt);
 
           if (!savedMusic) {
-            const existingResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`);
-            const existingSubmission = existingResponse.ok ? await existingResponse.json() : null;
+            const existingSubmission = await firebaseRead(`musicSubmissions/${submissionId}`);
             approved = existingSubmission?.status === "approved" && Boolean(existingSubmission?.reviewedAt);
-            const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${submissionId}.json`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                url,
-                username: currentAccount?.username || "Guest",
-                status: approved ? "approved" : "pending",
-                submittedAt: Date.now(),
-                reviewedBy: approved ? (existingSubmission?.reviewedBy || "Admin") : null
-              })
+            await firebaseSet(`musicSubmissions/${submissionId}`, {
+              url,
+              username: currentAccount?.username || "Guest",
+              status: approved ? "approved" : "pending",
+              submittedAt: Date.now(),
+              reviewedBy: approved ? (existingSubmission?.reviewedBy || "Admin") : null
             });
-
-            if (!response.ok) {
-              throw new Error("Could not submit music.");
-            }
           }
         } catch {
           settingsMessage.textContent = "Could not send music for moderation.";
@@ -5358,8 +5350,7 @@
         clearLocalMusicSelection();
 
         try {
-          const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${getMusicSubmissionId(url)}.json`);
-          let submission = response.ok ? await response.json() : null;
+          let submission = await firebaseRead(`musicSubmissions/${getMusicSubmissionId(url)}`);
 
           if (!submission && currentAccount?.username) {
             const savedSnapshot = await firebaseDb.ref(`users/${getUserKeyFromAccount()}/savedMusic/${getMusicSubmissionId(url)}`).once("value");
@@ -8991,55 +8982,19 @@
       }
 
       async function getRoom(code) {
-        const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`);
-
-        if (!response.ok) {
-          throw new Error("Could not reach room server.");
-        }
-
-        return response.json();
+        return firebaseRead(`rooms/${code}`);
       }
 
       async function saveRoom(code, room) {
-        const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(room)
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not save room.");
-        }
-
-        return response.json();
+        return firebaseSet(`rooms/${code}`, room);
       }
 
       async function patchRoom(code, patch) {
-        const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(patch)
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not update room.");
-        }
-
-        return response.json();
+        return firebaseUpdate(`rooms/${code}`, patch);
       }
 
       async function deleteRoom(code) {
-        const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`, {
-          method: "DELETE"
-        });
-
-        if (!response.ok) {
-          throw new Error("Could not delete room.");
-        }
+        return firebaseRemove(`rooms/${code}`);
       }
 
       function getPlayerId() {
@@ -9285,13 +9240,7 @@
           return null;
         }
 
-        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${ipKey(ip)}.json`);
-
-        if (!response.ok) {
-          throw new Error("Could not check IP ban.");
-        }
-
-        return response.json();
+        return firebaseRead(`bannedIps/${ipKey(ip)}`);
       }
 
       async function banIpAddress(ip, user) {
@@ -9299,36 +9248,49 @@
           throw new Error("No IP saved for this user.");
         }
 
-        const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${ipKey(ip)}.json`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            ip,
-            username: user?.username || "",
-            bannedBy: currentAccount?.username || "admin",
-            createdAt: Date.now()
-          })
+        return firebaseSet(`bannedIps/${ipKey(ip)}`, {
+          ip,
+          username: user?.username || "",
+          bannedBy: currentAccount?.username || "admin",
+          createdAt: Date.now()
         });
-
-        if (!response.ok) {
-          throw new Error("Could not ban IP.");
-        }
-
-        return response.json();
       }
 
       async function getAllIpBans() {
         return firebaseRead("bannedIps");
       }
 
+      async function ensureFirebaseSession() {
+        if (firebaseAuth.currentUser) {
+          return firebaseAuth.currentUser;
+        }
+
+        if (!firebaseSessionPromise) {
+          firebaseSessionPromise = firebaseAuth.signInAnonymously()
+            .then((credential) => credential.user)
+            .catch((error) => {
+              firebaseSessionPromise = null;
+              throw error;
+            });
+        }
+
+        return firebaseSessionPromise;
+      }
+
+      async function getFirebaseRestUrl(path) {
+        const user = await ensureFirebaseSession();
+        const token = await user.getIdToken();
+        return `${firebaseDatabaseUrl}/${path}.json?auth=${encodeURIComponent(token)}`;
+      }
+
       async function firebaseRead(path) {
+        await ensureFirebaseSession();
+
         try {
           const snapshot = await firebaseDb.ref(path).once("value");
           return snapshot.val();
         } catch {
-          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`);
+          const response = await fetch(await getFirebaseRestUrl(path));
 
           if (!response.ok) {
             throw new Error(`Could not read ${path}.`);
@@ -9339,11 +9301,13 @@
       }
 
       async function firebaseSet(path, value) {
+        await ensureFirebaseSession();
+
         try {
           await firebaseDb.ref(path).set(value);
           return value;
         } catch {
-          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`, {
+          const response = await fetch(await getFirebaseRestUrl(path), {
             method: "PUT",
             headers: {
               "Content-Type": "application/json"
@@ -9360,11 +9324,13 @@
       }
 
       async function firebaseUpdate(path, patch) {
+        await ensureFirebaseSession();
+
         try {
           await firebaseDb.ref(path).update(patch);
           return patch;
         } catch {
-          const response = await fetch(`${firebaseDatabaseUrl}/${path}.json`, {
+          const response = await fetch(await getFirebaseRestUrl(path), {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json"
@@ -9377,6 +9343,22 @@
           }
 
           return response.json();
+        }
+      }
+
+      async function firebaseRemove(path) {
+        await ensureFirebaseSession();
+
+        try {
+          await firebaseDb.ref(path).remove();
+        } catch {
+          const response = await fetch(await getFirebaseRestUrl(path), {
+            method: "DELETE"
+          });
+
+          if (!response.ok) {
+            throw new Error(`Could not delete ${path}.`);
+          }
         }
       }
 
@@ -9486,7 +9468,8 @@
       }
 
       async function createUserIfAvailable(username, user) {
-        const checkResponse = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
+        const userUrl = await getFirebaseRestUrl(`users/${username}`);
+        const checkResponse = await fetch(userUrl, {
           headers: {
             "X-Firebase-ETag": "true"
           }
@@ -9503,7 +9486,7 @@
         }
 
         const etag = checkResponse.headers.get("ETag");
-        const createResponse = await fetch(`${firebaseDatabaseUrl}/users/${username}.json`, {
+        const createResponse = await fetch(userUrl, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -9845,8 +9828,7 @@
           button.disabled = true;
 
           try {
-            const response = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`);
-            const submission = response.ok ? await response.json() : null;
+            const submission = await firebaseRead(`musicSubmissions/${key}`);
             const source = submission?.audioData || (isDirectAudioUrl(submission?.url || "") ? submission.url : "");
 
             if (!source) {
@@ -9891,14 +9873,7 @@
 
         try {
           if (action === "delete") {
-            const deleteResponse = await fetch(`${firebaseDatabaseUrl}/musicSubmissions/${key}.json`, {
-              method: "DELETE"
-            });
-
-            if (!deleteResponse.ok) {
-              throw new Error("Music request deletion failed.");
-            }
-
+            await firebaseRemove(`musicSubmissions/${key}`);
             adminMessage.textContent = "Music request deleted.";
             await loadAdminPanel();
             return;
@@ -9952,14 +9927,7 @@
         adminMessage.textContent = "Clearing rooms...";
 
         try {
-          const response = await fetch(`${firebaseDatabaseUrl}/rooms.json`, {
-            method: "DELETE"
-          });
-
-          if (!response.ok) {
-            throw new Error("Could not clear rooms.");
-          }
-
+          await firebaseRemove("rooms");
           adminMessage.textContent = "Rooms cleared.";
           loadAdminPanel();
         } catch {
@@ -10204,14 +10172,7 @@
               return;
             }
 
-            const response = await fetch(`${firebaseDatabaseUrl}/users/${userKey}.json`, {
-              method: "DELETE"
-            });
-
-            if (!response.ok) {
-              throw new Error("Could not delete user.");
-            }
-
+            await firebaseRemove(`users/${userKey}`);
             adminMessage.textContent = `${user.username || userKey} deleted.`;
           }
 
@@ -10262,14 +10223,7 @@
           button.disabled = true;
 
           try {
-            const response = await fetch(`${firebaseDatabaseUrl}/rooms/${code}.json`, {
-              method: "DELETE"
-            });
-
-            if (!response.ok) {
-              throw new Error("Could not delete room.");
-            }
-
+            await deleteRoom(code);
             adminMessage.textContent = `${code} deleted.`;
             await loadAdminPanel();
           } catch {
@@ -10299,14 +10253,7 @@
           button.disabled = true;
 
           try {
-            const response = await fetch(`${firebaseDatabaseUrl}/bannedIps/${key}.json`, {
-              method: "DELETE"
-            });
-
-            if (!response.ok) {
-              throw new Error("Could not unban IP.");
-            }
-
+            await firebaseRemove(`bannedIps/${key}`);
             const matchingUsers = Object.entries(adminUsersCache || {}).filter(([, user]) => user?.lastIp === ip || user?.ipBanned && user?.lastIp === ip);
             await Promise.all(matchingUsers.map(([userKey]) => patchUser(userKey, { ipBanned: false })));
             adminMessage.textContent = `${ip || key} unbanned.`;
