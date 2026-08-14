@@ -1056,6 +1056,15 @@
           linear-gradient(135deg, #0f172a, #7f1d1d);
       }
 
+      .game-thumb[data-game="star-collector"],
+      .showcase-thumb[data-game="star-collector"] {
+        background:
+          radial-gradient(circle at 26% 24%, #facc15 0 18px, transparent 19px),
+          radial-gradient(circle at 74% 34%, #38bdf8 0 15px, transparent 16px),
+          radial-gradient(circle at 58% 72%, #a78bfa 0 21px, transparent 22px),
+          linear-gradient(145deg, #0f172a 0 45%, #312e81 100%);
+      }
+
       .game-thumb[data-game^="online"],
       .showcase-thumb[data-game^="online"] {
         background:
@@ -3415,6 +3424,7 @@
             <button type="button" data-start-game="coin-rush">Coin Rush</button>
             <button type="button" data-start-game="laser-dodge">Laser Dodge</button>
             <button type="button" data-start-game="sigma-rpg">Sigma RPG</button>
+            <button type="button" data-start-game="star-collector">Star Collector</button>
           </div>
           <h3>Online</h3>
           <div class="game-card-grid">
@@ -4154,6 +4164,11 @@
           bestKey: "sigma-rpg-best",
           help: "Collect crystals, avoid enemies, and enter the portal."
         },
+        "star-collector": {
+          title: "Star Collector",
+          bestKey: "star-collector-best",
+          help: "Collect yellow stars, dodge meteors, and grab blue shields."
+        },
         "online-snake": {
           title: "Online Snake",
           bestKey: "online-snake-best",
@@ -4213,6 +4228,7 @@
         "coin-rush": { display: "Coin Rush", creator: "Sigma Studio" },
         "laser-dodge": { display: "Laser Dodge", creator: "Danya Labs" },
         "sigma-rpg": { display: "Sigma RPG", creator: "Sigma RPG Team" },
+        "star-collector": { display: "Star Collector", creator: "MiniGameWorld" },
         "online-snake": { display: "Online Snake", creator: "Sigma Online" },
         "online-tanks": { display: "Online Tanks", creator: "Sigma Online" },
         "online-pong": { display: "Online Pong", creator: "Sigma Online" },
@@ -4249,6 +4265,12 @@
       let rpgEnemies;
       let rpgPortal;
       let rpgLevel = 1;
+      let starPlayer;
+      let starTarget;
+      let starMeteors;
+      let starShield;
+      let starTicks = 0;
+      let starShieldTicks = 0;
       let coinFlames = [];
       let scoreBursts = [];
       let catcherMove = 0;
@@ -4636,7 +4658,7 @@
       }
 
       function isSinglePlayerGame(gameName) {
-        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg"].includes(gameName);
+        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector"].includes(gameName);
       }
 
       function getLocalBestScore(gameName) {
@@ -6267,6 +6289,9 @@
         } else if (currentGame === "sigma-rpg") {
           resetSigmaRpg();
           timer = setInterval(tickSigmaRpg, 34);
+        } else if (currentGame === "star-collector") {
+          resetStarCollector();
+          timer = setInterval(tickStarCollector, 34);
         } else {
           resetCatcher();
           timer = setInterval(tickCatcher, 28);
@@ -6501,6 +6526,49 @@
         };
       }
 
+      function resetStarCollector() {
+        dodgeMove = { x: 0, y: 0 };
+        starTicks = 0;
+        starShieldTicks = 0;
+        starPlayer = {
+          x: canvas.width / 2 - 14,
+          y: canvas.height - 70,
+          size: 28
+        };
+        starMeteors = Array.from({ length: 4 }, makeStarMeteor);
+        placeStarTarget();
+        placeStarShield();
+      }
+
+      function placeStarTarget() {
+        starTarget = {
+          x: 28 + Math.random() * (canvas.width - 56),
+          y: 28 + Math.random() * (canvas.height - 110),
+          size: 20
+        };
+      }
+
+      function placeStarShield() {
+        starShield = Math.random() < 0.55
+          ? {
+              x: 30 + Math.random() * (canvas.width - 60),
+              y: 34 + Math.random() * (canvas.height - 130),
+              size: 22
+            }
+          : null;
+      }
+
+      function makeStarMeteor() {
+        const size = 18 + Math.random() * 14;
+        return {
+          x: Math.random() * (canvas.width - size),
+          y: -size - Math.random() * canvas.height,
+          size,
+          speed: 2.4 + Math.random() * 1.8 + Math.min(score * 0.05, 2.2),
+          drift: (Math.random() - 0.5) * 1.4
+        };
+      }
+
       function resetApple() {
         apple = {
           x: 20 + Math.random() * (canvas.width - 40),
@@ -6593,7 +6661,7 @@
           return;
         }
 
-        if (currentGame === "sigma-rpg") {
+        if (currentGame === "sigma-rpg" || currentGame === "star-collector") {
           dodgeMove = newDirection;
           return;
         }
@@ -7053,13 +7121,82 @@
         draw();
       }
 
+      function tickStarCollector() {
+        if (waitingToPlay || paused || gameOver) {
+          return;
+        }
+
+        starTicks += 1;
+        if (starShieldTicks > 0) {
+          starShieldTicks -= 1;
+        }
+
+        moveRectPlayer(starPlayer, dodgeMove.x * 5.2, dodgeMove.y * 5.2);
+
+        starMeteors = starMeteors.map((meteor) => {
+          const nextMeteor = {
+            ...meteor,
+            x: meteor.x + meteor.drift,
+            y: meteor.y + meteor.speed
+          };
+
+          if (nextMeteor.x < -nextMeteor.size) {
+            nextMeteor.x = canvas.width;
+          } else if (nextMeteor.x > canvas.width) {
+            nextMeteor.x = -nextMeteor.size;
+          }
+
+          if (nextMeteor.y > canvas.height + nextMeteor.size) {
+            return makeStarMeteor();
+          }
+
+          return nextMeteor;
+        });
+
+        if (rectsTouch(starPlayer.x, starPlayer.y, starPlayer.size, starPlayer.size, starTarget.x, starTarget.y, starTarget.size, starTarget.size)) {
+          addPoint();
+          placeStarTarget();
+          if (!starShield && score % 4 === 0) {
+            placeStarShield();
+          }
+        }
+
+        if (starShield && rectsTouch(starPlayer.x, starPlayer.y, starPlayer.size, starPlayer.size, starShield.x, starShield.y, starShield.size, starShield.size)) {
+          starShieldTicks = 260;
+          starShield = null;
+          statusEl.textContent = "Star shield ready.";
+        }
+
+        const hitMeteor = starMeteors.find((meteor) =>
+          rectsTouch(starPlayer.x, starPlayer.y, starPlayer.size, starPlayer.size, meteor.x, meteor.y, meteor.size, meteor.size)
+        );
+
+        if (hitMeteor) {
+          if (starShieldTicks > 0 || blockShieldHit("Shield blocked meteor.")) {
+            starShieldTicks = 0;
+            starMeteors = starMeteors.map((meteor) => meteor === hitMeteor ? makeStarMeteor() : meteor);
+            draw();
+            return;
+          }
+
+          endGame();
+          return;
+        }
+
+        if (starTicks % 260 === 0 && starMeteors.length < 8) {
+          starMeteors.push(makeStarMeteor());
+        }
+
+        draw();
+      }
+
       function moveRectPlayer(player, dx, dy) {
         player.x = Math.max(0, Math.min(canvas.width - player.size, player.x + dx));
         player.y = Math.max(0, Math.min(canvas.height - player.size, player.y + dy));
       }
 
       function shieldedGames() {
-        return ["catcher", "dodger", "coin-rush", "laser-dodge", "sigma-rpg"].includes(currentGame);
+        return ["catcher", "dodger", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector"].includes(currentGame);
       }
 
       function activateStartShield() {
@@ -7086,7 +7223,8 @@
           dodger,
           "coin-rush": coinPlayer,
           "laser-dodge": laserPlayer,
-          "sigma-rpg": rpgPlayer
+          "sigma-rpg": rpgPlayer,
+          "star-collector": starPlayer
         };
         const player = playerMap[currentGame];
 
@@ -7197,6 +7335,10 @@
 
         if (currentGame === "sigma-rpg" && rpgPlayer) {
           return { x: rpgPlayer.x + rpgPlayer.size / 2, y: rpgPlayer.y + rpgPlayer.size / 2 };
+        }
+
+        if (currentGame === "star-collector" && starTarget) {
+          return { x: starTarget.x + starTarget.size / 2, y: starTarget.y + starTarget.size / 2 };
         }
 
         return {
@@ -8337,6 +8479,8 @@
           drawLaserDodge();
         } else if (currentGame === "sigma-rpg") {
           drawSigmaRpg();
+        } else if (currentGame === "star-collector") {
+          drawStarCollector();
         } else {
           drawOnlineGame();
         }
@@ -8599,6 +8743,71 @@
         ctx.fillText(`Floor ${rpgLevel} | Crystals ${5 - rpgCrystals.length}/5`, 16, canvas.height - 16);
       }
 
+      function drawStarCollector() {
+        const theme = getTheme(playerStyle.color);
+
+        drawDiamond(starTarget.x, starTarget.y, starTarget.size, "#facc15");
+
+        if (starShield) {
+          ctx.fillStyle = "#38bdf8";
+          ctx.shadowColor = "#38bdf8";
+          ctx.shadowBlur = 16;
+          ctx.beginPath();
+          ctx.arc(starShield.x + starShield.size / 2, starShield.y + starShield.size / 2, starShield.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = "#ecfeff";
+          ctx.font = "800 13px Arial";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText("S", starShield.x + starShield.size / 2, starShield.y + starShield.size / 2 + 1);
+          ctx.textAlign = "start";
+          ctx.textBaseline = "alphabetic";
+        }
+
+        starMeteors.forEach((meteor) => {
+          const gradient = ctx.createRadialGradient(
+            meteor.x + meteor.size * 0.36,
+            meteor.y + meteor.size * 0.36,
+            2,
+            meteor.x + meteor.size / 2,
+            meteor.y + meteor.size / 2,
+            meteor.size
+          );
+          gradient.addColorStop(0, "#fecaca");
+          gradient.addColorStop(0.45, "#ef4444");
+          gradient.addColorStop(1, "#7f1d1d");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(meteor.x + meteor.size / 2, meteor.y + meteor.size / 2, meteor.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.fillStyle = theme.body;
+        ctx.beginPath();
+        ctx.roundRect(starPlayer.x, starPlayer.y, starPlayer.size, starPlayer.size, playerStyle.skin === "block" ? 3 : 9);
+        ctx.fill();
+        ctx.fillStyle = theme.head;
+        ctx.beginPath();
+        ctx.arc(starPlayer.x + starPlayer.size / 2, starPlayer.y + starPlayer.size / 2, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (starShieldTicks > 0) {
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 4;
+          ctx.shadowColor = "#38bdf8";
+          ctx.shadowBlur = 18;
+          ctx.beginPath();
+          ctx.arc(starPlayer.x + starPlayer.size / 2, starPlayer.y + starPlayer.size / 2, starPlayer.size * 0.8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+
+        ctx.fillStyle = "rgba(248, 250, 252, 0.86)";
+        ctx.font = "800 15px Arial";
+        ctx.fillText(`Meteors ${starMeteors.length}`, 16, canvas.height - 16);
+      }
+
       function drawSnakeTile(part, color, skin, isHead) {
         const radiusBySkin = {
           classic: isHead ? 7 : 5,
@@ -8732,7 +8941,7 @@
           return;
         }
 
-        if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
+        if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
           if (releasedDirection(event, dodgeMove)) {
             dodgeMove = { x: 0, y: 0 };
           }
@@ -8785,7 +8994,7 @@
           if (isOnlineArcadeGame(currentGame)) {
             onlineMove = { x: 0, y: 0 };
           }
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -8825,7 +9034,7 @@
             return;
           }
 
-          if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
+          if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
             event.preventDefault();
             dodgeMove = directions[button.dataset.direction];
             button.setPointerCapture(event.pointerId);
@@ -8873,7 +9082,7 @@
             catcherMove = 0;
           }
 
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -8897,7 +9106,7 @@
             catcherMove = 0;
           }
 
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg") {
+          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
             dodgeMove = { x: 0, y: 0 };
           }
         });
@@ -9389,7 +9598,8 @@
           dodger: getLocalBestScore("dodger"),
           "solo-pong": getLocalBestScore("solo-pong"),
           "coin-rush": getLocalBestScore("coin-rush"),
-          "laser-dodge": getLocalBestScore("laser-dodge")
+          "laser-dodge": getLocalBestScore("laser-dodge"),
+          "star-collector": getLocalBestScore("star-collector")
         };
       }
 
@@ -9426,7 +9636,8 @@
             dodger: Math.max(Number(remoteScores.dodger || 0), localScores.dodger),
             "solo-pong": Math.max(Number(remoteScores["solo-pong"] || 0), localScores["solo-pong"]),
             "coin-rush": Math.max(Number(remoteScores["coin-rush"] || 0), localScores["coin-rush"]),
-            "laser-dodge": Math.max(Number(remoteScores["laser-dodge"] || 0), localScores["laser-dodge"])
+            "laser-dodge": Math.max(Number(remoteScores["laser-dodge"] || 0), localScores["laser-dodge"]),
+            "star-collector": Math.max(Number(remoteScores["star-collector"] || 0), localScores["star-collector"])
           };
 
           setLocalBestScore("snake", mergedScores.snake);
@@ -9435,6 +9646,7 @@
           setLocalBestScore("solo-pong", mergedScores["solo-pong"]);
           setLocalBestScore("coin-rush", mergedScores["coin-rush"]);
           setLocalBestScore("laser-dodge", mergedScores["laser-dodge"]);
+          setLocalBestScore("star-collector", mergedScores["star-collector"]);
           setBrickPongSavedLevel(Math.max(remoteBrickPongLevel, localBrickPongLevel));
 
           await patchUser(usernameKey(currentAccount.username), {
