@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -32,8 +34,20 @@ jobs:
       - name: Install Tauri CLI
         run: npm install
 
+      - name: Prepare MiniGameWorld frontend
+        run: npm run prepare:tauri
+
       - name: Build Windows installer
-        run: npx tauri build --target x86_64-pc-windows-msvc
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "MiniGameWorld ${{ github.ref_name }}"
+          releaseBody: "Windows installers for MiniGameWorld."
+          releaseDraft: false
+          prerelease: false
+          args: --target x86_64-pc-windows-msvc
 
       - name: Upload installer artifacts
         uses: actions/upload-artifact@v4
@@ -42,15 +56,3 @@ jobs:
           path: |
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
             src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
-
-      - name: Upload installers to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
-            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
