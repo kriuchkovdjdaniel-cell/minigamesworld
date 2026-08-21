@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MiniGameWorld",
+  "version": "1.0.0",
+  "identifier": "gg.minigameworld.desktop",
+  "build": {
+    "beforeBuildCommand": "node scripts/prepare-tauri.mjs",
+    "beforeDevCommand": "node scripts/prepare-tauri.mjs",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../desktop/frontend"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MiniGameWorld",
+        "label": "main",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 390,
+        "minHeight": 640,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi", "nsis"],
+    "icon": ["icons/icon.png"],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
+  }
+}

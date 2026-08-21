@@ -6,3 +6,9 @@ Desktop.ini
 .idea/
 
 *.log
+
+node_modules/
+desktop/frontend/
+src-tauri/target/
+src-tauri/gen/
+package-lock.json

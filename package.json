@@ -1,0 +1,14 @@
+{
+  "name": "minigameworld-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Windows desktop installer wrapper for MiniGameWorld.",
+  "scripts": {
+    "prepare:tauri": "node scripts/prepare-tauri.mjs",
+    "tauri": "tauri",
+    "build:desktop": "npm run prepare:tauri && tauri build"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0"
+  }
+}
