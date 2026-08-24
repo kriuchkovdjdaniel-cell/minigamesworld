@@ -1,6 +1,6 @@
 [package]
 name = "minigameworld-desktop"
-version = "1.0.0"
+version = "1.0.3"
 description = "MiniGameWorld desktop app"
 authors = ["Daniel Kryuchkov"]
 edition = "2021"
