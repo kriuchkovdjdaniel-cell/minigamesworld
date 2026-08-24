@@ -5099,6 +5099,190 @@
         display: none;
       }
 
+      /* Final web launcher layout: left menu, large game screen, install block. */
+      .start-screen.loaded:not(.submenu-open) .start-panel {
+        width: min(96vw, 1220px);
+        min-height: min(92vh, 860px);
+        grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-areas:
+          "title title"
+          "splash splash"
+          "nav home";
+        align-items: stretch;
+        gap: 1rem;
+        padding: clamp(1rem, 2vw, 1.5rem);
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-panel h2 {
+        grid-area: title;
+        justify-self: center;
+        margin: 0;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-splash {
+        grid-area: splash;
+        justify-self: center;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-actions {
+        grid-area: nav;
+        width: 100%;
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+        align-content: start;
+        gap: 0.7rem;
+        padding: 0.9rem;
+        border-radius: 28px 14px 14px 28px;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-actions button {
+        width: 100%;
+        min-height: 3.75rem;
+        justify-content: start;
+        text-align: left;
+        padding: 0 1.05rem;
+        border-radius: 999px 18px 18px 999px;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-home-panel {
+        grid-area: home;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-areas: "game install";
+        gap: 1rem;
+        min-height: 0;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game {
+        grid-area: game;
+        min-height: clamp(460px, 55vh, 620px);
+        border-radius: 18px 42px 42px 18px;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-install-card {
+        grid-area: install;
+        min-height: clamp(460px, 55vh, 620px);
+        border-radius: 26px;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game::after {
+        width: min(44vw, 430px);
+        height: min(24vw, 230px);
+        right: clamp(1.2rem, 6vw, 5rem);
+        top: clamp(4.8rem, 10vw, 8rem);
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game .web-kicker,
+      .start-screen.loaded:not(.submenu-open) .web-current-game strong,
+      .start-screen.loaded:not(.submenu-open) .web-current-game p,
+      .start-screen.loaded:not(.submenu-open) .web-home-buttons {
+        max-width: min(100%, 470px);
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game strong {
+        font-size: clamp(3.2rem, 7vw, 6rem);
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-install-card strong {
+        font-size: clamp(2rem, 3.5vw, 3.3rem);
+      }
+
+      .start-screen.loaded:not(.submenu-open) #startPlayButton {
+        display: none;
+      }
+
+      .start-screen.loaded:not(.submenu-open) #startInstallButton {
+        display: block;
+      }
+
+      @media (max-width: 900px) {
+        .start-screen.loaded:not(.submenu-open) .start-panel {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto auto;
+          grid-template-areas:
+            "title"
+            "splash"
+            "nav"
+            "home";
+        }
+
+        .start-screen.loaded:not(.submenu-open) .start-actions {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          border-radius: 24px;
+        }
+
+        .start-screen.loaded:not(.submenu-open) .start-actions button {
+          border-radius: 18px;
+          justify-content: center;
+          text-align: center;
+        }
+
+        .start-screen.loaded:not(.submenu-open) .web-home-panel {
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "game"
+            "install";
+        }
+
+        .start-screen.loaded:not(.submenu-open) .web-current-game,
+        .start-screen.loaded:not(.submenu-open) .web-install-card {
+          min-height: 18rem;
+        }
+      }
+
+      /* Sketch main menu: only Player, Settings, L.Board, Premium, B.Pass, Install app. */
+      .start-screen.loaded:not(.submenu-open) #startPlayButton,
+      .start-screen.loaded:not(.submenu-open) #startGamesButton,
+      .start-screen.loaded:not(.submenu-open) #startShopButton,
+      .start-screen.loaded:not(.submenu-open) #startDonateButton,
+      .start-screen.loaded:not(.submenu-open) #startQuestsButton,
+      .start-screen.loaded:not(.submenu-open) #startSocialButton,
+      .start-screen.loaded:not(.submenu-open) #startAccountButton,
+      .start-screen.loaded:not(.submenu-open) #startAdminButton {
+        display: none !important;
+      }
+
+      .start-screen.loaded:not(.submenu-open) #startProfileButton,
+      .start-screen.loaded:not(.submenu-open) #startSettingsButton,
+      .start-screen.loaded:not(.submenu-open) #startLeaderboardButton,
+      .start-screen.loaded:not(.submenu-open) #startPremiumButton,
+      .start-screen.loaded:not(.submenu-open) #startBattlePassButton,
+      .start-screen.loaded:not(.submenu-open) #startInstallButton {
+        display: block !important;
+        font-size: 0;
+      }
+
+      .start-screen.loaded:not(.submenu-open) #startProfileButton { order: 1; }
+      .start-screen.loaded:not(.submenu-open) #startSettingsButton { order: 2; }
+      .start-screen.loaded:not(.submenu-open) #startLeaderboardButton { order: 3; }
+      .start-screen.loaded:not(.submenu-open) #startPremiumButton { order: 4; }
+      .start-screen.loaded:not(.submenu-open) #startBattlePassButton { order: 5; }
+      .start-screen.loaded:not(.submenu-open) #startInstallButton { order: 6; }
+
+      .start-screen.loaded:not(.submenu-open) #startProfileButton::after,
+      .start-screen.loaded:not(.submenu-open) #startSettingsButton::after,
+      .start-screen.loaded:not(.submenu-open) #startLeaderboardButton::after,
+      .start-screen.loaded:not(.submenu-open) #startPremiumButton::after,
+      .start-screen.loaded:not(.submenu-open) #startBattlePassButton::after,
+      .start-screen.loaded:not(.submenu-open) #startInstallButton::after {
+        font-size: 1rem;
+        font-weight: 1000;
+      }
+
+      .start-screen.loaded:not(.submenu-open) #startProfileButton::after { content: "Player"; }
+      .start-screen.loaded:not(.submenu-open) #startSettingsButton::after { content: "Settings"; }
+      .start-screen.loaded:not(.submenu-open) #startLeaderboardButton::after { content: "L.Board"; }
+      .start-screen.loaded:not(.submenu-open) #startPremiumButton::after { content: "Premium"; }
+      .start-screen.loaded:not(.submenu-open) #startBattlePassButton::after { content: "B.Pass"; }
+      .start-screen.loaded:not(.submenu-open) #startInstallButton::after { content: "Install app"; }
+
+      .start-screen.loaded:not(.submenu-open) .web-home-buttons {
+        display: none;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
@@ -14640,6 +14824,8 @@
       }
 
       function setupInstallAppButton() {
+        startInstallButton.hidden = false;
+
         window.addEventListener("beforeinstallprompt", (event) => {
           event.preventDefault();
           deferredInstallPrompt = event;
