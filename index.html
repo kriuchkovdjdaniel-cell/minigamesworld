@@ -3641,9 +3641,400 @@
         }
       }
 
+      /* Upgrade pass 2: cleaner MiniGameWorld hub, stronger cards, safer mobile layout. */
+      @keyframes neonBreath {
+        0%, 100% { filter: drop-shadow(0 10px 0 #000) drop-shadow(0 0 8px rgba(94, 234, 212, 0.4)); }
+        50% { filter: drop-shadow(0 10px 0 #000) drop-shadow(0 0 18px rgba(250, 204, 21, 0.35)); }
+      }
+
+      @keyframes panelEnter {
+        from { opacity: 0; transform: translateY(14px) scale(0.985); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @keyframes shimmerLine {
+        from { transform: translateX(-55%); }
+        to { transform: translateX(155%); }
+      }
+
+      .start-screen {
+        padding: clamp(0.75rem, 2vw, 1.4rem);
+      }
+
+      .start-panel {
+        width: min(96vw, 1060px);
+        min-height: min(92vh, 860px);
+        display: grid;
+        align-content: start;
+        gap: 0.95rem;
+        animation: panelEnter 420ms ease both;
+      }
+
+      .start-panel h2 {
+        max-width: 100%;
+        margin-inline: auto;
+        line-height: 0.84;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        animation: neonBreath 4.5s ease-in-out infinite;
+      }
+
+      .start-splash {
+        transform: rotate(-7deg);
+      }
+
+      #startStatus {
+        width: min(100%, 470px);
+        justify-self: center;
+        border: 1px solid rgba(250, 204, 21, 0.38);
+        background:
+          linear-gradient(90deg, rgba(2, 6, 23, 0.82), rgba(34, 197, 94, 0.18));
+      }
+
+      .start-actions {
+        width: min(100%, 820px);
+        justify-self: center;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: clamp(0.75rem, 2vw, 1.05rem);
+        padding: clamp(0.8rem, 2vw, 1.1rem);
+        border: 1px solid rgba(94, 234, 212, 0.22);
+        border-radius: 24px;
+        background:
+          linear-gradient(90deg, rgba(94, 234, 212, 0.08) 1px, transparent 1px) 0 0 / 26px 26px,
+          linear-gradient(0deg, rgba(250, 204, 21, 0.06) 1px, transparent 1px) 0 0 / 26px 26px,
+          rgba(2, 6, 23, 0.28);
+      }
+
+      .start-screen:not(.loaded) .start-actions {
+        display: none;
+      }
+
+      .start-actions button {
+        min-height: 4.2rem;
+        border-radius: 999px;
+        font-size: clamp(1rem, 1.6vw, 1.2rem);
+      }
+
+      #startGamesButton,
+      #startPlayButton {
+        background:
+          linear-gradient(135deg, #26d065, #0ea5e9);
+      }
+
+      #startDonateButton,
+      #startBattlePassButton,
+      #startPremiumButton {
+        background:
+          linear-gradient(135deg, #facc15, #f97316 48%, #8b5cf6);
+      }
+
+      #startAccountButton,
+      #startAdminButton {
+        background:
+          linear-gradient(135deg, #3b82f6, #7c3aed);
+      }
+
+      .start-submenu.open {
+        animation: panelEnter 260ms ease both;
+      }
+
+      #startGamesMenu {
+        display: none;
+        gap: 1.05rem;
+      }
+
+      #startGamesMenu.open {
+        display: grid;
+      }
+
+      #startGamesMenu > h3 {
+        margin: 0.5rem 0 0;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.8rem;
+        align-items: center;
+        color: #ffffff;
+        font-size: clamp(1.15rem, 2vw, 1.55rem);
+      }
+
+      #startGamesMenu > h3::before,
+      #startGamesMenu > h3::after {
+        content: "";
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(94, 234, 212, 0.55), transparent);
+      }
+
+      #startGamesMenu .start-showcase {
+        position: relative;
+        grid-template-columns: minmax(13rem, 24rem) minmax(0, 1fr);
+        min-height: 19rem;
+        overflow: hidden;
+        border-color: rgba(255, 255, 255, 0.2);
+        background:
+          linear-gradient(180deg, rgba(226, 232, 240, 0.75) 0%, rgba(30, 41, 59, 0.92) 36%, rgba(2, 6, 23, 0.96) 100%);
+      }
+
+      #startGamesMenu .start-showcase::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 28%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+        animation: shimmerLine 6s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      #startGamesMenu .showcase-thumb {
+        min-height: 16rem;
+        border-radius: 20px;
+        box-shadow:
+          inset 0 -80px 90px rgba(0, 0, 0, 0.28),
+          0 18px 34px rgba(0, 0, 0, 0.32);
+      }
+
+      #startGamesMenu .showcase-icon {
+        width: 7.5rem;
+        height: 7.5rem;
+        border-radius: 28px;
+        font-size: 2.45rem;
+      }
+
+      #startGamesMenu .showcase-copy {
+        position: relative;
+        z-index: 1;
+        align-content: center;
+        gap: 0.9rem;
+      }
+
+      #startGamesMenu .showcase-copy strong {
+        font-size: clamp(2.2rem, 5vw, 3.65rem);
+        line-height: 0.96;
+      }
+
+      #startGamesMenu .showcase-copy span {
+        width: fit-content;
+        padding: 0.5rem 0.85rem;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.55);
+      }
+
+      .showcase-play-button {
+        width: min(100%, 20rem);
+        min-height: 3.6rem;
+        border-radius: 12px;
+        border: 0;
+        background: linear-gradient(135deg, #315efb, #2563eb);
+        color: #ffffff;
+        font-size: 1.25rem;
+        font-weight: 1000;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+      }
+
+      .game-card-grid {
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        min-height: 18.25rem;
+        border-radius: 20px;
+      }
+
+      .game-card-body {
+        display: grid;
+        gap: 0.22rem;
+        padding: 0 0.95rem;
+      }
+
+      .game-card-title,
+      .game-card-meta {
+        padding: 0;
+      }
+
+      .game-card-meta {
+        width: fit-content;
+        padding: 0.32rem 0.55rem;
+        border-radius: 999px;
+        color: #e0f2fe;
+        background: rgba(2, 6, 23, 0.32);
+      }
+
+      .game-card-play {
+        color: #ffffff;
+        text-align: center;
+      }
+
+      .game-card-play::before {
+        display: none;
+      }
+
+      .game-card-grid button[data-start-online-game] .game-card-play {
+        background: linear-gradient(135deg, #ef244d, #fb6a1d);
+      }
+
+      #startOnlineRoomMenu.open {
+        display: grid;
+      }
+
+      #startOnlineRoomMenu .online-room-panel {
+        border-radius: 28px;
+        padding: clamp(1rem, 2.4vw, 1.6rem);
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 16rem),
+          linear-gradient(135deg, rgba(124, 45, 18, 0.8), rgba(2, 6, 23, 0.82));
+      }
+
+      #startOnlineRoomMenu .online-room-controls .start-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      #startCreateRoomButton,
+      #startJoinRoomButton,
+      #refreshLobbyButton {
+        background: linear-gradient(135deg, #ef244d, #fb6a1d);
+      }
+
+      .online-room-lobby .admin-rooms {
+        border-radius: 18px;
+        padding: 0.75rem;
+        background: rgba(2, 6, 23, 0.28);
+      }
+
+      main {
+        max-width: 1060px;
+      }
+
+      .game {
+        border-radius: 26px;
+      }
+
+      .controls {
+        padding: 0.75rem;
+        border-radius: 24px;
+        background: rgba(2, 6, 23, 0.2);
+      }
+
+      .pause-panel {
+        border-radius: 24px;
+      }
+
+      body.phone-device-mode .start-screen,
+      body.phone-preview-mode .start-screen {
+        padding: 0;
+        align-items: stretch;
+      }
+
+      body.phone-device-mode .start-panel,
+      body.phone-preview-mode .start-panel {
+        width: 100vw;
+        min-height: 100svh;
+        max-height: none;
+        border-radius: 0;
+        padding: 0.75rem;
+        overflow-x: hidden;
+      }
+
+      body.phone-device-mode .start-panel h2,
+      body.phone-preview-mode .start-panel h2 {
+        font-size: clamp(3.2rem, 16vw, 5.3rem);
+        line-height: 0.82;
+        max-width: 100%;
+      }
+
+      body.phone-device-mode .start-actions,
+      body.phone-preview-mode .start-actions {
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+
+      body.phone-device-mode #startGamesMenu .start-showcase,
+      body.phone-preview-mode #startGamesMenu .start-showcase {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 0.8rem;
+      }
+
+      body.phone-device-mode #startGamesMenu .showcase-thumb,
+      body.phone-preview-mode #startGamesMenu .showcase-thumb {
+        min-height: 11rem;
+      }
+
+      body.phone-device-mode #startGamesMenu .showcase-copy strong,
+      body.phone-preview-mode #startGamesMenu .showcase-copy strong {
+        font-size: 2rem;
+      }
+
+      body.phone-device-mode .game-card-grid,
+      body.phone-preview-mode .game-card-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      body.phone-device-mode .game-card-grid button[data-start-game],
+      body.phone-device-mode .game-card-grid button[data-start-online-game],
+      body.phone-preview-mode .game-card-grid button[data-start-game],
+      body.phone-preview-mode .game-card-grid button[data-start-online-game] {
+        min-height: 12.8rem;
+        border-radius: 16px;
+      }
+
+      body.phone-device-mode .game-thumb,
+      body.phone-preview-mode .game-thumb {
+        min-height: 6.6rem;
+      }
+
+      body.phone-device-mode .game-card-play,
+      body.phone-preview-mode .game-card-play {
+        min-height: 2.55rem;
+        margin-bottom: 0.45rem;
+      }
+
+      body.phone-device-mode #startOnlineRoomMenu .online-room-panel,
+      body.phone-preview-mode #startOnlineRoomMenu .online-room-panel {
+        grid-template-columns: 1fr;
+      }
+
+      body.phone-device-mode canvas,
+      body.phone-preview-mode canvas {
+        width: min(92vw, 390px);
+        height: min(92vw, 390px);
+      }
+
+      @media (max-width: 720px) {
+        .start-panel {
+          width: 100%;
+          min-height: 100svh;
+          border-radius: 0;
+        }
+
+        .start-actions {
+          grid-template-columns: 1fr;
+        }
+
+        #startGamesMenu .start-showcase,
+        .online-room-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .game-card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 430px) {
+        .game-card-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
+        .start-panel h2,
+        #startGamesMenu .start-showcase::after,
         .game-card-grid button.selected,
         .game-card-grid button[data-start-game]:hover,
         .game-card-grid button[data-start-online-game]:hover {
@@ -3687,7 +4078,7 @@
               <strong id="startShowcaseTitle">Snake Classic</strong>
               <span id="startShowcaseType">Solo Game</span>
               <p id="startShowcaseDescription">Use arrow keys or WASD to play.</p>
-              <p id="startShowcaseAction">Click Play to start.</p>
+              <button type="button" class="showcase-play-button" id="startShowcaseAction">Play</button>
             </div>
           </div>
           <h3>Games</h3>
@@ -7905,7 +8296,7 @@
         unlockBackgroundMusic();
 
         if (selectedStartMode === "online") {
-          showStartSection("games");
+          showStartSection("onlineRoom");
           startRoomNote.textContent = `${onlineGameNames[selectedOnlineGame]} selected. Create a room or enter a code and join.`;
           return;
         }
@@ -7996,18 +8387,42 @@
           .toUpperCase();
       }
 
+      function getStartGameGenre(gameName, isOnline) {
+        if (isOnline) {
+          return "Online room";
+        }
+
+        const genres = {
+          snake: "Classic arcade",
+          catcher: "Reaction",
+          dodger: "Survival",
+          "solo-pong": "Brick breaker",
+          "coin-rush": "Collector",
+          "laser-dodge": "Precision",
+          "sigma-rpg": "Adventure",
+          "star-collector": "Score chase"
+        };
+
+        return genres[gameName] || "Mini game";
+      }
+
       function decorateStartGameCards() {
         [...startSoloGameButtons, ...startOnlineGameButtons].forEach((button) => {
           const gameName = button.dataset.startGame || button.dataset.startOnlineGame;
+          const isOnline = Boolean(button.dataset.startOnlineGame);
           const meta = startGameMeta[gameName] || {};
           const title = meta.display || button.textContent.trim();
+          const genre = getStartGameGenre(gameName, isOnline);
+          const action = isOnline ? "Open Room" : "Play";
           button.innerHTML = `
             <span class="game-thumb" data-game="${escapeHtml(gameName)}">
               <span class="game-icon-large">${escapeHtml(getGameInitials(title))}</span>
             </span>
-            <span class="game-card-title">${escapeHtml(title)}</span>
-            <span class="game-card-meta">${escapeHtml(meta.creator || "MiniGameWorld")}</span>
-            <span class="game-card-play" aria-hidden="true"></span>
+            <span class="game-card-body">
+              <span class="game-card-title">${escapeHtml(title)}</span>
+              <span class="game-card-meta">${escapeHtml(genre)}</span>
+            </span>
+            <span class="game-card-play">${escapeHtml(action)}</span>
           `;
         });
       }
@@ -8045,8 +8460,8 @@
         startShowcaseType.textContent = selectedStartMode === "online" ? "Online Game" : "Solo Game";
         startShowcaseDescription.textContent = description;
         startShowcaseAction.textContent = selectedStartMode === "online"
-          ? "Create or join a room below."
-          : "Click Play to start.";
+          ? "Open Room"
+          : "Play";
       }
 
       async function renderProfileMenu() {
@@ -13047,6 +13462,7 @@
       startGamesButton.addEventListener("click", () => {
         showStartSection("games");
       });
+      startShowcaseAction.addEventListener("click", playFromStartMenu);
       startProfileButton.addEventListener("click", () => {
         showStartSection("profile");
       });
