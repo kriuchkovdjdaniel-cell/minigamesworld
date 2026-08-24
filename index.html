@@ -3375,6 +3375,281 @@
           border-radius: 14px;
         }
       }
+      /* Global polish pass: stronger arcade feel without changing game logic. */
+      @keyframes worldDrift {
+        from { background-position: 0 0, 0 0, 0 0; }
+        to { background-position: 96px 96px, -140px 70px, 0 0; }
+      }
+
+      @keyframes lightSweep {
+        0%, 34% { transform: translateX(-120%) skewX(-14deg); opacity: 0; }
+        48% { opacity: 0.18; }
+        72%, 100% { transform: translateX(120%) skewX(-14deg); opacity: 0; }
+      }
+
+      @keyframes cardLift {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+
+      @keyframes selectedPulse {
+        0%, 100% { box-shadow: 0 0 0 2px rgba(255, 214, 10, 0.45), 0 16px 34px rgba(0, 0, 0, 0.28); }
+        50% { box-shadow: 0 0 0 4px rgba(255, 214, 10, 0.85), 0 22px 46px rgba(255, 214, 10, 0.16); }
+      }
+
+      body {
+        background-attachment: fixed;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          repeating-linear-gradient(90deg, rgba(93, 255, 232, 0.05) 0 1px, transparent 1px 24px),
+          repeating-linear-gradient(0deg, rgba(255, 214, 10, 0.04) 0 1px, transparent 1px 24px),
+          radial-gradient(circle at 50% -20%, rgba(0, 255, 207, 0.14), transparent 42%);
+        animation: worldDrift 28s linear infinite;
+        opacity: 0.9;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(105deg, transparent 0 40%, rgba(255, 255, 255, 0.18) 48%, transparent 56% 100%);
+        animation: lightSweep 10s ease-in-out infinite;
+      }
+
+      button,
+      select,
+      input {
+        transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      }
+
+      button:hover,
+      select:hover {
+        filter: brightness(1.08) saturate(1.12);
+      }
+
+      button:active {
+        transform: translateY(2px) scale(0.985);
+      }
+
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 3px solid rgba(255, 230, 64, 0.85);
+        outline-offset: 3px;
+      }
+
+      .start-panel,
+      .pause-panel,
+      .admin-panel,
+      .auth-panel,
+      .confirm-panel,
+      .start-submenu,
+      .game,
+      .account-bar {
+        backdrop-filter: blur(20px) saturate(1.2);
+        box-shadow:
+          inset 0 0 0 1px rgba(111, 255, 230, 0.22),
+          0 24px 70px rgba(0, 0, 0, 0.36);
+      }
+
+      .start-panel {
+        border-color: color-mix(in srgb, var(--accent) 55%, white 12%);
+      }
+
+      .start-panel h2,
+      h1 {
+        text-wrap: balance;
+      }
+
+      .start-actions button,
+      .start-submenu button,
+      .controls button,
+      .pause-panel button,
+      .admin-panel button,
+      .auth-panel button,
+      .confirm-panel button,
+      .game-card-play {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(125, 255, 235, 0.55);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.28),
+          inset 0 -4px 0 rgba(0, 0, 0, 0.16),
+          0 10px 22px rgba(0, 0, 0, 0.25);
+      }
+
+      .start-actions button::before,
+      .start-submenu button::before,
+      .controls button::before,
+      .pause-panel button::before,
+      .admin-panel button::before,
+      .auth-panel button::before,
+      .confirm-panel button::before {
+        content: "";
+        position: absolute;
+        left: 14%;
+        top: 4px;
+        width: 44%;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.32);
+      }
+
+      .start-actions button:hover,
+      .start-submenu button:hover,
+      .controls button:hover,
+      .pause-panel button:hover,
+      .admin-panel button:hover,
+      .auth-panel button:hover,
+      .confirm-panel button:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.36),
+          inset 0 -4px 0 rgba(0, 0, 0, 0.18),
+          0 16px 32px rgba(0, 0, 0, 0.34),
+          0 0 24px rgba(37, 211, 255, 0.22);
+      }
+
+      .game-card-grid {
+        gap: clamp(14px, 2vw, 22px);
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.13), transparent 38%),
+          linear-gradient(145deg, rgba(32, 212, 116, 0.96), rgba(8, 141, 71, 0.96));
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.22),
+          inset 0 -7px 0 rgba(0, 0, 0, 0.18),
+          0 14px 32px rgba(0, 0, 0, 0.32);
+      }
+
+      .game-card-grid button[data-start-online-game] {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 38%),
+          linear-gradient(145deg, rgba(255, 77, 113, 0.98), rgba(255, 129, 26, 0.98));
+      }
+
+      .game-card-grid button[data-start-game]:hover,
+      .game-card-grid button[data-start-online-game]:hover {
+        animation: cardLift 1.4s ease-in-out infinite;
+      }
+
+      .game-card-grid button.selected {
+        animation: selectedPulse 1.7s ease-in-out infinite;
+      }
+
+      .game-thumb {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 -50px 70px rgba(0, 0, 0, 0.24);
+      }
+
+      .game-card-title {
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4), 0 0 18px rgba(255, 255, 255, 0.18);
+      }
+
+      canvas {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+          inset 0 0 45px rgba(0, 255, 205, 0.08),
+          0 20px 55px rgba(0, 0, 0, 0.42);
+      }
+
+      .stat,
+      .pass-summary,
+      .status,
+      .room-chat,
+      .admin-user-card,
+      .room-card,
+      .leaderboard-card,
+      .profile-card,
+      .shop-item,
+      .pass-reward,
+      .quest-card,
+      .achievement-card {
+        backdrop-filter: blur(16px) saturate(1.15);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 12px 28px rgba(0, 0, 0, 0.24);
+      }
+
+      .pad button {
+        min-width: 88px;
+        min-height: 70px;
+        border-radius: 20px;
+        font-size: clamp(1rem, 2vw, 1.35rem);
+      }
+
+      ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 999px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        border: 2px solid rgba(0, 0, 0, 0.25);
+        border-radius: 999px;
+      }
+
+      body.phone-device-mode .start-panel,
+      body.phone-preview-mode .start-panel {
+        box-shadow:
+          inset 0 0 0 1px rgba(111, 255, 230, 0.28),
+          0 10px 34px rgba(0, 0, 0, 0.34);
+      }
+
+      body.phone-device-mode .game-card-grid,
+      body.phone-preview-mode .game-card-grid {
+        gap: 10px;
+      }
+
+      body.phone-device-mode .pad button,
+      body.phone-preview-mode .pad button {
+        min-width: 78px;
+        min-height: 62px;
+      }
+
+      @media (max-width: 640px) {
+        .start-actions button,
+        .start-submenu button {
+          min-height: 54px;
+        }
+
+        .pause-panel,
+        .auth-panel,
+        .confirm-panel {
+          width: min(92vw, 430px);
+        }
+
+        .pad button {
+          min-width: 74px;
+          min-height: 58px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        body::before,
+        body::after,
+        .game-card-grid button.selected,
+        .game-card-grid button[data-start-game]:hover,
+        .game-card-grid button[data-start-online-game]:hover {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
