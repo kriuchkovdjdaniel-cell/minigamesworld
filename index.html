@@ -3773,39 +3773,6 @@
         display: none;
       }
 
-      @keyframes fallbackShowMenu {
-        to {
-          opacity: 1;
-          visibility: visible;
-          pointer-events: auto;
-        }
-      }
-
-      @keyframes fallbackHideLoading {
-        to {
-          opacity: 0;
-          visibility: hidden;
-          pointer-events: none;
-        }
-      }
-
-      .start-screen:not(.loaded) .start-actions {
-        display: grid;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: auto;
-        animation: fallbackShowMenu 1ms linear 2.2s forwards;
-      }
-
-      .start-screen:not(.loaded) .start-actions button {
-        pointer-events: auto;
-      }
-
-      .start-screen:not(.loaded) .loading-bar,
-      .start-screen:not(.loaded) #startStatus {
-        animation: fallbackHideLoading 1ms linear 2.2s forwards;
-      }
-
       .start-actions button {
         min-height: 4.2rem;
         border-radius: 999px;
@@ -4126,10 +4093,7 @@
 
       #startCreateRoomButton,
       #startJoinRoomButton,
-      #refreshLobbyButton,
-      #gamesCreateRoomButton,
-      #gamesJoinRoomButton,
-      #gamesRefreshLobbyButton {
+      #refreshLobbyButton {
         background: linear-gradient(135deg, #ef244d, #fb6a1d);
       }
 
@@ -4137,24 +4101,6 @@
         border-radius: 18px;
         padding: 0.75rem;
         background: rgba(2, 6, 23, 0.28);
-      }
-
-      .games-room-dock {
-        margin-top: 0.65rem;
-      }
-
-      .games-room-dock h3 {
-        grid-column: 1 / -1;
-      }
-
-      .games-room-dock .online-room-controls,
-      .games-room-dock .online-room-lobby {
-        align-content: start;
-      }
-
-      .games-room-dock .admin-rooms {
-        max-height: 18rem;
-        overflow: auto;
       }
 
       main {
@@ -4247,9 +4193,7 @@
       }
 
       body.phone-device-mode #startOnlineRoomMenu .online-room-panel,
-      body.phone-preview-mode #startOnlineRoomMenu .online-room-panel,
-      body.phone-device-mode .games-room-dock,
-      body.phone-preview-mode .games-room-dock {
+      body.phone-preview-mode #startOnlineRoomMenu .online-room-panel {
         grid-template-columns: 1fr;
       }
 
@@ -4398,10 +4342,7 @@
       #startInstallButton,
       #startCreateRoomButton,
       #startJoinRoomButton,
-      #refreshLobbyButton,
-      #gamesCreateRoomButton,
-      #gamesJoinRoomButton,
-      #gamesRefreshLobbyButton {
+      #refreshLobbyButton {
         background: var(--ui-button-main);
       }
 
@@ -4802,25 +4743,6 @@
             <button type="button" data-start-online-game="online-maze">Online Maze Race</button>
             <button type="button" data-start-online-game="online-battle">Online Battle Arena</button>
             <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag</button>
-          </div>
-          <div class="online-room-panel games-room-dock" id="gamesRoomDock">
-            <h3>Public Rooms</h3>
-            <div class="online-room-controls">
-              <div class="start-grid">
-                <button type="button" id="gamesCreateRoomButton">Create Room</button>
-                <button type="button" id="gamesJoinRoomButton">Join Code</button>
-              </div>
-              <select id="gamesRoomVisibilitySelect" aria-label="Games room visibility">
-                <option value="public">Public Room</option>
-                <option value="private">Private Room</option>
-              </select>
-              <input id="gamesRoomCodeInput" type="text" maxlength="8" placeholder="Enter room code">
-              <p class="room-note" id="gamesRoomNote">Choose an online game, create a public room, or enter a code.</p>
-            </div>
-            <div class="online-room-lobby">
-              <button type="button" id="gamesRefreshLobbyButton">Find Public Rooms</button>
-              <div class="admin-rooms" id="gamesPublicRoomsList" aria-label="Games public rooms list"></div>
-            </div>
           </div>
         </div>
         <div class="start-submenu" id="startOnlineRoomMenu" aria-label="Online room menu">
@@ -5379,14 +5301,6 @@
       const startRoomCodeInput = document.getElementById("startRoomCodeInput");
       const refreshLobbyButton = document.getElementById("refreshLobbyButton");
       const publicRoomsList = document.getElementById("publicRoomsList");
-      const gamesRoomDock = document.getElementById("gamesRoomDock");
-      const gamesCreateRoomButton = document.getElementById("gamesCreateRoomButton");
-      const gamesJoinRoomButton = document.getElementById("gamesJoinRoomButton");
-      const gamesRoomVisibilitySelect = document.getElementById("gamesRoomVisibilitySelect");
-      const gamesRoomCodeInput = document.getElementById("gamesRoomCodeInput");
-      const gamesRefreshLobbyButton = document.getElementById("gamesRefreshLobbyButton");
-      const gamesPublicRoomsList = document.getElementById("gamesPublicRoomsList");
-      const gamesRoomNote = document.getElementById("gamesRoomNote");
       const startRoomNote = document.getElementById("startRoomNote");
       const profileStats = document.getElementById("profileStats");
       const profileBestScores = document.getElementById("profileBestScores");
@@ -9035,40 +8949,6 @@
         }
       }
 
-      function attachStartMenuFallbackClicks() {
-        const startButtonActions = {
-          startPlayButton: playFromStartMenu,
-          startGamesButton: () => showStartSection("games"),
-          startProfileButton: () => showStartSection("profile"),
-          startShopButton: () => showStartSection("shop"),
-          startPremiumButton: () => showStartSection("premium"),
-          startDonateButton: () => showStartSection("donate"),
-          startBattlePassButton: () => showStartSection("battlePass"),
-          startLeaderboardButton: () => showStartSection("leaderboard"),
-          startQuestsButton: () => showStartSection("quests"),
-          startSocialButton: () => showStartSection("social"),
-          startSettingsButton: () => showStartSection("settings"),
-          startAccountButton: () => showStartSection("account"),
-          startAdminButton: () => showStartSection("admin")
-        };
-
-        Object.entries(startButtonActions).forEach(([id, action]) => {
-          const button = document.getElementById(id);
-          if (!button || button.dataset.fallbackClickReady === "true") {
-            return;
-          }
-          button.dataset.fallbackClickReady = "true";
-          button.addEventListener("click", () => {
-            if (!startScreen.classList.contains("loaded")) {
-              showLoadedStartMenu();
-            }
-            action();
-          });
-        });
-      }
-
-      attachStartMenuFallbackClicks();
-
       function updateGameSettingsFromStart() {
         soundSelect.value = startSoundSelect.value;
         languageSelect.value = startLanguageSelect.value;
@@ -9125,13 +9005,8 @@
         updateStartGameShowcase();
         startStatus.textContent = `${onlineGameNames[gameName]} ${currentText("selected")}`;
         startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
-        if (gamesRoomNote) {
-          gamesRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a public room or enter a code below.`;
-        }
         if (showRoomPanel) {
           showStartSection("onlineRoom");
-        } else {
-          focusGamesRoomDock();
         }
       }
 
@@ -9210,7 +9085,7 @@
         }
 
         if (onlineGame) {
-          selectOnlineGameFromStart(onlineGame, false);
+          selectOnlineGameFromStart(onlineGame, true);
         }
       }
 
@@ -9798,42 +9673,8 @@
         await joinRoom();
       }
 
-      function syncGamesRoomDockToOnlineRoom() {
-        startRoomVisibilitySelect.value = gamesRoomVisibilitySelect.value;
-        startRoomCodeInput.value = gamesRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      }
-
-      function syncOnlineRoomToGamesRoomDock() {
-        gamesRoomVisibilitySelect.value = startRoomVisibilitySelect.value;
-        gamesRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-      }
-
-      async function createRoomFromGamesDock() {
-        syncGamesRoomDockToOnlineRoom();
-        await createRoomFromStart();
-      }
-
-      async function joinRoomFromGamesDock() {
-        syncGamesRoomDockToOnlineRoom();
-        await joinRoomFromStart();
-      }
-
-      function focusGamesRoomDock() {
-        if (!gamesRoomDock) {
-          return;
-        }
-
-        gamesRoomNote.textContent = `${onlineGameNames[selectedOnlineGame]} selected. Create a public room or enter a code below.`;
-        requestAnimationFrame(() => {
-          gamesRoomDock.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        });
-      }
-
       async function renderPublicRooms() {
-        const lobbyLists = [publicRoomsList, gamesPublicRoomsList].filter(Boolean);
-        lobbyLists.forEach((list) => {
-          list.textContent = "Loading rooms...";
-        });
+        publicRoomsList.textContent = "Loading rooms...";
 
         try {
           const rooms = await getAllRooms();
@@ -9842,13 +9683,11 @@
             .sort(([, a], [, b]) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
           if (!roomEntries.length) {
-            lobbyLists.forEach((list) => {
-              list.textContent = "No public rooms.";
-            });
+            publicRoomsList.textContent = "No public rooms.";
             return;
           }
 
-          const roomsHtml = roomEntries.map(([code, room]) => `
+          publicRoomsList.innerHTML = roomEntries.map(([code, room]) => `
             <div class="admin-room-card">
               <div class="admin-user-top">
                 <span class="admin-room-code">${escapeHtml(code)}</span>
@@ -9861,13 +9700,8 @@
               </div>
             </div>
           `).join("");
-          lobbyLists.forEach((list) => {
-            list.innerHTML = roomsHtml;
-          });
         } catch {
-          lobbyLists.forEach((list) => {
-            list.textContent = "Could not load public rooms.";
-          });
+          publicRoomsList.textContent = "Could not load public rooms.";
         }
       }
 
@@ -9931,7 +9765,6 @@
         if (joinButton) {
           roomCodeInput.value = joinButton.dataset.lobbyJoin;
           startRoomCodeInput.value = joinButton.dataset.lobbyJoin;
-          gamesRoomCodeInput.value = joinButton.dataset.lobbyJoin;
           closeStartScreen();
           await joinRoom();
           return;
@@ -14266,8 +14099,45 @@
       });
       decorateStartGameCards();
       updateStartGameShowcase();
+      startPlayButton.addEventListener("click", playFromStartMenu);
+      startGamesButton.addEventListener("click", () => {
+        showStartSection("games");
+      });
       startShowcaseAction.addEventListener("click", playFromStartMenu);
+      startProfileButton.addEventListener("click", () => {
+        showStartSection("profile");
+      });
+      startShopButton.addEventListener("click", () => {
+        showStartSection("shop");
+      });
+      startPremiumButton.addEventListener("click", () => {
+        showStartSection("premium");
+      });
+      startDonateButton.addEventListener("click", () => {
+        showStartSection("donate");
+      });
+      startBattlePassButton.addEventListener("click", () => {
+        showStartSection("battlePass");
+      });
+      startLeaderboardButton.addEventListener("click", () => {
+        showStartSection("leaderboard");
+      });
+      startQuestsButton.addEventListener("click", () => {
+        showStartSection("quests");
+      });
+      startSocialButton.addEventListener("click", () => {
+        showStartSection("social");
+      });
+      startSettingsButton.addEventListener("click", () => {
+        showStartSection("settings");
+      });
+      startAccountButton.addEventListener("click", () => {
+        showStartSection("account");
+      });
       startInstallButton.addEventListener("click", installSigmaApp);
+      startAdminButton.addEventListener("click", () => {
+        showStartSection("admin");
+      });
       startBackFromGames.addEventListener("click", () => showStartSection("main"));
       startBackFromOnlineRoom.addEventListener("click", () => showStartSection("games"));
       startBackFromProfile.addEventListener("click", () => showStartSection("main"));
@@ -14298,17 +14168,13 @@
             return;
           }
 
-          selectOnlineGameFromStart(button.dataset.startOnlineGame, false);
+          selectOnlineGameFromStart(button.dataset.startOnlineGame);
         });
       });
       startCreateRoomButton.addEventListener("click", createRoomFromStart);
       startJoinRoomButton.addEventListener("click", joinRoomFromStart);
       refreshLobbyButton.addEventListener("click", renderPublicRooms);
       publicRoomsList.addEventListener("click", handlePublicRoomAction);
-      gamesCreateRoomButton.addEventListener("click", createRoomFromGamesDock);
-      gamesJoinRoomButton.addEventListener("click", joinRoomFromGamesDock);
-      gamesRefreshLobbyButton.addEventListener("click", renderPublicRooms);
-      gamesPublicRoomsList.addEventListener("click", handlePublicRoomAction);
       shopList.addEventListener("click", handleShopAction);
       premiumList.addEventListener("click", handleShopAction);
       donateList.addEventListener("click", handleDonateAction);
@@ -14320,14 +14186,6 @@
       friendsList.addEventListener("click", handleFriendAction);
       startRoomCodeInput.addEventListener("input", () => {
         startRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-        syncOnlineRoomToGamesRoomDock();
-      });
-      gamesRoomCodeInput.addEventListener("input", () => {
-        gamesRoomCodeInput.value = gamesRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-        syncGamesRoomDockToOnlineRoom();
-      });
-      startRoomVisibilitySelect.addEventListener("change", syncOnlineRoomToGamesRoomDock);
-      gamesRoomVisibilitySelect.addEventListener("change", syncGamesRoomDockToOnlineRoom);
       });
       [startSoundSelect, startLanguageSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
         select.addEventListener("change", updateGameSettingsFromStart);
@@ -14500,13 +14358,6 @@
       scheduleLoadingMusic();
       startGame("snake", false);
       window.setTimeout(showLoadedStartMenu, 900);
-      window.addEventListener("load", () => {
-        window.setTimeout(() => {
-          if (!startScreen.classList.contains("loaded")) {
-            showLoadedStartMenu();
-          }
-        }, 1400);
-      });
     </script>
   </body>
 </html>
