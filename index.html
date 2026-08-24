@@ -4096,6 +4096,20 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      #startOnlineRoomMenu.create-only #startJoinRoomButton,
+      #startOnlineRoomMenu.create-only #startRoomCodeInput,
+      #startOnlineRoomMenu.create-only .online-room-lobby {
+        display: none;
+      }
+
+      #startOnlineRoomMenu.create-only .online-room-controls .start-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #startOnlineRoomMenu.create-only #startCreateRoomButton {
+        min-height: 5rem;
+      }
+
       #startCreateRoomButton,
       #startJoinRoomButton,
       #refreshLobbyButton {
@@ -8888,6 +8902,10 @@
           section = "main";
         }
 
+        if (section !== "onlineRoom") {
+          setOnlineRoomCreateOnly(false);
+        }
+
         startGamesMenu.classList.toggle("open", section === "games");
         startOnlineRoomMenu.classList.toggle("open", section === "onlineRoom");
         startProfileMenu.classList.toggle("open", section === "profile");
@@ -8968,6 +8986,7 @@
         unlockBackgroundMusic();
 
         if (selectedStartMode === "online") {
+          setOnlineRoomCreateOnly(false);
           showStartSection("onlineRoom");
           startRoomNote.textContent = `${onlineGameNames[selectedOnlineGame]} selected. Create a room or enter a code and join.`;
           return;
@@ -9028,16 +9047,23 @@
         startAccountMessage.textContent = authMessage.textContent;
       }
 
-      function selectOnlineGameFromStart(gameName, showRoomPanel = true) {
+      function setOnlineRoomCreateOnly(enabled) {
+        startOnlineRoomMenu.classList.toggle("create-only", enabled);
+      }
+
+      function selectOnlineGameFromStart(gameName, showRoomPanel = true, createOnly = false) {
         selectedStartMode = "online";
         selectedOnlineGame = gameName;
         updateOnlineGameSelection();
         updateStartGameSelection();
         updateStartGameShowcase();
         startStatus.textContent = `${onlineGameNames[gameName]} ${currentText("selected")}`;
-        startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
+        startRoomNote.textContent = createOnly
+          ? `${onlineGameNames[gameName]} selected. Choose Public or Private, then create.`
+          : `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
         gamesRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code below.`;
         if (showRoomPanel) {
+          setOnlineRoomCreateOnly(createOnly);
           showStartSection("onlineRoom");
         }
       }
@@ -9117,7 +9143,7 @@
         }
 
         if (onlineGame) {
-          selectOnlineGameFromStart(onlineGame, true);
+          selectOnlineGameFromStart(onlineGame, true, true);
         }
       }
 
