@@ -4230,6 +4230,241 @@
         }
       }
 
+      /* Matched color system: one cohesive MiniGameWorld palette across every GUI. */
+      body {
+        --ui-forest: #052e1b;
+        --ui-emerald: #18c964;
+        --ui-mint: #36f1c4;
+        --ui-lime: #b8f33c;
+        --ui-gold: #ffe04b;
+        --ui-rose: #f43f7a;
+        --ui-violet: #9b5cff;
+        --ui-ink: rgba(2, 6, 23, 0.72);
+        --ui-panel-gradient:
+          linear-gradient(90deg, rgba(54, 241, 196, 0.09) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(0deg, rgba(184, 243, 60, 0.07) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(145deg, rgba(2, 28, 20, 0.88), rgba(5, 46, 27, 0.72));
+        --ui-button-main: linear-gradient(135deg, var(--ui-emerald), var(--ui-mint));
+        --ui-button-alt: linear-gradient(135deg, var(--ui-lime), var(--ui-emerald));
+        --ui-button-hot: linear-gradient(135deg, var(--ui-rose), var(--ui-violet));
+        --ui-button-gold: linear-gradient(135deg, var(--ui-gold), var(--ui-lime));
+      }
+
+      body,
+      .start-screen {
+        background:
+          repeating-linear-gradient(135deg, rgba(184, 243, 60, 0.05) 0 16px, transparent 16px 32px),
+          radial-gradient(circle at 18% 10%, rgba(54, 241, 196, 0.18), transparent 24rem),
+          radial-gradient(circle at 82% 80%, rgba(244, 63, 122, 0.1), transparent 24rem),
+          linear-gradient(145deg, #03170f 0%, #07351f 48%, #06121f 100%);
+      }
+
+      .start-panel,
+      .start-submenu,
+      .start-actions,
+      .start-showcase,
+      .online-room-panel,
+      .pause-panel,
+      .auth-panel,
+      .confirm-panel,
+      .admin-panel,
+      .account-bar,
+      .game,
+      .room-chat,
+      .shop-item,
+      .pass-reward,
+      .profile-card,
+      .leaderboard-card,
+      .quest-card,
+      .achievement-card,
+      .admin-user-card,
+      .room-card,
+      .stat,
+      .status,
+      .pass-summary {
+        border-color: rgba(54, 241, 196, 0.32);
+        background: var(--ui-panel-gradient);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          inset 0 0 0 1px rgba(184, 243, 60, 0.08),
+          0 20px 48px rgba(0, 0, 0, 0.34),
+          0 0 34px rgba(24, 201, 100, 0.12);
+      }
+
+      button,
+      .start-actions button,
+      .start-submenu button,
+      .controls button,
+      .pause-panel button,
+      .admin-panel button,
+      .auth-panel button,
+      .confirm-panel button,
+      .showcase-play-button,
+      .game-card-play {
+        border-color: rgba(184, 243, 60, 0.48);
+        background: var(--ui-button-main);
+        color: #f8fff8;
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.42);
+      }
+
+      button:hover,
+      .showcase-play-button:hover,
+      .game-card-play:hover {
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.28),
+          inset 0 -5px 0 rgba(0, 0, 0, 0.18),
+          0 16px 34px rgba(0, 0, 0, 0.34),
+          0 0 26px rgba(54, 241, 196, 0.24);
+      }
+
+      input,
+      select,
+      textarea,
+      .start-submenu input,
+      .start-submenu select {
+        border-color: rgba(54, 241, 196, 0.34);
+        background:
+          linear-gradient(145deg, rgba(2, 6, 23, 0.82), rgba(5, 46, 27, 0.62));
+        color: #f3fff9;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(243, 255, 249, 0.58);
+      }
+
+      #startPlayButton,
+      #startGamesButton,
+      #startProfileButton,
+      #startShopButton,
+      #startQuestsButton,
+      #startSettingsButton,
+      #startInstallButton,
+      #startCreateRoomButton,
+      #startJoinRoomButton,
+      #refreshLobbyButton {
+        background: var(--ui-button-main);
+      }
+
+      #startPremiumButton,
+      #startDonateButton,
+      #startBattlePassButton,
+      #startLeaderboardButton {
+        background: var(--ui-button-gold);
+        color: #102010;
+        text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.22);
+      }
+
+      #startSocialButton,
+      #startAccountButton,
+      #startAdminButton,
+      .admin-danger,
+      .game-card-grid button[data-start-online-game] .game-card-play {
+        background: var(--ui-button-hot);
+      }
+
+      #startGamesMenu .start-showcase,
+      #startGameShowcase:has(.showcase-thumb[data-game="snake"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="catcher"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="dodger"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="solo-pong"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="coin-rush"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="laser-dodge"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="sigma-rpg"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="star-collector"]),
+      #startGameShowcase:has(.showcase-thumb[data-game^="online"]) {
+        background:
+          radial-gradient(circle at 16% 14%, rgba(255, 224, 75, 0.22), transparent 14rem),
+          radial-gradient(circle at 86% 24%, rgba(244, 63, 122, 0.16), transparent 16rem),
+          linear-gradient(135deg, rgba(2, 6, 23, 0.92), rgba(5, 46, 27, 0.76) 52%, rgba(34, 17, 51, 0.82));
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        border-color: rgba(54, 241, 196, 0.28);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 36%),
+          linear-gradient(145deg, rgba(24, 201, 100, 0.92), rgba(5, 46, 27, 0.88));
+      }
+
+      .game-card-grid button[data-start-game="snake"],
+      .game-card-grid button[data-start-online-game="online-snake"] {
+        background: linear-gradient(145deg, #19c86a, #0f7a47);
+      }
+
+      .game-card-grid button[data-start-game="catcher"],
+      .game-card-grid button[data-start-online-game="online-soccer"] {
+        background: linear-gradient(145deg, #36f1c4, #16865e);
+      }
+
+      .game-card-grid button[data-start-game="dodger"],
+      .game-card-grid button[data-start-online-game="online-pong"] {
+        background: linear-gradient(145deg, #9b5cff, #164e63);
+      }
+
+      .game-card-grid button[data-start-game="solo-pong"],
+      .game-card-grid button[data-start-online-game="online-maze"] {
+        background: linear-gradient(145deg, #b8f33c, #166534);
+        color: #102010;
+      }
+
+      .game-card-grid button[data-start-game="coin-rush"],
+      .game-card-grid button[data-start-online-game="online-bomb-tag"] {
+        background: linear-gradient(145deg, #ffe04b, #18c964);
+        color: #102010;
+      }
+
+      .game-card-grid button[data-start-game="laser-dodge"],
+      .game-card-grid button[data-start-online-game="online-tanks"] {
+        background: linear-gradient(145deg, #f43f7a, #3b174f);
+      }
+
+      .game-card-grid button[data-start-game="sigma-rpg"],
+      .game-card-grid button[data-start-online-game="online-battle"] {
+        background: linear-gradient(145deg, #14b8a6, #5b21b6);
+      }
+
+      .game-card-grid button[data-start-game="star-collector"],
+      .game-card-grid button[data-start-online-game="online-tag"] {
+        background: linear-gradient(145deg, #d946ef, #16a34a);
+      }
+
+      .game-card-title,
+      .showcase-copy strong,
+      h1,
+      h2,
+      h3 {
+        color: #f8fff8;
+      }
+
+      .game-card-meta,
+      .showcase-copy span,
+      .showcase-copy p,
+      .room-note,
+      .status {
+        color: #dfffea;
+      }
+
+      .stat span,
+      .room-code,
+      .pass-summary strong,
+      #startStatus,
+      .start-splash {
+        color: var(--ui-gold);
+      }
+
+      canvas {
+        border-color: rgba(54, 241, 196, 0.38);
+        background:
+          linear-gradient(90deg, rgba(54, 241, 196, 0.08) 1px, transparent 1px) 0 0 / 22px 22px,
+          linear-gradient(0deg, rgba(184, 243, 60, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+          #020817;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--ui-mint), var(--ui-lime));
+      }
+
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
