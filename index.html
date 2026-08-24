@@ -9550,7 +9550,6 @@
         startStatus.textContent = selectedStartMode === "online"
           ? `${onlineGameNames[selectedOnlineGame]} ${currentText("selected")}`
           : `${games[selectedStartGame].title} ${currentText("selected")}`;
-        applySketchLauncherMenu();
         updateWebHomePanel();
         showStartSection("main");
       }
@@ -9629,10 +9628,6 @@
           startAccountMessage.textContent = currentAccount?.username
             ? `Logged in as ${currentAccount.username}.`
             : "";
-        }
-
-        if (section === "main") {
-          applySketchLauncherMenu();
         }
       }
 
@@ -9865,44 +9860,6 @@
         webHomeGameTitle.textContent = title;
         webHomeGameDescription.textContent = description;
         webHomePlayButton.textContent = selectedStartMode === "online" ? "Open Room" : "Play Selected";
-      }
-
-      function applySketchLauncherMenu() {
-        const hiddenButtons = [
-          startPlayButton,
-          startGamesButton,
-          startShopButton,
-          startDonateButton,
-          startQuestsButton,
-          startSocialButton,
-          startAccountButton,
-          startAdminButton
-        ];
-        const visibleButtons = [
-          [startProfileButton, "Player"],
-          [startSettingsButton, "Settings"],
-          [startLeaderboardButton, "L.Board"],
-          [startPremiumButton, "Premium"],
-          [startBattlePassButton, "B.Pass"],
-          [startInstallButton, "Install app"]
-        ];
-
-        hiddenButtons.forEach((button) => {
-          button.hidden = true;
-          button.style.display = "none";
-        });
-
-        visibleButtons.forEach(([button, label], index) => {
-          button.hidden = false;
-          button.textContent = label;
-          button.style.display = "";
-          button.style.order = String(index + 1);
-        });
-
-        if (webHomePlayButton && webHomeGamesButton) {
-          webHomePlayButton.hidden = true;
-          webHomeGamesButton.hidden = true;
-        }
       }
 
       async function renderProfileMenu() {
@@ -14911,9 +14868,8 @@
 
         window.addEventListener("appinstalled", () => {
           deferredInstallPrompt = null;
-          startInstallButton.hidden = false;
+          startInstallButton.hidden = true;
           startStatus.textContent = "MiniGameWorld installed.";
-          applySketchLauncherMenu();
         });
       }
 
@@ -14929,8 +14885,7 @@
         deferredInstallPrompt.prompt();
         const result = await deferredInstallPrompt.userChoice;
         deferredInstallPrompt = null;
-        startInstallButton.hidden = false;
-        applySketchLauncherMenu();
+        startInstallButton.hidden = true;
         startStatus.textContent = result.outcome === "accepted"
           ? "MiniGameWorld install started."
           : "Install canceled.";
