@@ -9416,7 +9416,41 @@
         showMainMenu();
       }
 
+      function isInstalledAppMode() {
+        return Boolean(
+          window.matchMedia?.("(display-mode: standalone)")?.matches ||
+          window.navigator.standalone ||
+          window.__TAURI_INTERNALS__ ||
+          window.location.protocol === "tauri:"
+        );
+      }
+
+      function showInstallRequiredMessage() {
+        startScreen.classList.remove("closed");
+        startScreen.classList.add("loaded");
+        startScreen.setAttribute("aria-hidden", "false");
+        showStartSection("main");
+        webHomeGameTitle.textContent = "Install app to play";
+        webHomeGameDescription.textContent = "On the web you can use the launcher, settings and account tools. Install MiniGameWorld App to play minigames.";
+        webHomePlayButton.textContent = "Install App";
+        startStatus.textContent = "Install the app to play minigames.";
+        webHomeInstallButton.focus();
+      }
+
+      function requireAppForMinigames() {
+        if (isInstalledAppMode()) {
+          return true;
+        }
+
+        showInstallRequiredMessage();
+        return false;
+      }
+
       function playFromStartMenu() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         unlockBackgroundMusic();
 
         if (selectedStartMode === "online") {
@@ -9559,6 +9593,10 @@
       }
 
       function playStartCard(button) {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         unlockBackgroundMusic();
 
         const soloGame = button.dataset.startGame;
@@ -10171,11 +10209,19 @@
       }
 
       async function createRoomFromStart() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         closeStartScreen();
         await createRoom();
       }
 
       async function joinRoomFromStart() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         roomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
         closeStartScreen();
         await joinRoom();
@@ -14625,6 +14671,9 @@
       async function installSigmaApp() {
         if (!deferredInstallPrompt) {
           startStatus.textContent = "Use browser menu -> Add to Home screen.";
+          if (webHomeGameDescription) {
+            webHomeGameDescription.textContent = "Use your browser menu and choose Add to Home screen / Install app, then open MiniGameWorld from the installed app.";
+          }
           return;
         }
 
