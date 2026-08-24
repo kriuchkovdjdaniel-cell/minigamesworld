@@ -3435,6 +3435,7 @@
             <button type="button" data-start-online-game="online-soccer">Online Soccer</button>
             <button type="button" data-start-online-game="online-maze">Online Maze Race</button>
             <button type="button" data-start-online-game="online-battle">Online Battle Arena</button>
+            <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag</button>
           </div>
         </div>
         <div class="start-submenu" id="startOnlineRoomMenu" aria-label="Online room menu">
@@ -3844,6 +3845,7 @@
           <button type="button" data-online-game="online-soccer">Online Soccer</button>
           <button type="button" data-online-game="online-maze">Online Maze Race</button>
           <button type="button" data-online-game="online-battle">Online Battle Arena</button>
+          <button type="button" data-online-game="online-bomb-tag">Online Bomb Tag</button>
           <button type="button" id="createRoom">Create Room</button>
           <div class="room-form">
             <input id="roomCodeInput" type="text" maxlength="8" placeholder="Room code" aria-label="Room code">
@@ -4208,6 +4210,11 @@
           title: "Online Battle Arena",
           bestKey: "online-battle-best",
           help: "Take the power orb, then touch your friend."
+        },
+        "online-bomb-tag": {
+          title: "Online Bomb Tag",
+          bestKey: "online-bomb-tag-best",
+          help: "Pass the bomb before it explodes. Survive to score."
         }
       };
       const onlineGameNames = {
@@ -4218,7 +4225,8 @@
         "online-tag": "Online Tag",
         "online-soccer": "Online Soccer",
         "online-maze": "Online Maze Race",
-        "online-battle": "Online Battle Arena"
+        "online-battle": "Online Battle Arena",
+        "online-bomb-tag": "Online Bomb Tag"
       };
       const startGameMeta = {
         snake: { display: "Snake Classic", creator: "Sigma Studio" },
@@ -4235,7 +4243,8 @@
         "online-tag": { display: "Online Tag", creator: "Sigma Online" },
         "online-soccer": { display: "Online Soccer", creator: "Sigma Online" },
         "online-maze": { display: "Online Maze Race", creator: "Sigma Online" },
-        "online-battle": { display: "Online Battle Arena", creator: "Sigma Online" }
+        "online-battle": { display: "Online Battle Arena", creator: "Sigma Online" },
+        "online-bomb-tag": { display: "Online Bomb Tag", creator: "Sigma Online" }
       };
 
       let currentGame = "snake";
@@ -10808,6 +10817,10 @@
             "online-battle": {
               p1: { x: 120, y: canvas.height / 2 },
               p2: { x: canvas.width - 140, y: canvas.height / 2 }
+            },
+            "online-bomb-tag": {
+              p1: { x: 120, y: canvas.height / 2 },
+              p2: { x: canvas.width - 140, y: canvas.height / 2 }
             }
           };
           const start = starts[gameName]?.[slot] || { x: slot === "p1" ? 120 : canvas.width - 140, y: canvas.height / 2 };
@@ -10896,7 +10909,8 @@
           "online-tag",
           "online-soccer",
           "online-maze",
-          "online-battle"
+          "online-battle",
+          "online-bomb-tag"
         ].includes(gameName);
       }
 
@@ -10915,6 +10929,15 @@
           x: 40 + Math.random() * (canvas.width - 80),
           y: 40 + Math.random() * (canvas.height - 80),
           size: 18
+        };
+      }
+
+      function makeOnlineBombState(holder = "p1") {
+        return {
+          holder,
+          ticks: 360,
+          cooldown: 45,
+          round: Date.now()
         };
       }
 
@@ -11197,6 +11220,10 @@
           state.poweredSlot = state.poweredSlot || "";
         }
 
+        if (gameName === "online-bomb-tag") {
+          state.bomb = state.bomb || makeOnlineBombState("p1");
+        }
+
         return state;
       }
 
@@ -11272,6 +11299,9 @@
             if (onlineState.playersState.p2) {
               onlineState.playersState.p2.powered = false;
             }
+          }
+          if (currentGame === "online-bomb-tag") {
+            onlineState.bomb = makeOnlineBombState("p1");
           }
           onlineDirection = resetPlayer.dir || { x: 1, y: 0 };
           score = 0;
@@ -11568,6 +11598,9 @@
             patch.orb = onlineState.orb || null;
             patch.poweredSlot = onlineState.poweredSlot || null;
           }
+          if (currentGame === "online-bomb-tag") {
+            patch.bomb = onlineState.bomb || null;
+          }
           if (onlineState.playersState.p1) {
             patch["playersState/p1/score"] = onlineState.playersState.p1.score || 0;
             patch["playersState/p1/powered"] = Boolean(onlineState.playersState.p1.powered);
@@ -11632,6 +11665,7 @@
           onlineState.tagger = remoteState.tagger || onlineState.tagger;
           onlineState.goal = remoteState.goal || onlineState.goal;
           onlineState.orb = remoteState.orb || onlineState.orb;
+          onlineState.bomb = remoteState.bomb || onlineState.bomb;
           onlineState.poweredSlot = remoteState.poweredSlot || "";
         }
 
@@ -11827,6 +11861,7 @@
           updateOnlineSoccerGame(p1, p2);
           updateOnlineMazeGame(p1, p2);
           updateOnlineBattleGame(p1, p2);
+          updateOnlineBombTagGame(p1, p2);
         } else if (currentGame === "online-maze") {
           updateOnlineMazePlayer(player);
         }
@@ -11963,6 +11998,38 @@
           p1.y = canvas.height / 2;
           p2.x = canvas.width - 140;
           p2.y = canvas.height / 2;
+          onlineSharedDirty = true;
+        }
+      }
+
+      function updateOnlineBombTagGame(p1, p2) {
+        if (currentGame !== "online-bomb-tag") {
+          return;
+        }
+
+        onlineState.bomb = onlineState.bomb || makeOnlineBombState("p1");
+        onlineState.bomb.ticks = Math.max(0, Number(onlineState.bomb.ticks || 0) - 1);
+        onlineState.bomb.cooldown = Math.max(0, Number(onlineState.bomb.cooldown || 0) - 1);
+
+        if (playersTouch(p1, p2) && onlineState.bomb.cooldown <= 0) {
+          onlineState.bomb.holder = onlineState.bomb.holder === "p1" ? "p2" : "p1";
+          onlineState.bomb.cooldown = 42;
+          onlineSharedDirty = true;
+        }
+
+        if (onlineState.bomb.ticks <= 0) {
+          const loserSlot = onlineState.bomb.holder === "p2" ? "p2" : "p1";
+          const winner = loserSlot === "p1" ? p2 : p1;
+          winner.score = (winner.score || 0) + 1;
+          p1.x = 120;
+          p1.y = canvas.height / 2;
+          p2.x = canvas.width - 140;
+          p2.y = canvas.height / 2;
+          onlineState.bomb = makeOnlineBombState(loserSlot === "p1" ? "p2" : "p1");
+          onlineSharedDirty = true;
+        }
+
+        if (onlineState.bomb.ticks % 10 === 0) {
           onlineSharedDirty = true;
         }
       }
@@ -12296,6 +12363,8 @@
           drawMazeField();
         } else if (currentGame === "online-battle") {
           drawBattleField();
+        } else if (currentGame === "online-bomb-tag") {
+          drawBombTagField();
         }
 
         if (currentGame === "online-soccer" && onlineState.ball) {
@@ -12316,6 +12385,10 @@
           ctx.fill();
         }
 
+        if (currentGame === "online-bomb-tag" && onlineState.bomb) {
+          drawBombTimer();
+        }
+
         drawArcadePlayer(onlineState.playersState.p1, "teal", "p1");
         drawArcadePlayer(onlineState.playersState.p2, "orange", "p2");
       }
@@ -12329,16 +12402,34 @@
         const size = player.size || 28;
         const isTagger = currentGame === "online-tag" && (onlineState.tagger || "p1") === slot;
         const powered = currentGame === "online-battle" && onlineState.poweredSlot === slot;
+        const hasBomb = currentGame === "online-bomb-tag" && (onlineState.bomb?.holder || "p1") === slot;
 
-        ctx.fillStyle = isTagger ? "#ef4444" : theme.body;
-        if (powered) {
-          ctx.shadowColor = "#a78bfa";
-          ctx.shadowBlur = 16;
+        ctx.fillStyle = isTagger || hasBomb ? "#ef4444" : theme.body;
+        if (powered || hasBomb) {
+          ctx.shadowColor = hasBomb ? "#f97316" : "#a78bfa";
+          ctx.shadowBlur = hasBomb ? 22 : 16;
         }
         ctx.beginPath();
         ctx.roundRect(player.x, player.y, size, size, 8);
         ctx.fill();
         ctx.shadowBlur = 0;
+
+        if (hasBomb) {
+          ctx.fillStyle = "#111827";
+          ctx.beginPath();
+          ctx.arc(player.x + size / 2, player.y - 8, 12, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#f97316";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(player.x + size / 2 + 8, player.y - 16);
+          ctx.quadraticCurveTo(player.x + size / 2 + 18, player.y - 24, player.x + size / 2 + 9, player.y - 30);
+          ctx.stroke();
+          ctx.fillStyle = "#facc15";
+          ctx.beginPath();
+          ctx.arc(player.x + size / 2 + 10, player.y - 30, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         ctx.fillStyle = theme.head;
         ctx.beginPath();
@@ -12354,6 +12445,40 @@
         ctx.beginPath();
         ctx.arc(canvas.width / 2, canvas.height / 2, 64, 0, Math.PI * 2);
         ctx.stroke();
+      }
+
+      function drawBombTagField() {
+        ctx.save();
+        ctx.strokeStyle = "rgba(249, 115, 22, 0.32)";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+        ctx.setLineDash([14, 12]);
+        ctx.strokeStyle = "rgba(248, 250, 252, 0.14)";
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 96, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawBombTimer() {
+        const ticks = Math.max(0, Number(onlineState.bomb?.ticks || 0));
+        const seconds = Math.ceil(ticks / 30);
+        const danger = seconds <= 3;
+
+        ctx.save();
+        ctx.fillStyle = danger ? "rgba(127, 29, 29, 0.78)" : "rgba(15, 23, 42, 0.72)";
+        ctx.strokeStyle = danger ? "#ef4444" : "rgba(249, 115, 22, 0.72)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(canvas.width / 2 - 68, 18, 136, 42, 14);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = danger ? "#fecaca" : "#facc15";
+        ctx.font = "900 18px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`BOMB ${seconds}s`, canvas.width / 2, 40);
+        ctx.restore();
       }
 
       function drawMazeField() {
@@ -12468,6 +12593,7 @@
             tagger: selectedOnlineGame === "online-tag" ? "p1" : null,
             goal: selectedOnlineGame === "online-maze" ? makeOnlineMazeGoal() : null,
             orb: selectedOnlineGame === "online-battle" ? makeOnlineArenaItem() : null,
+            bomb: selectedOnlineGame === "online-bomb-tag" ? makeOnlineBombState("p1") : null,
             poweredSlot: ""
           };
 
