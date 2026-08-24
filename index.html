@@ -5283,6 +5283,40 @@
         display: none;
       }
 
+      /* Hard final override for the sketch launcher. */
+      .start-screen.loaded:not(.submenu-open) .start-actions {
+        grid-template-columns: 1fr !important;
+        width: min(100%, 280px) !important;
+        justify-self: stretch !important;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-actions > button {
+        display: none !important;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startProfileButton,
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startSettingsButton,
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startLeaderboardButton,
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startPremiumButton,
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startBattlePassButton,
+      .start-screen.loaded:not(.submenu-open) .start-actions > #startInstallButton {
+        display: grid !important;
+        place-items: center start !important;
+        font-size: 0 !important;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-home-buttons {
+        display: none !important;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game p {
+        max-width: 28rem;
+      }
+
+      .start-screen.loaded:not(.submenu-open) .web-current-game p::after {
+        content: " Install the app to play minigames.";
+      }
+
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
