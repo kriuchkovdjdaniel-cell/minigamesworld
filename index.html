@@ -4914,190 +4914,6 @@
         }
       }
 
-      /* Web launcher shape requested by sketch: left menu, large current-game stage. */
-      .start-screen.loaded:not(.submenu-open) .start-panel {
-        width: min(96vw, 1180px);
-        min-height: min(92vh, 820px);
-        grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
-        grid-template-areas:
-          "title title"
-          "splash splash"
-          "nav home";
-        gap: clamp(0.8rem, 2vw, 1.25rem);
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startStatus {
-        display: none;
-      }
-
-      .start-screen.loaded:not(.submenu-open) .start-actions {
-        position: relative;
-        padding: 1rem;
-        border-radius: 28px 10px 10px 28px;
-        background:
-          linear-gradient(90deg, rgba(71, 214, 189, 0.06) 1px, transparent 1px) 0 0 / 26px 26px,
-          linear-gradient(145deg, rgba(4, 10, 14, 0.94), rgba(8, 39, 27, 0.68));
-      }
-
-      .start-screen.loaded:not(.submenu-open) .start-actions::after {
-        content: "";
-        position: absolute;
-        top: 3rem;
-        right: -1.25rem;
-        width: 1.25rem;
-        bottom: 3rem;
-        clip-path: polygon(0 0, 100% 50%, 0 100%);
-        background: rgba(71, 214, 189, 0.18);
-        border-right: 1px solid rgba(71, 214, 189, 0.26);
-      }
-
-      .start-screen.loaded:not(.submenu-open) .start-actions button {
-        min-height: 3.55rem;
-        border-radius: 18px;
-        justify-content: start;
-        padding-left: 1.15rem;
-        font-size: 0.98rem;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startPlayButton {
-        order: 2;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startGamesButton {
-        order: 1;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startProfileButton {
-        order: 0;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startShopButton {
-        order: 5;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startPremiumButton {
-        order: 4;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startDonateButton {
-        order: 7;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startBattlePassButton {
-        order: 6;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startLeaderboardButton {
-        order: 3;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startQuestsButton,
-      .start-screen.loaded:not(.submenu-open) #startSocialButton {
-        order: 8;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startSettingsButton {
-        order: 9;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startAccountButton {
-        order: 10;
-      }
-
-      .start-screen.loaded:not(.submenu-open) #startInstallButton,
-      .start-screen.loaded:not(.submenu-open) #startAdminButton {
-        order: 11;
-      }
-
-      .start-screen.loaded:not(.submenu-open) .web-home-panel {
-        grid-template-columns: minmax(0, 1fr);
-        min-height: 34rem;
-      }
-
-      .web-current-game {
-        min-height: 22rem;
-        border-radius: 16px 34px 34px 16px;
-      }
-
-      .web-current-game::after {
-        content: "";
-        position: absolute;
-        width: min(36vw, 24rem);
-        height: min(18vw, 11rem);
-        right: clamp(1rem, 5vw, 4rem);
-        top: clamp(4rem, 8vw, 6rem);
-        border-radius: 28px;
-        background:
-          radial-gradient(circle at 18% 45%, rgba(255, 255, 255, 0.08), transparent 22%),
-          linear-gradient(145deg, rgba(1, 5, 8, 0.98), rgba(0, 0, 0, 0.88));
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 22px 44px rgba(0, 0, 0, 0.45);
-      }
-
-      .web-current-game .web-kicker,
-      .web-current-game strong,
-      .web-current-game p,
-      .web-home-buttons,
-      .web-player-strip {
-        max-width: min(100%, 34rem);
-      }
-
-      .web-player-strip {
-        position: absolute;
-        top: 1rem;
-        left: 1rem;
-        right: 1rem;
-        display: flex;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 0.7rem 0.85rem;
-        border: 1px solid rgba(71, 214, 189, 0.22);
-        border-radius: 16px;
-        background: rgba(2, 6, 23, 0.5);
-        color: #cfe8da;
-        font-weight: 900;
-      }
-
-      .web-player-strip strong {
-        font-size: 1rem;
-        line-height: 1;
-        text-shadow: none;
-      }
-
-      .web-install-card {
-        min-height: 10rem;
-        border-radius: 16px 28px 28px 16px;
-        align-content: center;
-      }
-
-      .web-install-note {
-        padding: 0.65rem 0.8rem;
-        border-radius: 14px;
-        border: 1px solid rgba(215, 184, 74, 0.22);
-        background: rgba(215, 184, 74, 0.08);
-      }
-
-      body.phone-device-mode .start-screen.loaded:not(.submenu-open) .start-panel,
-      body.phone-preview-mode .start-screen.loaded:not(.submenu-open) .start-panel {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "title"
-          "splash"
-          "home"
-          "nav";
-      }
-
-      body.phone-device-mode .start-screen.loaded:not(.submenu-open) .start-actions::after,
-      body.phone-preview-mode .start-screen.loaded:not(.submenu-open) .start-actions::after {
-        display: none;
-      }
-
-      body.phone-device-mode .web-current-game::after,
-      body.phone-preview-mode .web-current-game::after {
-        display: none;
-      }
-
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
@@ -5138,10 +4954,6 @@
         </div>
         <div class="web-home-panel" id="webHomePanel" aria-label="Web home panel">
           <section class="web-current-game">
-            <div class="web-player-strip">
-              <span>Player</span>
-              <strong id="webHomePlayerName">Guest</strong>
-            </div>
             <span class="web-kicker">Current game</span>
             <strong id="webHomeGameTitle">Snake Classic</strong>
             <p id="webHomeGameDescription">Choose a game from the left menu, then play from this web launcher.</p>
@@ -5154,7 +4966,6 @@
             <span class="web-kicker">Best experience</span>
             <strong>MiniGameWorld App</strong>
             <p>Install the app for smoother fullscreen play, faster loading, and cleaner controls.</p>
-            <p class="web-install-note">If you do not have the app, use Install App first for the best minigames experience.</p>
             <button type="button" id="webHomeInstallButton">Install App</button>
           </section>
         </div>
@@ -5705,7 +5516,6 @@
       const startAccountButton = document.getElementById("startAccountButton");
       const startInstallButton = document.getElementById("startInstallButton");
       const startAdminButton = document.getElementById("startAdminButton");
-      const webHomePlayerName = document.getElementById("webHomePlayerName");
       const webHomeGameTitle = document.getElementById("webHomeGameTitle");
       const webHomeGameDescription = document.getElementById("webHomeGameDescription");
       const webHomePlayButton = document.getElementById("webHomePlayButton");
@@ -9463,7 +9273,6 @@
         passwordInput.value = startPasswordInput.value;
         gmailInput.value = startGmailInput.value;
         await loginAccount();
-        updateWebHomePanel();
         startAccountMessage.textContent = authMessage.textContent || (currentAccount?.username ? `Logged in as ${currentAccount.username}.` : "");
       }
 
@@ -9472,7 +9281,6 @@
         passwordInput.value = startPasswordInput.value;
         gmailInput.value = startGmailInput.value;
         await registerAccount();
-        updateWebHomePanel();
         startAccountMessage.textContent = authMessage.textContent || (currentAccount?.username ? `Logged in as ${currentAccount.username}.` : "");
       }
 
@@ -9607,7 +9415,6 @@
           ? "Open a room, invite a friend, or join public rooms from the Games menu."
           : (games[gameName]?.help || "Pick a game and start playing.");
 
-        webHomePlayerName.textContent = currentAccount?.username || "Guest";
         webHomeGameTitle.textContent = title;
         webHomeGameDescription.textContent = description;
         webHomePlayButton.textContent = selectedStartMode === "online" ? "Open Room" : "Play Selected";
@@ -10334,7 +10141,6 @@
         if (settingsCurrentPasswordInput) settingsCurrentPasswordInput.value = "";
         if (settingsRecoveryGmailInput) settingsRecoveryGmailInput.value = "";
         setStoredAccount(null);
-        updateWebHomePanel();
         startAccountMessage.textContent = "Logged out.";
       }
 
