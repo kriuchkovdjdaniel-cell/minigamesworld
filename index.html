@@ -6009,7 +6009,7 @@
         { id: "skin-glass", type: "skin", value: "glass", name: "Glass Skin", cost: 95 },
         { id: "trail-spark", type: "trail", value: "spark", name: "Spark Trail", cost: 90 },
         { id: "trail-comet", type: "trail", value: "comet", name: "Comet Trail", cost: 130 },
-        { id: "effect-coin-flames", type: "effect", value: "coin-flames", name: "Coin Flames", cost: 500 },
+        { id: "effect-coin-flames", type: "effect", value: "coin-flames", name: "Coin Flames", flameCost: 75 },
         { id: "music-retro", type: "music", value: "retro", name: "Retro Music Pack", cost: 120 },
         { id: "music-chiptune", type: "music", value: "chiptune", name: "Chiptune Pack", cost: 150 }
       ];
@@ -6097,7 +6097,9 @@
       };
       const donationPacks = [
         { id: "supporter", name: "Supporter", price: "$1", perk: "Thank-you badge idea" },
-        { id: "coin-flames", name: "Coin Flames", price: "$2", perk: "Paid coin flame effect. Admin gifts it after donation." },
+        { id: "flame-80", name: "80 Flame Coins", price: "$2", perk: "Premium currency. Admin grants after donation." },
+        { id: "flame-220", name: "220 Flame Coins", price: "$5", perk: "Best for premium effects and future paid cosmetics." },
+        { id: "coin-flames", name: "Coin Flames", price: "$2", perk: "Premium effect. Buy it with Flame Coins in Shop." },
         { id: "vip", name: "VIP Donate", price: "$3", perk: "VIP cosmetic idea" },
         { id: "premium", name: "Premium Donate", price: "$5", perk: "Premium cosmetics idea" },
         { id: "legend", name: "Sigma Legend", price: "$10", perk: "Special profile frame idea" }
@@ -7567,6 +7569,7 @@
           xp,
           level: getLevelFromXp(xp),
           coins: Number(user.coins || 0),
+          flameCoins: Number(user.flameCoins || 0),
           points: Number(user.points || 0),
           vip: Boolean(user.vip),
           premium: Boolean(user.premium),
@@ -9448,6 +9451,7 @@
           <div class="profile-card">Level <strong>${user.level}</strong></div>
           <div class="profile-card">XP <strong>${user.xp}</strong></div>
           <div class="profile-card">Coins <strong>${user.coins}</strong></div>
+          <div class="profile-card">Flame Coins <strong>${user.flameCoins}</strong></div>
           <div class="profile-card">Points <strong>${user.points}</strong></div>
           <div class="profile-card">VIP <strong>${user.vip ? "Yes" : "No"}</strong></div>
           <div class="profile-card">Premium <strong>${user.premium || user.battlePass?.premium ? "Yes" : "No"}</strong></div>
@@ -9471,15 +9475,16 @@
         }
 
         const user = await refreshCurrentUserData();
-        shopMessage.textContent = `Coins: ${user.coins} | Premium cosmetics are in Premium menu.`;
+        shopMessage.textContent = `Coins: ${user.coins} | Flame Coins: ${user.flameCoins} | Premium cosmetics are in Premium menu.`;
         shopList.innerHTML = shopItems.map((item) => {
           const owned = Boolean(user.ownedItems?.[item.id]);
           const equipped = user.equipped?.[item.type] === item.value;
-          const action = owned ? (equipped ? "Equipped" : "Equip") : `Buy ${item.cost}`;
+          const priceText = item.flameCost ? `${item.flameCost} Flame Coins` : `${item.cost} coins`;
+          const action = owned ? (equipped ? "Equipped" : "Equip") : `Buy ${priceText}`;
           return `
             <div class="shop-item">
               <strong>${escapeHtml(item.name)}</strong>
-              <span>${escapeHtml(item.type)} | ${owned ? "Owned" : `${item.cost} coins`}</span>
+              <span>${escapeHtml(item.type)} | ${owned ? "Owned" : priceText}</span>
               <button type="button" data-shop-id="${escapeHtml(item.id)}" ${equipped ? "disabled" : ""}>${action}</button>
             </div>
           `;
@@ -9621,6 +9626,7 @@
               username: user?.username || key,
               xp: Number(user?.xp || 0),
               coins: Number(user?.coins || 0),
+              flameCoins: Number(user?.flameCoins || 0),
               points: Number(user?.points || 0),
               isAdmin: Boolean(user?.isAdmin || isBootstrapAdminUsername(user?.username || key)),
               vip: Boolean(user?.vip),
@@ -9636,7 +9642,7 @@
                 <span class="admin-user-name">#${index + 1} ${escapeHtml(entry.username)}</span>
                 <span class="admin-badge">${entry.isAdmin ? "Admin" : entry.vip ? "VIP" : entry.premium ? "Premium" : "Player"}</span>
               </div>
-              <div class="admin-user-meta">XP: ${entry.xp} | Best: ${entry.bestTotal} | Points: ${entry.points} | Coins: ${entry.coins}</div>
+              <div class="admin-user-meta">XP: ${entry.xp} | Best: ${entry.bestTotal} | Points: ${entry.points} | Coins: ${entry.coins} | Flame Coins: ${entry.flameCoins}</div>
             </div>
           `).join("") || `<div class="empty-card">No players yet.</div>`;
           leaderboardMessage.textContent = "Leaderboard sorted by XP, best score, then points.";
@@ -9796,15 +9802,25 @@
         }
 
         if (!user.ownedItems?.[item.id]) {
-          if (user.coins < item.cost) {
-            shopMessage.textContent = "Not enough coins.";
-            return;
+          if (item.flameCost) {
+            if (user.flameCoins < item.flameCost) {
+              shopMessage.textContent = "Not enough Flame Coins.";
+              return;
+            }
+            await patchCurrentUser({
+              flameCoins: user.flameCoins - item.flameCost,
+              [`ownedItems/${item.id}`]: true
+            });
+          } else {
+            if (user.coins < item.cost) {
+              shopMessage.textContent = "Not enough coins.";
+              return;
+            }
+            await patchCurrentUser({
+              coins: user.coins - item.cost,
+              [`ownedItems/${item.id}`]: true
+            });
           }
-
-          await patchCurrentUser({
-            coins: user.coins - item.cost,
-            [`ownedItems/${item.id}`]: true
-          });
           await unlockAchievement("buyItem", "Shop item bought");
         }
 
@@ -11084,6 +11100,7 @@
           "remove-coin-flames": `remove Coin Flames from ${name}`,
           "reset-scores": `reset scores for ${name}`,
           "add-coins": `add coins to ${name}`,
+          "add-flame-coins": `add Flame Coins to ${name}`,
           "add-xp": `add XP to ${name}`,
           "mute-10": `mute ${name} for 10 minutes`,
           "mute-60": `mute ${name} for 1 hour`,
@@ -11550,7 +11567,7 @@
                 <span class="admin-user-name">${escapeHtml(user?.username || key)}</span>
                 <span class="admin-badge">${isAdminUser ? "Admin" : user?.vip ? "VIP" : premium ? "Premium" : "User"}</span>
               </div>
-              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${musicBanned ? " | Music Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
+              <div class="admin-user-meta">Points: ${Number(user?.points || 0)} | Coins: ${Number(user?.coins || 0)} | Flame Coins: ${Number(user?.flameCoins || 0)} | XP: ${Number(user?.xp || 0)} | Best total: ${totalBest}${user?.vip ? " | VIP" : ""}${premium ? " | Premium" : ""}${muted ? " | Muted" : ""}${banned ? " | Banned" : ""}${musicBanned ? " | Music Banned" : ""}${user?.lastIp ? ` | IP: ${escapeHtml(user.lastIp)}` : ""}</div>
               <div class="admin-user-actions">
                 <button type="button" data-admin-action="${isAdminUser ? "remove-admin" : "make-admin"}" data-user-key="${escapeHtml(key)}">${isAdminUser ? "Remove Admin" : "Make Admin"}</button>
                 <button type="button" data-admin-action="${user?.vip ? "remove-vip" : "give-vip"}" data-user-key="${escapeHtml(key)}">${user?.vip ? "Remove VIP" : "Give VIP"}</button>
@@ -11558,6 +11575,7 @@
                 <button type="button" data-admin-action="${hasCoinFlames ? "remove-coin-flames" : "gift-coin-flames"}" data-user-key="${escapeHtml(key)}">${hasCoinFlames ? "Remove Coin Flames" : "Gift Coin Flames"}</button>
                 <button type="button" data-admin-action="reset-scores" data-user-key="${escapeHtml(key)}">Reset Scores</button>
                 <button type="button" data-admin-action="add-coins" data-user-key="${escapeHtml(key)}">Add Coins</button>
+                <button type="button" data-admin-action="add-flame-coins" data-user-key="${escapeHtml(key)}">Add Flame Coins</button>
                 <button type="button" data-admin-action="add-xp" data-user-key="${escapeHtml(key)}">Add XP</button>
                 <button type="button" data-admin-action="mute-10" data-user-key="${escapeHtml(key)}">Mute 10m</button>
                 <button type="button" data-admin-action="mute-60" data-user-key="${escapeHtml(key)}">Mute 1h</button>
@@ -12009,6 +12027,15 @@
 
             await patchUser(userKey, { coins: Number(user.coins || 0) + coins });
             adminMessage.textContent = `${user.username || userKey} got ${coins} coins.`;
+          } else if (action === "add-flame-coins") {
+            const flameCoins = getAdminAmount();
+            if (!flameCoins) {
+              adminMessage.textContent = "Enter amount first.";
+              return;
+            }
+
+            await patchUser(userKey, { flameCoins: Number(user.flameCoins || 0) + flameCoins });
+            adminMessage.textContent = `${user.username || userKey} got ${flameCoins} Flame Coins.`;
           } else if (action === "add-xp") {
             const xp = getAdminAmount();
             if (!xp) {
@@ -12278,6 +12305,7 @@
             xp: 0,
             level: 1,
             coins: 100,
+            flameCoins: 0,
             points: 0,
             isAdmin: isBootstrapAdminUsername(username),
             vip: false,
