@@ -3793,8 +3793,12 @@
         display: grid;
         opacity: 0;
         visibility: hidden;
-        pointer-events: none;
+        pointer-events: auto;
         animation: fallbackShowMenu 1ms linear 2.2s forwards;
+      }
+
+      .start-screen:not(.loaded) .start-actions button {
+        pointer-events: auto;
       }
 
       .start-screen:not(.loaded) .loading-bar,
@@ -9031,6 +9035,40 @@
         }
       }
 
+      function attachStartMenuFallbackClicks() {
+        const startButtonActions = {
+          startPlayButton: playFromStartMenu,
+          startGamesButton: () => showStartSection("games"),
+          startProfileButton: () => showStartSection("profile"),
+          startShopButton: () => showStartSection("shop"),
+          startPremiumButton: () => showStartSection("premium"),
+          startDonateButton: () => showStartSection("donate"),
+          startBattlePassButton: () => showStartSection("battlePass"),
+          startLeaderboardButton: () => showStartSection("leaderboard"),
+          startQuestsButton: () => showStartSection("quests"),
+          startSocialButton: () => showStartSection("social"),
+          startSettingsButton: () => showStartSection("settings"),
+          startAccountButton: () => showStartSection("account"),
+          startAdminButton: () => showStartSection("admin")
+        };
+
+        Object.entries(startButtonActions).forEach(([id, action]) => {
+          const button = document.getElementById(id);
+          if (!button || button.dataset.fallbackClickReady === "true") {
+            return;
+          }
+          button.dataset.fallbackClickReady = "true";
+          button.addEventListener("click", () => {
+            if (!startScreen.classList.contains("loaded")) {
+              showLoadedStartMenu();
+            }
+            action();
+          });
+        });
+      }
+
+      attachStartMenuFallbackClicks();
+
       function updateGameSettingsFromStart() {
         soundSelect.value = startSoundSelect.value;
         languageSelect.value = startLanguageSelect.value;
@@ -14228,45 +14266,8 @@
       });
       decorateStartGameCards();
       updateStartGameShowcase();
-      startPlayButton.addEventListener("click", playFromStartMenu);
-      startGamesButton.addEventListener("click", () => {
-        showStartSection("games");
-      });
       startShowcaseAction.addEventListener("click", playFromStartMenu);
-      startProfileButton.addEventListener("click", () => {
-        showStartSection("profile");
-      });
-      startShopButton.addEventListener("click", () => {
-        showStartSection("shop");
-      });
-      startPremiumButton.addEventListener("click", () => {
-        showStartSection("premium");
-      });
-      startDonateButton.addEventListener("click", () => {
-        showStartSection("donate");
-      });
-      startBattlePassButton.addEventListener("click", () => {
-        showStartSection("battlePass");
-      });
-      startLeaderboardButton.addEventListener("click", () => {
-        showStartSection("leaderboard");
-      });
-      startQuestsButton.addEventListener("click", () => {
-        showStartSection("quests");
-      });
-      startSocialButton.addEventListener("click", () => {
-        showStartSection("social");
-      });
-      startSettingsButton.addEventListener("click", () => {
-        showStartSection("settings");
-      });
-      startAccountButton.addEventListener("click", () => {
-        showStartSection("account");
-      });
       startInstallButton.addEventListener("click", installSigmaApp);
-      startAdminButton.addEventListener("click", () => {
-        showStartSection("admin");
-      });
       startBackFromGames.addEventListener("click", () => showStartSection("main"));
       startBackFromOnlineRoom.addEventListener("click", () => showStartSection("games"));
       startBackFromProfile.addEventListener("click", () => showStartSection("main"));
