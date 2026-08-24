@@ -4465,6 +4465,212 @@
         background: linear-gradient(180deg, var(--ui-mint), var(--ui-lime));
       }
 
+      /* Refined dark arcade pass: richer, calmer, less bright. */
+      body {
+        --ui-forest: #071b14;
+        --ui-emerald: #2fbf7b;
+        --ui-mint: #47d6bd;
+        --ui-lime: #8fcf4f;
+        --ui-gold: #d7b84a;
+        --ui-rose: #cf4f74;
+        --ui-violet: #7f68d8;
+        --ui-sky-muted: #4388c7;
+        --ui-panel-gradient:
+          linear-gradient(90deg, rgba(71, 214, 189, 0.055) 1px, transparent 1px) 0 0 / 32px 32px,
+          linear-gradient(0deg, rgba(143, 207, 79, 0.045) 1px, transparent 1px) 0 0 / 32px 32px,
+          linear-gradient(145deg, rgba(3, 14, 18, 0.93), rgba(8, 39, 27, 0.76));
+        --ui-button-main: linear-gradient(135deg, #1f9f72, #287fa7);
+        --ui-button-alt: linear-gradient(135deg, #6fac47, #1c8d66);
+        --ui-button-hot: linear-gradient(135deg, #b5486a, #6858ba);
+        --ui-button-gold: linear-gradient(135deg, #c69a2c, #6fae4c);
+      }
+
+      body,
+      .start-screen {
+        background:
+          linear-gradient(90deg, rgba(71, 214, 189, 0.04) 1px, transparent 1px) 0 0 / 30px 30px,
+          linear-gradient(0deg, rgba(143, 207, 79, 0.035) 1px, transparent 1px) 0 0 / 30px 30px,
+          radial-gradient(circle at 12% 8%, rgba(47, 191, 123, 0.14), transparent 24rem),
+          radial-gradient(circle at 88% 70%, rgba(127, 104, 216, 0.12), transparent 25rem),
+          linear-gradient(145deg, #02070a 0%, #061911 48%, #07111b 100%);
+      }
+
+      body::before {
+        opacity: 0.36;
+      }
+
+      body::after {
+        opacity: 0.08;
+      }
+
+      .start-panel,
+      .start-submenu,
+      .start-actions,
+      .start-showcase,
+      .online-room-panel,
+      .pause-panel,
+      .auth-panel,
+      .confirm-panel,
+      .admin-panel,
+      .account-bar,
+      .game,
+      .room-chat,
+      .shop-item,
+      .pass-reward,
+      .profile-card,
+      .leaderboard-card,
+      .quest-card,
+      .achievement-card,
+      .admin-user-card,
+      .room-card,
+      .stat,
+      .status,
+      .pass-summary {
+        border-color: rgba(71, 214, 189, 0.24);
+        background: var(--ui-panel-gradient);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.09),
+          inset 0 0 0 1px rgba(143, 207, 79, 0.045),
+          0 18px 42px rgba(0, 0, 0, 0.42),
+          0 0 24px rgba(47, 191, 123, 0.08);
+      }
+
+      .start-panel h2 {
+        color: #f5fff8;
+        text-shadow:
+          0 5px 0 #020617,
+          0 8px 18px rgba(0, 0, 0, 0.48),
+          0 0 10px rgba(71, 214, 189, 0.16);
+        animation-duration: 7s;
+      }
+
+      .start-splash,
+      #startStatus,
+      .room-code {
+        color: #e2cc65;
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.58);
+      }
+
+      button,
+      .start-actions button,
+      .start-submenu button,
+      .controls button,
+      .pause-panel button,
+      .admin-panel button,
+      .auth-panel button,
+      .confirm-panel button,
+      .showcase-play-button,
+      .game-card-play {
+        border-color: rgba(143, 207, 79, 0.3);
+        background: var(--ui-button-main);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.16),
+          inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+          0 10px 20px rgba(0, 0, 0, 0.32);
+      }
+
+      button:hover,
+      .showcase-play-button:hover,
+      .game-card-play:hover {
+        filter: brightness(1.04) saturate(1.04);
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.18),
+          inset 0 -5px 0 rgba(0, 0, 0, 0.24),
+          0 14px 28px rgba(0, 0, 0, 0.38),
+          0 0 18px rgba(71, 214, 189, 0.14);
+      }
+
+      #startGamesButton,
+      #startPlayButton,
+      #startProfileButton,
+      #startShopButton,
+      #startQuestsButton,
+      #startSettingsButton,
+      #startInstallButton,
+      #startCreateRoomButton,
+      #startJoinRoomButton,
+      #refreshLobbyButton {
+        background: var(--ui-button-main);
+      }
+
+      #startPremiumButton,
+      #startDonateButton,
+      #startBattlePassButton,
+      #startLeaderboardButton {
+        background: var(--ui-button-gold);
+        color: #f8fff0;
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.44);
+      }
+
+      #startSocialButton,
+      #startAccountButton,
+      #startAdminButton,
+      .admin-danger,
+      .game-card-grid button[data-start-online-game] .game-card-play {
+        background: var(--ui-button-hot);
+      }
+
+      #startGamesMenu .start-showcase,
+      #startGameShowcase:has(.showcase-thumb[data-game="snake"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="catcher"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="dodger"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="solo-pong"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="coin-rush"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="laser-dodge"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="sigma-rpg"]),
+      #startGameShowcase:has(.showcase-thumb[data-game="star-collector"]),
+      #startGameShowcase:has(.showcase-thumb[data-game^="online"]) {
+        background:
+          radial-gradient(circle at 18% 18%, rgba(215, 184, 74, 0.14), transparent 14rem),
+          radial-gradient(circle at 86% 20%, rgba(127, 104, 216, 0.12), transparent 16rem),
+          linear-gradient(135deg, rgba(5, 12, 18, 0.94), rgba(8, 39, 27, 0.76) 54%, rgba(24, 18, 45, 0.72));
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        filter: saturate(0.86) brightness(0.92);
+        border-color: rgba(71, 214, 189, 0.22);
+      }
+
+      .game-card-grid button[data-start-game]:hover,
+      .game-card-grid button[data-start-online-game]:hover,
+      .game-card-grid button.selected {
+        filter: saturate(0.98) brightness(1.02);
+        outline-color: rgba(226, 204, 101, 0.72);
+      }
+
+      .game-thumb {
+        filter: saturate(0.82) brightness(0.94);
+      }
+
+      .game-card-title,
+      .showcase-copy strong,
+      h1,
+      h2,
+      h3 {
+        color: #f4fff8;
+      }
+
+      .game-card-meta,
+      .showcase-copy span,
+      .showcase-copy p,
+      .room-note,
+      .status {
+        color: #cfe8da;
+      }
+
+      canvas {
+        border-color: rgba(71, 214, 189, 0.28);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+          inset 0 0 38px rgba(47, 191, 123, 0.06),
+          0 18px 45px rgba(0, 0, 0, 0.44);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #47d6bd, #6fac47);
+      }
+
       @media (prefers-reduced-motion: reduce) {
         body::before,
         body::after,
