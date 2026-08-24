@@ -4687,6 +4687,290 @@
           animation: none;
         }
       }
+      /* MiniGameWorld polish layer: calmer, cleaner, more readable everywhere. */
+      :root {
+        --mgw-glass: rgba(4, 16, 23, 0.72);
+        --mgw-glass-strong: rgba(5, 25, 28, 0.86);
+        --mgw-line: rgba(103, 232, 249, 0.24);
+        --mgw-line-strong: rgba(134, 239, 172, 0.42);
+        --mgw-text-soft: #c8f7ea;
+        --mgw-action: linear-gradient(135deg, #20c997, #2f80ed);
+        --mgw-action-hot: linear-gradient(135deg, #d9467a, #7c5cff);
+        --mgw-action-gold: linear-gradient(135deg, #d7b84a, #55b76b);
+      }
+
+      body {
+        background:
+          radial-gradient(circle at 18% 12%, rgba(45, 212, 191, 0.14), transparent 28rem),
+          radial-gradient(circle at 84% 24%, rgba(124, 92, 255, 0.12), transparent 28rem),
+          radial-gradient(circle at 50% 94%, rgba(215, 184, 74, 0.08), transparent 30rem),
+          linear-gradient(135deg, #02070a 0%, #062019 48%, #07111d 100%);
+      }
+
+      body::before {
+        opacity: 0.22;
+      }
+
+      .start-screen {
+        background:
+          linear-gradient(90deg, rgba(103, 232, 249, 0.045) 1px, transparent 1px) 0 0 / 30px 30px,
+          linear-gradient(0deg, rgba(134, 239, 172, 0.04) 1px, transparent 1px) 0 0 / 30px 30px,
+          radial-gradient(circle at 50% 8%, rgba(45, 212, 191, 0.18), transparent 28rem),
+          linear-gradient(145deg, #02070a 0%, #05251b 52%, #06101c 100%);
+      }
+
+      .start-panel,
+      .start-submenu,
+      .start-actions,
+      .start-showcase,
+      .online-room-panel,
+      .game,
+      .pause-panel,
+      .auth-panel,
+      .confirm-panel,
+      .admin-panel,
+      .shop-item,
+      .pass-reward,
+      .profile-card,
+      .leaderboard-card,
+      .quest-card,
+      .achievement-card,
+      .admin-user-card,
+      .admin-room-card,
+      .room-card,
+      .stat,
+      .status {
+        border-color: var(--mgw-line);
+        background:
+          linear-gradient(90deg, rgba(103, 232, 249, 0.055) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(0deg, rgba(134, 239, 172, 0.045) 1px, transparent 1px) 0 0 / 28px 28px,
+          linear-gradient(145deg, var(--mgw-glass), rgba(6, 43, 31, 0.62));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          inset 0 0 0 1px rgba(134, 239, 172, 0.05),
+          0 20px 48px rgba(0, 0, 0, 0.36),
+          0 0 28px rgba(45, 212, 191, 0.08);
+      }
+
+      .start-panel {
+        width: min(96vw, 1080px);
+        padding: clamp(1rem, 2vw, 1.7rem);
+        border-radius: 30px;
+      }
+
+      .start-panel h2 {
+        color: #f8fffb;
+        letter-spacing: 0;
+        text-shadow:
+          0 6px 0 #020617,
+          0 11px 18px rgba(0, 0, 0, 0.46),
+          0 0 18px rgba(45, 212, 191, 0.18);
+      }
+
+      .start-splash,
+      #startStatus,
+      .room-note {
+        color: #f4e574;
+        text-shadow: 1px 2px 0 rgba(0, 0, 0, 0.72);
+      }
+
+      button,
+      .start-actions button,
+      .start-submenu button,
+      .controls button,
+      .pause-panel button,
+      .auth-panel button,
+      .confirm-panel button,
+      .admin-panel button,
+      .showcase-play-button,
+      .game-card-play {
+        border-color: rgba(134, 239, 172, 0.4);
+        background: var(--mgw-action);
+        color: #f8fffb;
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.18),
+          inset 0 -5px 0 rgba(0, 0, 0, 0.22),
+          0 12px 24px rgba(0, 0, 0, 0.28),
+          0 0 18px rgba(45, 212, 191, 0.12);
+        transform: translateZ(0);
+        transition:
+          transform 140ms ease,
+          filter 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      button:hover,
+      .start-actions button:hover,
+      .start-submenu button:hover,
+      .controls button:hover,
+      .game-card-grid button:hover {
+        filter: brightness(1.08) saturate(1.05);
+        transform: translateY(-2px);
+      }
+
+      button:active,
+      .start-actions button:active,
+      .start-submenu button:active,
+      .controls button:active,
+      .game-card-grid button:active {
+        transform: translateY(1px) scale(0.99);
+      }
+
+      #startPremiumButton,
+      #startDonateButton,
+      #startBattlePassButton,
+      #startLeaderboardButton {
+        background: var(--mgw-action-gold);
+      }
+
+      #startSocialButton,
+      #startAccountButton,
+      #startAdminButton,
+      .game-card-grid button[data-start-online-game] .game-card-play {
+        background: var(--mgw-action-hot);
+      }
+
+      #startGamesMenu {
+        gap: clamp(1rem, 2vw, 1.4rem);
+      }
+
+      #startGamesMenu .start-showcase {
+        border-radius: 26px;
+        min-height: clamp(17rem, 28vw, 22rem);
+        background:
+          radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.18), transparent 16rem),
+          linear-gradient(135deg, rgba(16, 185, 129, 0.5), rgba(15, 23, 42, 0.94) 58%, rgba(17, 24, 39, 0.96));
+      }
+
+      .game-card-grid {
+        gap: clamp(0.85rem, 1.8vw, 1.25rem);
+      }
+
+      .game-card-grid button[data-start-game],
+      .game-card-grid button[data-start-online-game] {
+        min-height: clamp(14rem, 23vw, 18.5rem);
+        border-radius: 24px;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .game-card-grid button[data-start-game]::after,
+      .game-card-grid button[data-start-online-game]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background:
+          radial-gradient(circle at 78% 18%, rgba(255, 255, 255, 0.18), transparent 4rem),
+          linear-gradient(180deg, transparent 0 55%, rgba(0, 0, 0, 0.22) 100%);
+        pointer-events: none;
+      }
+
+      .game-thumb {
+        border-radius: 20px;
+        box-shadow:
+          inset 0 -50px 70px rgba(0, 0, 0, 0.26),
+          0 14px 28px rgba(0, 0, 0, 0.22);
+      }
+
+      .game-card-title {
+        font-size: 1.08rem;
+      }
+
+      .game-card-meta {
+        color: var(--mgw-text-soft);
+      }
+
+      #gamesRoomFinderPanel,
+      #startOnlineRoomMenu .online-room-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(18rem, 0.92fr);
+        gap: clamp(1rem, 2.4vw, 1.5rem);
+        align-items: start;
+        border-radius: 30px;
+        padding: clamp(1rem, 2.5vw, 1.8rem);
+        background:
+          radial-gradient(circle at top left, rgba(215, 184, 74, 0.1), transparent 18rem),
+          radial-gradient(circle at bottom right, rgba(124, 92, 255, 0.12), transparent 18rem),
+          linear-gradient(145deg, rgba(18, 28, 24, 0.88), rgba(5, 10, 18, 0.9));
+      }
+
+      #gamesRoomFinderPanel > h3,
+      #startOnlineRoomMenu .online-room-panel > h3 {
+        grid-column: 1 / -1;
+        margin-bottom: 0;
+      }
+
+      .online-room-controls,
+      .online-room-lobby {
+        min-width: 0;
+      }
+
+      .online-room-lobby .admin-rooms {
+        min-height: 11rem;
+        max-height: 22rem;
+        overflow: auto;
+        background: rgba(2, 6, 23, 0.34);
+      }
+
+      input,
+      select,
+      textarea {
+        border-color: rgba(103, 232, 249, 0.28);
+        background: rgba(2, 6, 23, 0.62);
+        color: #f8fffb;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: 2px solid rgba(45, 212, 191, 0.42);
+        outline-offset: 2px;
+      }
+
+      canvas {
+        border-radius: 20px;
+        box-shadow:
+          inset 0 0 0 1px rgba(103, 232, 249, 0.16),
+          0 22px 44px rgba(0, 0, 0, 0.34);
+      }
+
+      @media (max-width: 760px) {
+        .start-panel {
+          width: min(96vw, 38rem);
+          padding: 0.9rem;
+          gap: 0.85rem;
+        }
+
+        .start-panel h2 {
+          font-size: clamp(2.6rem, 15vw, 4.6rem);
+        }
+
+        #startGamesMenu .start-showcase,
+        #gamesRoomFinderPanel,
+        #startOnlineRoomMenu .online-room-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .game-card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .game-card-grid button[data-start-game],
+        .game-card-grid button[data-start-online-game] {
+          min-height: 12.4rem;
+          padding: 0.55rem;
+        }
+
+        .game-card-play {
+          min-height: 2.8rem;
+        }
+
+        .online-room-lobby .admin-rooms {
+          max-height: 16rem;
+        }
+      }
     </style>
   </head>
   <body>
