@@ -5033,7 +5033,6 @@
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
           0 22px 44px rgba(0, 0, 0, 0.45);
-        pointer-events: none;
       }
 
       .web-current-game .web-kicker,
@@ -9448,6 +9447,10 @@
       }
 
       function playFromStartMenu() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         unlockBackgroundMusic();
 
         if (selectedStartMode === "online") {
@@ -9590,6 +9593,10 @@
       }
 
       function playStartCard(button) {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         unlockBackgroundMusic();
 
         const soloGame = button.dataset.startGame;
@@ -10202,11 +10209,19 @@
       }
 
       async function createRoomFromStart() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         closeStartScreen();
         await createRoom();
       }
 
       async function joinRoomFromStart() {
+        if (!requireAppForMinigames()) {
+          return;
+        }
+
         roomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
         closeStartScreen();
         await joinRoom();
