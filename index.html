@@ -4096,20 +4096,6 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      #startOnlineRoomMenu.create-only #startJoinRoomButton,
-      #startOnlineRoomMenu.create-only #startRoomCodeInput,
-      #startOnlineRoomMenu.create-only .online-room-lobby {
-        display: none;
-      }
-
-      #startOnlineRoomMenu.create-only .online-room-controls .start-grid {
-        grid-template-columns: 1fr;
-      }
-
-      #startOnlineRoomMenu.create-only #startCreateRoomButton {
-        min-height: 5rem;
-      }
-
       #startCreateRoomButton,
       #startJoinRoomButton,
       #refreshLobbyButton {
@@ -9058,13 +9044,12 @@
         updateStartGameSelection();
         updateStartGameShowcase();
         startStatus.textContent = `${onlineGameNames[gameName]} ${currentText("selected")}`;
-        startRoomNote.textContent = createOnly
-          ? `${onlineGameNames[gameName]} selected. Choose Public or Private, then create.`
-          : `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
+        startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room, enter a code, or join a public room.`;
         gamesRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code below.`;
         if (showRoomPanel) {
           setOnlineRoomCreateOnly(createOnly);
           showStartSection("onlineRoom");
+          renderPublicRooms();
         }
       }
 
