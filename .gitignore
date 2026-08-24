@@ -9,6 +9,7 @@ Desktop.ini
 
 node_modules/
 desktop/frontend/
+public/
 src-tauri/target/
 src-tauri/gen/
 package-lock.json
