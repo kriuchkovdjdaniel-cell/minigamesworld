@@ -4744,6 +4744,25 @@
             <button type="button" data-start-online-game="online-battle">Online Battle Arena</button>
             <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag</button>
           </div>
+          <div class="online-room-panel" id="gamesRoomFinderPanel">
+            <h3>Online Room</h3>
+            <div class="online-room-controls">
+              <div class="start-grid">
+                <button type="button" id="gamesCreateRoomButton">Create Room</button>
+                <button type="button" id="gamesJoinRoomButton">Join Room</button>
+              </div>
+              <select id="gamesRoomVisibilitySelect" aria-label="Room visibility in games menu">
+                <option value="public">Public Room</option>
+                <option value="private">Private Room</option>
+              </select>
+              <input id="gamesRoomCodeInput" type="text" maxlength="8" placeholder="Room code">
+              <p class="room-note" id="gamesRoomNote">Choose an online game, then create a room or enter a code.</p>
+            </div>
+            <div class="online-room-lobby">
+              <button type="button" id="gamesRefreshLobbyButton">Refresh Public Rooms</button>
+              <div class="admin-rooms" id="gamesPublicRoomsList" aria-label="Games menu public rooms list"></div>
+            </div>
+          </div>
         </div>
         <div class="start-submenu" id="startOnlineRoomMenu" aria-label="Online room menu">
           <button type="button" id="startBackFromOnlineRoom">Back</button>
@@ -5302,6 +5321,13 @@
       const refreshLobbyButton = document.getElementById("refreshLobbyButton");
       const publicRoomsList = document.getElementById("publicRoomsList");
       const startRoomNote = document.getElementById("startRoomNote");
+      const gamesCreateRoomButton = document.getElementById("gamesCreateRoomButton");
+      const gamesJoinRoomButton = document.getElementById("gamesJoinRoomButton");
+      const gamesRoomVisibilitySelect = document.getElementById("gamesRoomVisibilitySelect");
+      const gamesRoomCodeInput = document.getElementById("gamesRoomCodeInput");
+      const gamesRefreshLobbyButton = document.getElementById("gamesRefreshLobbyButton");
+      const gamesPublicRoomsList = document.getElementById("gamesPublicRoomsList");
+      const gamesRoomNote = document.getElementById("gamesRoomNote");
       const profileStats = document.getElementById("profileStats");
       const profileBestScores = document.getElementById("profileBestScores");
       const profileMessage = document.getElementById("profileMessage");
@@ -9005,6 +9031,7 @@
         updateStartGameShowcase();
         startStatus.textContent = `${onlineGameNames[gameName]} ${currentText("selected")}`;
         startRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code and join.`;
+        gamesRoomNote.textContent = `${onlineGameNames[gameName]} selected. Create a room or enter a code below.`;
         if (showRoomPanel) {
           showStartSection("onlineRoom");
         }
@@ -9673,8 +9700,31 @@
         await joinRoom();
       }
 
+      async function createRoomFromGamesMenu() {
+        startRoomVisibilitySelect.value = gamesRoomVisibilitySelect.value;
+        gamesRoomNote.textContent = `Creating ${onlineGameNames[selectedOnlineGame]} room...`;
+        closeStartScreen();
+        await createRoom();
+      }
+
+      async function joinRoomFromGamesMenu() {
+        const code = gamesRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        gamesRoomCodeInput.value = code;
+        startRoomCodeInput.value = code;
+        roomCodeInput.value = code;
+        gamesRoomNote.textContent = code ? `Joining ${code}...` : "Enter a room code first.";
+        if (!code) {
+          return;
+        }
+        closeStartScreen();
+        await joinRoom();
+      }
+
       async function renderPublicRooms() {
-        publicRoomsList.textContent = "Loading rooms...";
+        const publicRoomLists = [publicRoomsList, gamesPublicRoomsList].filter(Boolean);
+        publicRoomLists.forEach((list) => {
+          list.textContent = "Loading rooms...";
+        });
 
         try {
           const rooms = await getAllRooms();
@@ -9683,11 +9733,13 @@
             .sort(([, a], [, b]) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
           if (!roomEntries.length) {
-            publicRoomsList.textContent = "No public rooms.";
+            publicRoomLists.forEach((list) => {
+              list.textContent = "No public rooms.";
+            });
             return;
           }
 
-          publicRoomsList.innerHTML = roomEntries.map(([code, room]) => `
+          const roomsHtml = roomEntries.map(([code, room]) => `
             <div class="admin-room-card">
               <div class="admin-user-top">
                 <span class="admin-room-code">${escapeHtml(code)}</span>
@@ -9700,8 +9752,13 @@
               </div>
             </div>
           `).join("");
+          publicRoomLists.forEach((list) => {
+            list.innerHTML = roomsHtml;
+          });
         } catch {
-          publicRoomsList.textContent = "Could not load public rooms.";
+          publicRoomLists.forEach((list) => {
+            list.textContent = "Could not load public rooms.";
+          });
         }
       }
 
@@ -9765,6 +9822,7 @@
         if (joinButton) {
           roomCodeInput.value = joinButton.dataset.lobbyJoin;
           startRoomCodeInput.value = joinButton.dataset.lobbyJoin;
+          gamesRoomCodeInput.value = joinButton.dataset.lobbyJoin;
           closeStartScreen();
           await joinRoom();
           return;
@@ -13936,6 +13994,8 @@
           createdRoomCode = code;
           saveOwnedRoomCode(code);
           roomCodeInput.value = code;
+          startRoomCodeInput.value = code;
+          gamesRoomCodeInput.value = code;
           roomCodeEl.textContent = `Room code: ${code}`;
           roomNoteEl.textContent = `${room.gameName} selected. Share this code with player 2.`;
           waitForSecondPlayer(code, selectedOnlineGame, room);
@@ -14168,13 +14228,17 @@
             return;
           }
 
-          selectOnlineGameFromStart(button.dataset.startOnlineGame);
+          selectOnlineGameFromStart(button.dataset.startOnlineGame, false);
         });
       });
       startCreateRoomButton.addEventListener("click", createRoomFromStart);
       startJoinRoomButton.addEventListener("click", joinRoomFromStart);
       refreshLobbyButton.addEventListener("click", renderPublicRooms);
       publicRoomsList.addEventListener("click", handlePublicRoomAction);
+      gamesCreateRoomButton.addEventListener("click", createRoomFromGamesMenu);
+      gamesJoinRoomButton.addEventListener("click", joinRoomFromGamesMenu);
+      gamesRefreshLobbyButton.addEventListener("click", renderPublicRooms);
+      gamesPublicRoomsList.addEventListener("click", handlePublicRoomAction);
       shopList.addEventListener("click", handleShopAction);
       premiumList.addEventListener("click", handleShopAction);
       donateList.addEventListener("click", handleDonateAction);
@@ -14186,6 +14250,13 @@
       friendsList.addEventListener("click", handleFriendAction);
       startRoomCodeInput.addEventListener("input", () => {
         startRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      });
+      gamesRoomCodeInput.addEventListener("input", () => {
+        gamesRoomCodeInput.value = gamesRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+        startRoomCodeInput.value = gamesRoomCodeInput.value;
+      });
+      gamesRoomVisibilitySelect.addEventListener("change", () => {
+        startRoomVisibilitySelect.value = gamesRoomVisibilitySelect.value;
       });
       [startSoundSelect, startLanguageSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
         select.addEventListener("change", updateGameSettingsFromStart);
