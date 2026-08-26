@@ -6208,6 +6208,37 @@
         { id: "music-premium", type: "music", value: "premium", name: "Premium Music Pack", cost: 0, premium: true },
         { id: "music-boss", type: "music", value: "boss", name: "Boss Music Pack", cost: 0, premium: true }
       ];
+      const musicPackCatalog = [
+        { value: "chill-menu", label: "Chill Menu", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
+        { value: "loading-adventure", label: "Loading Adventure", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
+        { value: "snake-neon", label: "Snake Neon", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
+        { value: "apple-happy", label: "Apple Catcher Happy", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
+        { value: "brick-retro", label: "Brick Pong Retro", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
+        { value: "gem-speed", label: "Gem Runner Speed", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
+        { value: "laser-tension", label: "Laser Dodge Tension", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
+        { value: "rpg-fantasy", label: "Sigma RPG Fantasy", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
+        { value: "online-energy", label: "Online Battle Energy", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
+        { value: "fire-boost", label: "Fire Boost", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
+        { value: "crystal-dreams", label: "Crystal Dreams", mood: "crystal", wave: "sine", speed: 1.12, octave: 1.3 },
+        { value: "cyber-night", label: "Cyber Night", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
+        { value: "boss-fight", label: "Boss Fight", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
+        { value: "golden-victory", label: "Golden Victory", mood: "victory", wave: "triangle", speed: 0.9, octave: 1.2 },
+        { value: "space-rush", label: "Space Rush", mood: "space", wave: "square", speed: 0.74, octave: 1.45 },
+        { value: "dark-arena", label: "Dark Arena", mood: "arena", wave: "sawtooth", speed: 0.8, octave: 0.7 },
+        { value: "rainbow-party", label: "Rainbow Party", mood: "party", wave: "square", speed: 0.62, octave: 1.25 },
+        { value: "main-calm", label: "Main Menu Calm", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
+        { value: "main-epic", label: "Main Menu Epic", mood: "epic", wave: "triangle", speed: 0.88, octave: 0.95 },
+        { value: "main-funny", label: "Main Menu Funny", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
+        { value: "main-roblox", label: "Main Menu Roblox-style", mood: "happy", wave: "triangle", speed: 0.9, octave: 1.1 },
+        { value: "main-minecraft", label: "Main Menu Minecraft-style", mood: "calm", wave: "sine", speed: 1.35, octave: 0.8 },
+        { value: "win-theme", label: "Win Theme", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
+        { value: "lose-theme", label: "Lose Theme", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
+        { value: "admin-theme", label: "Admin Panel Theme", mood: "cyber", wave: "square", speed: 0.94, octave: 0.82 },
+        { value: "shop-theme", label: "Shop Theme", mood: "crystal", wave: "triangle", speed: 1.02, octave: 1.15 },
+        { value: "battle-pass-theme", label: "Battle Pass Theme", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
+        { value: "friend-lobby-theme", label: "Friend Lobby Theme", mood: "soft", wave: "sine", speed: 1.08, octave: 1.05 },
+        { value: "tournament-theme", label: "Tournament Theme", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 }
+      ];
       const allShopItems = [...shopItems, ...premiumItems];
       const battlePassRewards = [
         { level: 1, free: "100 coins", premium: "Gold VIP color", coins: 100, xp: 0, premiumItem: "color-gold" },
@@ -6753,8 +6784,29 @@
         startMusicSelect.value = selectedMusicPack;
       }
 
+      function populateGeneratedMusicOptions() {
+        [startMusicSelect, musicSelect].forEach((select) => {
+          const existingValues = new Set([...select.options].map((option) => option.value));
+          musicPackCatalog.forEach((pack) => {
+            if (existingValues.has(pack.value)) {
+              return;
+            }
+
+            const option = document.createElement("option");
+            option.value = pack.value;
+            option.textContent = pack.label;
+            select.appendChild(option);
+            existingValues.add(pack.value);
+          });
+        });
+      }
+
       function ownsMusicPack(pack) {
         if (!pack) {
+          return true;
+        }
+
+        if (musicPackCatalog.some((item) => item.value === pack)) {
           return true;
         }
 
@@ -7508,6 +7560,48 @@
 
         const basePattern = patterns[currentGame] || patterns.snake;
         const pack = selectedMusicPack || currentUserData?.equipped?.music || "";
+        const generatedPack = musicPackCatalog.find((item) => item.value === pack);
+
+        if (generatedPack) {
+          const moodOffsets = {
+            soft: [0, 1, 0, 2, -2, 0, 1, 0],
+            bright: [0, 2, 4, 7, 5, 4, 2, 0],
+            neon: [0, 7, 12, 7, 5, 3, 7, 0],
+            happy: [0, 4, 7, 12, 7, 4, 2, 0],
+            retro: [0, -5, 0, 7, -5, 0, 5, 0],
+            speed: [0, 12, 7, 12, 5, 12, 7, 0],
+            dark: [0, -12, -5, 0, -7, -12, -5, 0],
+            fantasy: [0, 5, 7, 12, 14, 12, 7, 5],
+            energy: [0, 7, 5, 12, 7, 14, 12, 5],
+            fire: [0, -5, 7, 12, -7, 5, 12, 0],
+            crystal: [12, 7, 5, 0, 12, 14, 7, 5],
+            cyber: [0, 3, 7, 10, 7, 3, 0, -5],
+            boss: [-12, -7, 0, -5, -12, 0, -7, -5],
+            victory: [0, 4, 7, 12, 16, 12, 7, 4],
+            space: [12, 0, 19, 7, 12, 24, 19, 7],
+            arena: [-12, 0, -7, 5, -12, 7, 0, -5],
+            party: [0, 12, 4, 16, 7, 19, 12, 4],
+            epic: [-12, 0, 7, 12, 5, 12, 7, 0],
+            funny: [0, 7, 0, 12, -5, 7, 2, 0],
+            calm: [0, 0, 5, 7, 0, 5, 2, 0]
+          };
+          const offsets = moodOffsets[generatedPack.mood] || moodOffsets.bright;
+          const transpose = (note, index) => {
+            if (!note) {
+              return 0;
+            }
+
+            const semitone = offsets[index % offsets.length];
+            return Math.max(55, Math.round(note * generatedPack.octave * Math.pow(2, semitone / 12)));
+          };
+
+          return {
+            melody: basePattern.melody.map(transpose),
+            bass: basePattern.bass.map((note, index) => transpose(note, index) * (generatedPack.mood === "boss" || generatedPack.mood === "dark" ? 0.75 : 0.5)),
+            wave: generatedPack.wave,
+            delay: Math.max(95, Math.round(basePattern.delay * generatedPack.speed))
+          };
+        }
 
         if (pack === "retro") {
           return {
@@ -15074,6 +15168,7 @@
       });
 
       refreshStoredAccountRole();
+      populateGeneratedMusicOptions();
       applyPlayerStyleControls();
       applyGameSettingsControls();
       scheduleLoadingMusic();
