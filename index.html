@@ -4971,6 +4971,127 @@
           max-height: 16rem;
         }
       }
+
+      .start-submenu#startSettingsMenu,
+      #settingsMenu {
+        border-color: color-mix(in srgb, var(--theme-accent-a) 42%, rgba(255, 255, 255, 0.08));
+        background:
+          linear-gradient(90deg, color-mix(in srgb, var(--theme-accent-c) 9%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(0deg, color-mix(in srgb, var(--theme-accent-a) 8%, transparent) 1px, transparent 1px) 0 0 / 24px 24px,
+          linear-gradient(145deg, rgba(2, 6, 23, 0.92), color-mix(in srgb, var(--theme-panel) 74%, #061b16));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.12),
+          0 26px 70px rgba(0, 0, 0, 0.36),
+          0 0 34px color-mix(in srgb, var(--theme-accent-a) 15%, transparent);
+      }
+
+      #startSettingsMenu .start-grid,
+      #settingsMenu .settings-controls {
+        grid-template-columns: repeat(2, minmax(15rem, 1fr));
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      #startSettingsMenu .start-grid > select,
+      #startSettingsMenu .start-grid > input,
+      #startSettingsMenu .start-grid > label,
+      #settingsMenu .settings-controls > label {
+        position: relative;
+        min-height: 74px;
+        padding: 0.75rem;
+        border: 1px solid color-mix(in srgb, var(--theme-accent-a) 34%, rgba(255, 255, 255, 0.08));
+        border-radius: 18px;
+        background:
+          linear-gradient(135deg, rgba(15, 23, 42, 0.88), color-mix(in srgb, var(--theme-panel) 72%, rgba(34, 197, 94, 0.12)));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      #startSettingsMenu select,
+      #startSettingsMenu input:not([type="range"]),
+      #settingsMenu select,
+      #settingsMenu input:not([type="range"]) {
+        width: 100%;
+        min-height: 3.2rem;
+        border-radius: 14px;
+        border-color: color-mix(in srgb, var(--theme-accent-c) 38%, rgba(255, 255, 255, 0.12));
+        background:
+          linear-gradient(135deg, rgba(2, 6, 23, 0.92), color-mix(in srgb, var(--theme-panel) 78%, rgba(15, 23, 42, 0.72)));
+        color: #f8fafc;
+      }
+
+      #startSettingsMenu input[type="range"],
+      #settingsMenu input[type="range"] {
+        accent-color: var(--theme-accent-b);
+        min-height: 2.4rem;
+      }
+
+      #startSettingsMenu .custom-music-field,
+      #settingsMenu .custom-music-field {
+        grid-column: 1 / -1;
+      }
+
+      .shop-item[data-shop-type="skin"],
+      .shop-item[data-shop-type="color"],
+      .shop-item[data-shop-type="trail"] {
+        overflow: hidden;
+        padding-right: 5.4rem;
+      }
+
+      .shop-item[data-shop-type="skin"]::after,
+      .shop-item[data-shop-type="color"]::after,
+      .shop-item[data-shop-type="trail"]::after {
+        content: "";
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        width: 3.35rem;
+        height: 3.35rem;
+        border-radius: 1rem;
+        opacity: 0.9;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 24px rgba(45, 212, 191, 0.16);
+      }
+
+      .shop-item[data-shop-type="skin"]::after {
+        background:
+          radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.65) 0 10%, transparent 11%),
+          linear-gradient(135deg, #14b8a6, #3b82f6);
+      }
+
+      .shop-item[data-shop-type="color"]::after {
+        background: conic-gradient(from 45deg, #22c55e, #38bdf8, #a78bfa, #facc15, #22c55e);
+      }
+
+      .shop-item[data-shop-type="trail"]::after {
+        background:
+          radial-gradient(circle at 30% 28%, #fef08a 0 10%, transparent 11%),
+          radial-gradient(circle at 68% 62%, #67e8f9 0 12%, transparent 13%),
+          linear-gradient(135deg, #0f172a, #7c3aed);
+      }
+
+      .shop-item[data-shop-currency="flame"] {
+        border-color: rgba(251, 146, 60, 0.55);
+        background:
+          radial-gradient(circle at 90% 14%, rgba(249, 115, 22, 0.18), transparent 8rem),
+          linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(69, 26, 3, 0.58));
+      }
+
+      .shop-item[data-shop-currency="flame"] button {
+        background: linear-gradient(135deg, #f97316, #ef4444, #7c3aed);
+        border-color: rgba(253, 186, 116, 0.75);
+      }
+
+      @media (max-width: 760px) {
+        #startSettingsMenu .start-grid,
+        #settingsMenu .settings-controls {
+          grid-template-columns: 1fr;
+        }
+
+        .shop-item[data-shop-type="skin"],
+        .shop-item[data-shop-type="color"],
+        .shop-item[data-shop-type="trail"] {
+          padding-right: 4.8rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -5185,6 +5306,11 @@
               <option value="glass">Glass Skin</option>
               <option value="sigma">Sigma Skin</option>
               <option value="royal">Royal Skin</option>
+              <option value="ghost">Ghost Skin</option>
+              <option value="prism">Prism Skin</option>
+              <option value="lava">Lava Skin</option>
+              <option value="pixel">Pixel Skin</option>
+              <option value="cosmic">Cosmic Skin</option>
             </select>
             <select id="startColorSelect" aria-label="Color">
               <option value="teal">Teal</option>
@@ -5198,6 +5324,21 @@
               <option value="cyan">Cyan</option>
               <option value="ruby">Ruby</option>
               <option value="ice">Ice</option>
+              <option value="void">Void</option>
+              <option value="toxic">Toxic</option>
+              <option value="sunrise">Sunrise</option>
+              <option value="galaxy">Galaxy</option>
+              <option value="mintfire">Mint Fire</option>
+            </select>
+            <select id="startTrailSelect" aria-label="Trail">
+              <option value="">No Trail</option>
+              <option value="spark">Spark Trail</option>
+              <option value="comet">Comet Trail</option>
+              <option value="bubbles">Bubble Trail</option>
+              <option value="stars">Star Trail</option>
+              <option value="flame">Flame Trail</option>
+              <option value="vip">VIP Trail</option>
+              <option value="crown">Crown Trail</option>
             </select>
             <select id="startMusicSelect" aria-label="Music pack">
               <option value="">Standard Music</option>
@@ -5393,6 +5534,11 @@
                 <option value="glass">Glass</option>
                 <option value="sigma">Sigma</option>
                 <option value="royal">Royal</option>
+                <option value="ghost">Ghost</option>
+                <option value="prism">Prism</option>
+                <option value="lava">Lava</option>
+                <option value="pixel">Pixel</option>
+                <option value="cosmic">Cosmic</option>
               </select>
             </label>
             <label>
@@ -5409,6 +5555,24 @@
                 <option value="cyan">Cyan</option>
                 <option value="ruby">Ruby</option>
                 <option value="ice">Ice</option>
+                <option value="void">Void</option>
+                <option value="toxic">Toxic</option>
+                <option value="sunrise">Sunrise</option>
+                <option value="galaxy">Galaxy</option>
+                <option value="mintfire">Mint Fire</option>
+              </select>
+            </label>
+            <label>
+              Trail
+              <select id="trailSelect">
+                <option value="">No Trail</option>
+                <option value="spark">Spark</option>
+                <option value="comet">Comet</option>
+                <option value="bubbles">Bubbles</option>
+                <option value="stars">Stars</option>
+                <option value="flame">Flame</option>
+                <option value="vip">VIP</option>
+                <option value="crown">Crown</option>
               </select>
             </label>
             <label>
@@ -5586,6 +5750,7 @@
       const startControlsSelect = document.getElementById("startControlsSelect");
       const startSkinSelect = document.getElementById("startSkinSelect");
       const startColorSelect = document.getElementById("startColorSelect");
+      const startTrailSelect = document.getElementById("startTrailSelect");
       const startMusicSelect = document.getElementById("startMusicSelect");
       const startCustomMusicUrlInput = document.getElementById("startCustomMusicUrlInput");
       const startLocalMusicFileInput = document.getElementById("startLocalMusicFileInput");
@@ -5732,6 +5897,7 @@
       const controlsSelect = document.getElementById("controlsSelect");
       const skinSelect = document.getElementById("skinSelect");
       const colorSelect = document.getElementById("colorSelect");
+      const trailSelect = document.getElementById("trailSelect");
       const musicSelect = document.getElementById("musicSelect");
       const customMusicUrlInput = document.getElementById("customMusicUrlInput");
       const localMusicFileInput = document.getElementById("localMusicFileInput");
@@ -5984,7 +6150,12 @@
         lime: { head: "#d9f99d", body: "#84cc16", top: "#ecfccb" },
         cyan: { head: "#a5f3fc", body: "#06b6d4", top: "#cffafe" },
         ruby: { head: "#fca5a5", body: "#dc2626", top: "#fee2e2" },
-        ice: { head: "#e0f2fe", body: "#38bdf8", top: "#f0f9ff" }
+        ice: { head: "#e0f2fe", body: "#38bdf8", top: "#f0f9ff" },
+        void: { head: "#c4b5fd", body: "#312e81", top: "#f5f3ff" },
+        toxic: { head: "#bef264", body: "#65a30d", top: "#ecfccb" },
+        sunrise: { head: "#fed7aa", body: "#fb7185", top: "#fff7ed" },
+        galaxy: { head: "#f0abfc", body: "#7c3aed", top: "#e0f2fe" },
+        mintfire: { head: "#a7f3d0", body: "#f97316", top: "#fff7ed" }
       };
       const boardThemeColors = {
         midnight: "#020617",
@@ -6000,15 +6171,28 @@
         { id: "skin-round", type: "skin", value: "round", name: "Round Skin", cost: 40 },
         { id: "skin-neon", type: "skin", value: "neon", name: "Neon Skin", cost: 80 },
         { id: "skin-block", type: "skin", value: "block", name: "Block Skin", cost: 60 },
+        { id: "skin-ghost", type: "skin", value: "ghost", name: "Ghost Skin", cost: 140 },
+        { id: "skin-pixel", type: "skin", value: "pixel", name: "Pixel Skin", cost: 160 },
         { id: "color-blue", type: "color", value: "blue", name: "Blue Color", cost: 35 },
         { id: "color-purple", type: "color", value: "purple", name: "Purple Color", cost: 45 },
         { id: "color-pink", type: "color", value: "pink", name: "Pink Color", cost: 45 },
         { id: "color-orange", type: "color", value: "orange", name: "Orange Color", cost: 50 },
         { id: "color-lime", type: "color", value: "lime", name: "Lime Color", cost: 55 },
         { id: "color-cyan", type: "color", value: "cyan", name: "Cyan Color", cost: 55 },
+        { id: "color-toxic", type: "color", value: "toxic", name: "Toxic Color", cost: 120 },
+        { id: "color-sunrise", type: "color", value: "sunrise", name: "Sunrise Color", cost: 135 },
         { id: "skin-glass", type: "skin", value: "glass", name: "Glass Skin", cost: 95 },
+        { id: "skin-prism", type: "skin", value: "prism", name: "Prism Skin", cost: 45, flameCost: 35 },
+        { id: "skin-lava", type: "skin", value: "lava", name: "Lava Skin", cost: 0, flameCost: 55 },
+        { id: "skin-cosmic", type: "skin", value: "cosmic", name: "Cosmic Skin", cost: 0, flameCost: 90 },
         { id: "trail-spark", type: "trail", value: "spark", name: "Spark Trail", cost: 90 },
         { id: "trail-comet", type: "trail", value: "comet", name: "Comet Trail", cost: 130 },
+        { id: "trail-bubbles", type: "trail", value: "bubbles", name: "Bubble Trail", cost: 150 },
+        { id: "trail-stars", type: "trail", value: "stars", name: "Star Trail", cost: 0, flameCost: 45 },
+        { id: "trail-flame", type: "trail", value: "flame", name: "Flame Trail", cost: 0, flameCost: 60 },
+        { id: "color-void", type: "color", value: "void", name: "Void Color", cost: 0, flameCost: 40 },
+        { id: "color-galaxy", type: "color", value: "galaxy", name: "Galaxy Color", cost: 0, flameCost: 70 },
+        { id: "color-mintfire", type: "color", value: "mintfire", name: "Mint Fire Color", cost: 0, flameCost: 85 },
         { id: "effect-coin-flames", type: "effect", value: "coin-flames", name: "Coin Flames", flameCost: 75 },
         { id: "music-retro", type: "music", value: "retro", name: "Retro Music Pack", cost: 120 },
         { id: "music-chiptune", type: "music", value: "chiptune", name: "Chiptune Pack", cost: 150 }
@@ -6337,12 +6521,14 @@
 
           return {
             skin: storedStyle?.skin || "classic",
-            color: storedStyle?.color || "teal"
+            color: storedStyle?.color || "teal",
+            trail: storedStyle?.trail || ""
           };
         } catch {
           return {
             skin: "classic",
-            color: "teal"
+            color: "teal",
+            trail: ""
           };
         }
       }
@@ -6559,8 +6745,10 @@
       function applyPlayerStyleControls() {
         skinSelect.value = playerStyle.skin;
         colorSelect.value = playerStyle.color;
+        trailSelect.value = playerStyle.trail || "";
         startSkinSelect.value = playerStyle.skin;
         startColorSelect.value = playerStyle.color;
+        startTrailSelect.value = playerStyle.trail || "";
         musicSelect.value = selectedMusicPack;
         startMusicSelect.value = selectedMusicPack;
       }
@@ -6620,25 +6808,29 @@
       function updatePlayerStyle() {
         const selectedSkin = skinSelect.value;
         const selectedColor = colorSelect.value;
+        const selectedTrail = trailSelect.value;
         const ownsSkin = !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`skin-${selectedSkin}`]);
         const ownsColor = !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`color-${selectedColor}`]);
+        const ownsTrail = !selectedTrail || !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`trail-${selectedTrail}`]);
 
-        if (!ownsSkin || !ownsColor) {
+        if (!ownsSkin || !ownsColor || !ownsTrail) {
           applyPlayerStyleControls();
-          settingsMessage.textContent = "Buy this skin/color in Shop first.";
+          settingsMessage.textContent = "Buy this skin/color/trail in Shop first.";
           startSettingsMessage.textContent = settingsMessage.textContent;
           return;
         }
 
         playerStyle = {
           skin: selectedSkin,
-          color: selectedColor
+          color: selectedColor,
+          trail: selectedTrail
         };
         savePlayerStyle();
         if (currentAccount?.username) {
           patchCurrentUser({
             "equipped/skin": playerStyle.skin,
             "equipped/color": playerStyle.color,
+            "equipped/trail": playerStyle.trail,
             skin: playerStyle.skin,
             color: playerStyle.color
           }).catch(() => {});
@@ -6649,6 +6841,7 @@
         if (player) {
           player.skin = playerStyle.skin;
           player.color = playerStyle.color;
+          player.trail = playerStyle.trail;
         }
 
         draw();
@@ -7630,7 +7823,8 @@
         if (currentUserData.equipped) {
           playerStyle = {
             skin: currentUserData.equipped.skin || playerStyle.skin,
-            color: currentUserData.equipped.color || playerStyle.color
+            color: currentUserData.equipped.color || playerStyle.color,
+            trail: currentUserData.equipped.trail || playerStyle.trail || ""
           };
           selectedMusicPack = currentUserData.equipped.music || "";
           savePlayerStyle();
@@ -9286,6 +9480,7 @@
       function updatePlayerStyleFromStart() {
         skinSelect.value = startSkinSelect.value;
         colorSelect.value = startColorSelect.value;
+        trailSelect.value = startTrailSelect.value;
         updatePlayerStyle();
       }
 
@@ -9482,7 +9677,7 @@
           const priceText = item.flameCost ? `${item.flameCost} Flame Coins` : `${item.cost} coins`;
           const action = owned ? (equipped ? "Equipped" : "Equip") : `Buy ${priceText}`;
           return `
-            <div class="shop-item">
+            <div class="shop-item" data-shop-type="${escapeHtml(item.type)}" data-shop-currency="${item.flameCost ? "flame" : "coins"}">
               <strong>${escapeHtml(item.name)}</strong>
               <span>${escapeHtml(item.type)} | ${owned ? "Owned" : priceText}</span>
               <button type="button" data-shop-id="${escapeHtml(item.id)}" ${equipped ? "disabled" : ""}>${action}</button>
@@ -9827,7 +10022,7 @@
         const patch = {
           [`equipped/${item.type}`]: item.value
         };
-        if (item.type === "skin" || item.type === "color") {
+        if (item.type === "skin" || item.type === "color" || item.type === "trail") {
           playerStyle = {
             ...playerStyle,
             [item.type]: item.value
@@ -10250,9 +10445,51 @@
         roundTile(food.x, food.y, 7);
 
         const theme = getTheme(playerStyle.color);
+        drawSnakeTrail(snake, playerStyle.trail, theme);
         snake.forEach((part, index) => {
           drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0);
         });
+      }
+
+      function drawSnakeTrail(parts, trail, theme) {
+        if (!trail || !parts?.length) {
+          return;
+        }
+
+        const trailColors = {
+          spark: ["#fde047", "#67e8f9"],
+          comet: ["#fb7185", "#f97316"],
+          bubbles: ["#bae6fd", "#22d3ee"],
+          stars: ["#fef08a", "#f0abfc"],
+          flame: ["#f97316", "#facc15"],
+          vip: ["#a78bfa", "#22d3ee"],
+          crown: ["#facc15", "#c084fc"]
+        };
+        const colors = trailColors[trail] || [theme.top, theme.body];
+
+        ctx.save();
+        parts.slice(1).forEach((part, index) => {
+          const alpha = Math.max(0.08, 0.42 - index * 0.045);
+          const cx = part.x * gridSize + gridSize / 2;
+          const cy = part.y * gridSize + gridSize / 2;
+          const pulse = Math.sin(Date.now() / 130 + index) * 1.8;
+          ctx.globalAlpha = alpha;
+          ctx.shadowColor = colors[index % colors.length];
+          ctx.shadowBlur = trail === "flame" || trail === "crown" ? 18 : 12;
+          ctx.fillStyle = colors[index % colors.length];
+
+          if (trail === "stars" || trail === "crown") {
+            ctx.font = `900 ${Math.max(12, gridSize * 0.72 + pulse)}px Arial`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(trail === "crown" ? "+" : "*", cx, cy);
+          } else {
+            ctx.beginPath();
+            ctx.arc(cx, cy, Math.max(4, gridSize * 0.3 + pulse), 0, Math.PI * 2);
+            ctx.fill();
+          }
+        });
+        ctx.restore();
       }
 
       function drawCatcher() {
@@ -10531,23 +10768,67 @@
           block: 2,
           glass: isHead ? 8 : 6,
           sigma: isHead ? 10 : 7,
-          royal: isHead ? 11 : 8
+          royal: isHead ? 11 : 8,
+          ghost: isHead ? 10 : 8,
+          prism: isHead ? 10 : 7,
+          lava: isHead ? 9 : 6,
+          pixel: 1,
+          cosmic: isHead ? 11 : 8
         };
+        const left = part.x * gridSize + 2;
+        const top = part.y * gridSize + 2;
 
         ctx.save();
         ctx.fillStyle = color;
 
-        if (skin === "neon" || skin === "sigma" || skin === "royal") {
+        if (skin === "ghost") {
+          ctx.globalAlpha = isHead ? 0.82 : 0.58;
+          ctx.shadowColor = "#e0f2fe";
+          ctx.shadowBlur = 18;
+        }
+
+        if (skin === "neon" || skin === "sigma" || skin === "royal" || skin === "prism" || skin === "lava" || skin === "cosmic") {
           ctx.shadowColor = color;
-          ctx.shadowBlur = skin === "royal" ? 24 : skin === "sigma" ? 20 : 14;
+          ctx.shadowBlur = skin === "royal" || skin === "cosmic" ? 24 : skin === "sigma" || skin === "lava" ? 20 : 14;
+        }
+
+        if (skin === "prism") {
+          const gradient = ctx.createLinearGradient(left, top, left + gridSize, top + gridSize);
+          gradient.addColorStop(0, "#22d3ee");
+          gradient.addColorStop(0.5, color);
+          gradient.addColorStop(1, "#f0abfc");
+          ctx.fillStyle = gradient;
+        }
+
+        if (skin === "lava") {
+          const gradient = ctx.createRadialGradient(left + gridSize * 0.35, top + gridSize * 0.3, 2, left + gridSize / 2, top + gridSize / 2, gridSize);
+          gradient.addColorStop(0, "#fef3c7");
+          gradient.addColorStop(0.45, "#f97316");
+          gradient.addColorStop(1, "#7f1d1d");
+          ctx.fillStyle = gradient;
+          ctx.shadowColor = "#fb923c";
+        }
+
+        if (skin === "cosmic") {
+          const gradient = ctx.createLinearGradient(left, top, left + gridSize, top + gridSize);
+          gradient.addColorStop(0, "#020617");
+          gradient.addColorStop(0.55, color);
+          gradient.addColorStop(1, "#a78bfa");
+          ctx.fillStyle = gradient;
+          ctx.shadowColor = "#a78bfa";
         }
 
         roundTile(part.x, part.y, radiusBySkin[skin] ?? 5);
 
-        if (skin === "block") {
+        if (skin === "block" || skin === "pixel") {
           ctx.strokeStyle = "rgba(248, 250, 252, 0.24)";
-          ctx.lineWidth = 2;
-          strokeTile(part.x, part.y, 2);
+          ctx.lineWidth = skin === "pixel" ? 3 : 2;
+          strokeTile(part.x, part.y, radiusBySkin[skin]);
+        }
+
+        if (skin === "pixel") {
+          ctx.fillStyle = "rgba(248, 250, 252, 0.16)";
+          ctx.fillRect(left + 4, top + 4, Math.max(3, gridSize * 0.22), Math.max(3, gridSize * 0.22));
         }
 
         if (skin === "sigma") {
@@ -10560,12 +10841,51 @@
           ctx.strokeStyle = "rgba(224, 242, 254, 0.72)";
           ctx.lineWidth = 2;
           strokeTile(part.x, part.y, radiusBySkin.glass);
+          ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+          ctx.beginPath();
+          ctx.roundRect(left + 4, top + 3, gridSize * 0.42, 4, 2);
+          ctx.fill();
         }
 
         if (skin === "royal") {
           ctx.strokeStyle = isHead ? "rgba(216, 180, 254, 0.95)" : "rgba(192, 132, 252, 0.58)";
           ctx.lineWidth = isHead ? 3 : 2;
           strokeTile(part.x, part.y, radiusBySkin.royal);
+        }
+
+        if (skin === "ghost") {
+          ctx.strokeStyle = "rgba(224, 242, 254, 0.9)";
+          ctx.lineWidth = isHead ? 3 : 2;
+          strokeTile(part.x, part.y, radiusBySkin.ghost);
+        }
+
+        if (skin === "prism") {
+          ctx.strokeStyle = isHead ? "rgba(240, 171, 252, 0.95)" : "rgba(34, 211, 238, 0.55)";
+          ctx.lineWidth = isHead ? 3 : 2;
+          strokeTile(part.x, part.y, radiusBySkin.prism);
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(left + 4, top + gridSize - 7);
+          ctx.lineTo(left + gridSize - 6, top + 5);
+          ctx.stroke();
+        }
+
+        if (skin === "lava") {
+          ctx.fillStyle = "rgba(254, 240, 138, 0.82)";
+          ctx.beginPath();
+          ctx.arc(left + gridSize * 0.58, top + gridSize * 0.34, Math.max(2, gridSize * 0.12), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        if (skin === "cosmic") {
+          ctx.fillStyle = "rgba(248, 250, 252, 0.88)";
+          ctx.beginPath();
+          ctx.arc(left + gridSize * 0.3, top + gridSize * 0.28, Math.max(1.5, gridSize * 0.08), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isHead ? "rgba(196, 181, 253, 0.95)" : "rgba(125, 211, 252, 0.5)";
+          ctx.lineWidth = isHead ? 3 : 2;
+          strokeTile(part.x, part.y, radiusBySkin.cosmic);
         }
 
         ctx.restore();
@@ -14595,7 +14915,7 @@
       startLocalMusicFileInput.addEventListener("change", () => chooseLocalMusicFile("start"));
       startSaveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("start"));
       startDeleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("start"));
-      [startSkinSelect, startColorSelect].forEach((select) => {
+      [startSkinSelect, startColorSelect, startTrailSelect].forEach((select) => {
         select.addEventListener("change", updatePlayerStyleFromStart);
       });
       startMusicSelect.addEventListener("change", updateMusicPackFromStart);
@@ -14686,6 +15006,7 @@
       deleteCustomMusicButton.addEventListener("click", () => deleteCustomMusicUrl("game"));
       skinSelect.addEventListener("change", updatePlayerStyle);
       colorSelect.addEventListener("change", updatePlayerStyle);
+      trailSelect.addEventListener("change", updatePlayerStyle);
       musicSelect.addEventListener("change", updateMusicPack);
       resetRecordButton.addEventListener("click", resetCurrentRecord);
       passwordInput.addEventListener("keydown", (event) => {
