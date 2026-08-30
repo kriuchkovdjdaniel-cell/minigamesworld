@@ -6374,6 +6374,76 @@
           animation: none;
         }
       }
+
+      .start-panel {
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+
+      .start-submenu.open {
+        max-height: none;
+        overflow: visible;
+      }
+
+      #startGamesMenu.open,
+      #startOnlineRoomMenu.open,
+      #startProfileMenu.open,
+      #startShopMenu.open,
+      #startPremiumMenu.open,
+      #startDonateMenu.open,
+      #startBattlePassMenu.open,
+      #startLeaderboardMenu.open,
+      #startQuestsMenu.open,
+      #startSocialMenu.open,
+      #startSettingsMenu.open,
+      #startAccountMenu.open,
+      #startAdminMenu.open {
+        padding-bottom: max(2rem, env(safe-area-inset-bottom));
+      }
+
+      body.phone-device-mode .start-panel,
+      body.phone-preview-mode .start-panel {
+        height: auto;
+        min-height: 100svh;
+        max-height: none;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      .start-panel,
+      .admin-panel,
+      .shop-list,
+      .admin-users,
+      .admin-rooms,
+      .battle-pass-board,
+      .chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: var(--na-cyan) rgba(3, 5, 13, 0.35);
+      }
+
+      .start-panel::-webkit-scrollbar,
+      .admin-panel::-webkit-scrollbar,
+      .shop-list::-webkit-scrollbar,
+      .admin-users::-webkit-scrollbar,
+      .admin-rooms::-webkit-scrollbar,
+      .battle-pass-board::-webkit-scrollbar,
+      .chat-messages::-webkit-scrollbar {
+        display: block;
+        width: 10px;
+        height: 10px;
+      }
+
+      .start-panel::-webkit-scrollbar-thumb,
+      .admin-panel::-webkit-scrollbar-thumb,
+      .shop-list::-webkit-scrollbar-thumb,
+      .admin-users::-webkit-scrollbar-thumb,
+      .admin-rooms::-webkit-scrollbar-thumb,
+      .battle-pass-board::-webkit-scrollbar-thumb,
+      .chat-messages::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--na-cyan), var(--na-violet));
+      }
     </style>
   </head>
   <body>
