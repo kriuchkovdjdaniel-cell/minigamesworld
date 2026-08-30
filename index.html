@@ -5345,6 +5345,99 @@
       ::-webkit-scrollbar-thumb {
         background: linear-gradient(180deg, var(--mgw-cyan), var(--mgw-emerald));
       }
+
+      .pixel-skin-editor,
+      .clan-panel {
+        display: grid;
+        gap: 14px;
+        padding: 16px;
+        border: 1px solid rgba(94, 234, 212, 0.22);
+        border-radius: 18px;
+        background:
+          linear-gradient(145deg, rgba(8, 47, 38, 0.72), rgba(5, 16, 24, 0.9)),
+          linear-gradient(90deg, rgba(94, 234, 212, 0.055) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(0deg, rgba(94, 234, 212, 0.045) 1px, transparent 1px) 0 0 / 16px 16px;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+      }
+
+      .pixel-skin-toolbar {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(28px, 1fr));
+        gap: 8px;
+      }
+
+      .pixel-skin-toolbar button {
+        min-height: 38px;
+        border-radius: 10px;
+        border: 2px solid rgba(248, 250, 252, 0.2);
+        padding: 0;
+      }
+
+      .pixel-skin-toolbar button.selected {
+        border-color: #facc15;
+        box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.24), 0 0 18px rgba(94, 234, 212, 0.3);
+      }
+
+      .pixel-skin-grid {
+        display: grid;
+        grid-template-columns: repeat(64, 1fr);
+        width: min(100%, 384px);
+        aspect-ratio: 1;
+        overflow: hidden;
+        justify-self: center;
+        border: 2px solid rgba(94, 234, 212, 0.38);
+        border-radius: 12px;
+        background: #020817;
+        touch-action: none;
+      }
+
+      .pixel-cell {
+        min-width: 0;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+
+      .pixel-cell::before,
+      .pixel-cell::after {
+        display: none;
+      }
+
+      .pixel-skin-actions,
+      .clan-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .clan-actions input {
+        grid-column: 1 / -1;
+      }
+
+      .daily-card,
+      .clan-mission-card {
+        border-style: solid;
+        border-color: rgba(94, 234, 212, 0.18);
+      }
+
+      .clan-card {
+        background: linear-gradient(135deg, rgba(14, 116, 89, 0.28), rgba(15, 23, 42, 0.72));
+      }
+
+      @media (max-width: 700px) {
+        .pixel-skin-actions,
+        .clan-actions {
+          grid-template-columns: 1fr;
+        }
+
+        .pixel-skin-grid {
+          width: min(100%, 300px);
+        }
+      }
     </style>
   </head>
   <body>
@@ -5454,6 +5547,32 @@
           <h3>Profile</h3>
           <div class="profile-grid" id="profileStats"></div>
           <div class="admin-users" id="profileBestScores"></div>
+          <h3>Daily Missions</h3>
+          <div class="shop-list" id="dailyMissionsList"></div>
+          <h3>64x64 Pixel Skin</h3>
+          <div class="pixel-skin-editor">
+            <div class="pixel-skin-toolbar" id="pixelPalette"></div>
+            <div class="pixel-skin-grid" id="pixelSkinGrid" aria-label="64 by 64 pixel skin editor"></div>
+            <div class="pixel-skin-actions">
+              <button type="button" id="savePixelSkinButton">Save Pixel Skin</button>
+              <button type="button" id="equipPixelSkinButton">Equip Pixel Skin</button>
+              <button type="button" id="clearPixelSkinButton">Clear</button>
+            </div>
+          </div>
+          <h3>Clan</h3>
+          <div class="clan-panel">
+            <div class="clan-actions">
+              <input id="clanNameInput" type="text" maxlength="18" placeholder="Clan name">
+              <button type="button" id="createClanButton">Create Clan</button>
+              <button type="button" id="joinClanButton">Join Clan</button>
+              <button type="button" id="leaveClanButton">Leave Clan</button>
+            </div>
+            <div class="admin-users" id="currentClanInfo"></div>
+          </div>
+          <h3>Clan Daily Missions</h3>
+          <div class="shop-list" id="clanMissionsList"></div>
+          <h3>Clan Leaderboard</h3>
+          <div class="shop-list" id="clanLeaderboardList"></div>
           <p class="room-note" id="profileMessage"></p>
         </div>
         <div class="start-submenu" id="startShopMenu" aria-label="Shop">
@@ -5564,6 +5683,7 @@
               <option value="lava">Lava Core</option>
               <option value="pixel">Pixel Core</option>
               <option value="cosmic">Cosmic Core</option>
+              <option value="custom64">Custom 64x64</option>
             </select>
             <select id="startColorSelect" aria-label="Color">
               <option value="teal">Aqua Core</option>
@@ -5792,6 +5912,7 @@
                 <option value="lava">Lava</option>
                 <option value="pixel">Pixel</option>
                 <option value="cosmic">Cosmic</option>
+                <option value="custom64">Custom 64x64</option>
               </select>
             </label>
             <label>
@@ -6037,6 +6158,19 @@
       const gamesRoomNote = document.getElementById("gamesRoomNote");
       const profileStats = document.getElementById("profileStats");
       const profileBestScores = document.getElementById("profileBestScores");
+      const dailyMissionsList = document.getElementById("dailyMissionsList");
+      const pixelPalette = document.getElementById("pixelPalette");
+      const pixelSkinGrid = document.getElementById("pixelSkinGrid");
+      const savePixelSkinButton = document.getElementById("savePixelSkinButton");
+      const equipPixelSkinButton = document.getElementById("equipPixelSkinButton");
+      const clearPixelSkinButton = document.getElementById("clearPixelSkinButton");
+      const clanNameInput = document.getElementById("clanNameInput");
+      const createClanButton = document.getElementById("createClanButton");
+      const joinClanButton = document.getElementById("joinClanButton");
+      const leaveClanButton = document.getElementById("leaveClanButton");
+      const currentClanInfo = document.getElementById("currentClanInfo");
+      const clanMissionsList = document.getElementById("clanMissionsList");
+      const clanLeaderboardList = document.getElementById("clanLeaderboardList");
       const profileMessage = document.getElementById("profileMessage");
       const shopList = document.getElementById("shopList");
       const shopMessage = document.getElementById("shopMessage");
@@ -6729,6 +6863,30 @@
         { id: "score25", name: "Earn 25 score", target: 25, xp: 80, coins: 35 },
         { id: "online1", name: "Join 1 online room", target: 1, xp: 80, coins: 35 }
       ];
+      const dailyMissionDefs = [
+        { id: "dailyPlay3", progressKey: "play1", name: "Play 3 games today", target: 3, xp: 110, coins: 80 },
+        { id: "dailyScore75", progressKey: "score25", name: "Earn 75 score today", target: 75, xp: 180, coins: 120 },
+        { id: "dailyOnline1", progressKey: "online1", name: "Play 1 online game today", target: 1, xp: 130, coins: 100 }
+      ];
+      const clanMissionDefs = [
+        { id: "clanPlay8", progressKey: "play1", name: "Clan plays 8 games", target: 8, xp: 80, coins: 60, clanPoints: 30 },
+        { id: "clanScore250", progressKey: "score25", name: "Clan earns 250 score", target: 250, xp: 120, coins: 90, clanPoints: 50 },
+        { id: "clanOnline3", progressKey: "online1", name: "Clan plays 3 online games", target: 3, xp: 150, coins: 120, clanPoints: 70 }
+      ];
+      const pixelSkinPalette = [
+        "#04130f",
+        "#f8fafc",
+        "#5eead4",
+        "#22c55e",
+        "#facc15",
+        "#8b5cf6",
+        "#fb7185",
+        "#38bdf8"
+      ];
+      const pixelSkinSize = 64;
+      const pixelSkinCellCount = pixelSkinSize * pixelSkinSize;
+      let pixelSkinDraft = "";
+      let selectedPixelColor = 2;
 
       function startGame(gameName, unlockMusic = true) {
         if (unlockMusic) {
@@ -7114,7 +7272,9 @@
         const selectedSkin = skinSelect.value;
         const selectedColor = colorSelect.value;
         const selectedTrail = trailSelect.value;
-        const ownsSkin = !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`skin-${selectedSkin}`]);
+        const ownsSkin = selectedSkin === "custom64"
+          ? Boolean(currentUserData?.pixelSkin64)
+          : !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`skin-${selectedSkin}`]);
         const ownsColor = !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`color-${selectedColor}`]);
         const ownsTrail = !selectedTrail || !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`trail-${selectedTrail}`]);
 
@@ -8100,9 +8260,11 @@
           "skin-classic": true,
           "color-teal": true,
           "color-green": true,
+          ...(user.pixelSkin64 ? { "skin-custom64": true } : {}),
           ...(user.ownedItems || {})
         };
         const xp = Number(user.xp || 0);
+        const dailyMissions = normalizeDailyMissionState(user.dailyMissions);
 
         return {
           ...user,
@@ -8127,6 +8289,9 @@
           },
           achievements: user.achievements || {},
           quests: user.quests || {},
+          dailyMissions,
+          clanId: sanitizeClanName(user.clanId || ""),
+          pixelSkin64: sanitizePixelSkin64(user.pixelSkin64 || ""),
           dailyReward: user.dailyReward || { lastClaimAt: 0, streak: 0 },
           friends: user.friends || {},
           friendRequests: {
@@ -8249,6 +8414,70 @@
         return new Date().toISOString().slice(0, 10);
       }
 
+      function normalizeDailyMissionState(state = {}) {
+        const day = getQuestDayKey();
+        return state?.date === day
+          ? {
+              date: day,
+              progress: state.progress || {},
+              claimed: state.claimed || {}
+            }
+          : {
+              date: day,
+              progress: {},
+              claimed: {}
+            };
+      }
+
+      function sanitizeClanName(value) {
+        return String(value || "")
+          .trim()
+          .replace(/\s+/g, " ")
+          .slice(0, 18);
+      }
+
+      function clanKey(value) {
+        return sanitizeClanName(value).toLowerCase().replace(/[^a-z0-9_-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      }
+
+      function sanitizePixelSkin64(value) {
+        const text = String(value || "");
+        if (text.length !== pixelSkinCellCount) {
+          return "";
+        }
+
+        const maxIndex = pixelSkinPalette.length - 1;
+        for (const char of text) {
+          const valueIndex = Number(char);
+          if (!Number.isInteger(valueIndex) || valueIndex < 0 || valueIndex > maxIndex) {
+            return "";
+          }
+        }
+
+        return text;
+      }
+
+      function makeDefaultPixelSkin64() {
+        const pixels = new Array(pixelSkinCellCount).fill("2");
+        for (let y = 0; y < pixelSkinSize; y += 1) {
+          for (let x = 0; x < pixelSkinSize; x += 1) {
+            const index = y * pixelSkinSize + x;
+            if (x < 3 || y < 3 || x > 60 || y > 60) {
+              pixels[index] = "3";
+            } else if (x > 22 && x < 42 && y > 22 && y < 42) {
+              pixels[index] = "0";
+            } else if ((x - 48) ** 2 + (y - 16) ** 2 < 70) {
+              pixels[index] = "4";
+            }
+          }
+        }
+        return pixels.join("");
+      }
+
+      function getPixelSkinDraft(user = currentUserData) {
+        return sanitizePixelSkin64(pixelSkinDraft) || sanitizePixelSkin64(user?.pixelSkin64 || "") || makeDefaultPixelSkin64();
+      }
+
       async function addQuestProgress(id, amount) {
         if (!currentAccount?.username) {
           return;
@@ -8261,8 +8490,58 @@
           await patchCurrentUser({
             [`quests/${day}/${id}/progress`]: current + amount
           });
+          await addDailyMissionProgress(id, amount);
+          await addClanMissionProgress(id, amount);
         } catch {
           // Quest progress is optional.
+        }
+      }
+
+      async function addDailyMissionProgress(progressKey, amount) {
+        const matching = dailyMissionDefs.filter((mission) => mission.progressKey === progressKey);
+
+        if (!matching.length || !currentAccount?.username) {
+          return;
+        }
+
+        const user = currentUserData || await refreshCurrentUserData();
+        const daily = normalizeDailyMissionState(user?.dailyMissions);
+        const patch = {
+          "dailyMissions/date": daily.date
+        };
+
+        matching.forEach((mission) => {
+          const current = Number(daily.progress?.[mission.id] || 0);
+          patch[`dailyMissions/progress/${mission.id}`] = current + amount;
+        });
+
+        await patchCurrentUser(patch);
+      }
+
+      async function addClanMissionProgress(progressKey, amount) {
+        const matching = clanMissionDefs.filter((mission) => mission.progressKey === progressKey);
+        const user = currentUserData || await refreshCurrentUserData();
+        const key = clanKey(user?.clanId || "");
+
+        if (!matching.length || !key) {
+          return;
+        }
+
+        try {
+          const clan = await firebaseRead(`clans/${key}`);
+          const daily = normalizeDailyMissionState(clan?.daily);
+          const patch = {
+            "daily/date": daily.date
+          };
+
+          matching.forEach((mission) => {
+            const current = Number(daily.progress?.[mission.id] || 0);
+            patch[`daily/progress/${mission.id}`] = current + amount;
+          });
+
+          await firebaseUpdate(`clans/${key}`, patch);
+        } catch {
+          // Clan missions should never block the game.
         }
       }
 
@@ -9978,10 +10257,104 @@
           : "Play";
       }
 
+      function renderDailyMissionCards(user) {
+        const daily = normalizeDailyMissionState(user?.dailyMissions);
+        dailyMissionsList.innerHTML = dailyMissionDefs.map((mission) => {
+          const progress = Math.min(Number(daily.progress?.[mission.id] || 0), mission.target);
+          const claimed = Boolean(daily.claimed?.[mission.id]);
+          return `
+            <div class="quest-card daily-card">
+              <strong>${escapeHtml(mission.name)}</strong>
+              <span>${progress}/${mission.target} | +${mission.xp} XP +${mission.coins} coins</span>
+              <button type="button" data-daily-mission-id="${escapeHtml(mission.id)}" ${claimed || progress < mission.target ? "disabled" : ""}>${claimed ? "Claimed" : "Claim"}</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderPixelPalette() {
+        pixelPalette.innerHTML = pixelSkinPalette.map((color, index) => `
+          <button type="button" class="${index === selectedPixelColor ? "selected" : ""}" data-pixel-color="${index}" style="background:${color}" aria-label="Pixel color ${index}"></button>
+        `).join("");
+      }
+
+      function renderPixelSkinGrid(user) {
+        pixelSkinDraft = getPixelSkinDraft(user);
+        renderPixelPalette();
+        pixelSkinGrid.innerHTML = Array.from(pixelSkinDraft, (value, index) => `
+          <button type="button" class="pixel-cell" data-pixel-index="${index}" style="background:${pixelSkinPalette[Number(value)]}"></button>
+        `).join("");
+      }
+
+      async function getClan(clanId) {
+        const key = clanKey(clanId);
+        return key ? firebaseRead(`clans/${key}`) : null;
+      }
+
+      async function renderClanPanel(user) {
+        const userClanKey = clanKey(user?.clanId || "");
+        const clans = await firebaseRead("clans").catch(() => ({}));
+        const clanEntries = Object.entries(clans || {})
+          .map(([key, clan]) => ({
+            key,
+            name: clan?.name || key,
+            points: Number(clan?.points || 0),
+            members: Object.keys(clan?.members || {}).length,
+            owner: clan?.owner || ""
+          }))
+          .sort((a, b) => b.points - a.points || b.members - a.members || a.name.localeCompare(b.name));
+
+        if (userClanKey) {
+          const clan = clans?.[userClanKey] || {};
+          currentClanInfo.innerHTML = `
+            <div class="admin-user-card clan-card">
+              <div class="admin-user-top">
+                <span class="admin-user-name">${escapeHtml(clan.name || user.clanId)}</span>
+                <span class="admin-badge">${Object.keys(clan.members || {}).length} members</span>
+              </div>
+              <div class="admin-user-meta">Clan points: ${Number(clan.points || 0)} | Owner: ${escapeHtml(clan.owner || "Unknown")}</div>
+            </div>
+          `;
+          renderClanMissions(user, clan);
+        } else {
+          currentClanInfo.innerHTML = `<div class="empty-card">No clan yet. Create one or join by name.</div>`;
+          clanMissionsList.innerHTML = `<div class="empty-card">Join a clan to unlock clan daily missions.</div>`;
+        }
+
+        clanLeaderboardList.innerHTML = clanEntries.slice(0, 10).map((clan, index) => `
+          <div class="admin-user-card leaderboard-card">
+            <div class="admin-user-top">
+              <span class="admin-user-name">#${index + 1} ${escapeHtml(clan.name)}</span>
+              <span class="admin-badge">${clan.members} members</span>
+            </div>
+            <div class="admin-user-meta">Clan points: ${clan.points} | Owner: ${escapeHtml(clan.owner || "Unknown")}</div>
+          </div>
+        `).join("") || `<div class="empty-card">No clans yet.</div>`;
+      }
+
+      function renderClanMissions(user, clan) {
+        const daily = normalizeDailyMissionState(clan?.daily);
+        clanMissionsList.innerHTML = clanMissionDefs.map((mission) => {
+          const progress = Math.min(Number(daily.progress?.[mission.id] || 0), mission.target);
+          const claimed = Boolean(daily.claimed?.[mission.id]);
+          return `
+            <div class="quest-card clan-mission-card">
+              <strong>${escapeHtml(mission.name)}</strong>
+              <span>${progress}/${mission.target} | +${mission.clanPoints} clan points | +${mission.xp} XP +${mission.coins} coins</span>
+              <button type="button" data-clan-mission-id="${escapeHtml(mission.id)}" ${claimed || progress < mission.target ? "disabled" : ""}>${claimed ? "Claimed" : "Claim"}</button>
+            </div>
+          `;
+        }).join("");
+      }
+
       async function renderProfileMenu() {
         if (!currentAccount?.username) {
           profileStats.innerHTML = "";
           profileBestScores.textContent = "";
+          dailyMissionsList.textContent = "";
+          currentClanInfo.textContent = "";
+          clanMissionsList.textContent = "";
+          clanLeaderboardList.textContent = "";
           profileMessage.textContent = "Log in first.";
           return;
         }
@@ -10002,10 +10375,15 @@
           <div class="profile-card">Color <strong>${escapeHtml(user.equipped.color)}</strong></div>
           <div class="profile-card">Effect <strong>${escapeHtml(user.equipped.effect || "None")}</strong></div>
           <div class="profile-card">Music <strong>${escapeHtml(user.equipped.music || "Game Default")}</strong></div>
+          <div class="profile-card">Clan <strong>${escapeHtml(user.clanId || "No clan")}</strong></div>
+          <div class="profile-card">Pixel Skin <strong>${user.pixelSkin64 ? "Saved" : "Not saved"}</strong></div>
         `;
         profileBestScores.innerHTML = Object.entries(user.bestScores || {})
           .map(([game, value]) => `<div class="admin-user-card"><span>${escapeHtml(games[game]?.title || game)}: ${Number(value || 0)}</span></div>`)
           .join("") || "No best scores yet.";
+        renderDailyMissionCards(user);
+        renderPixelSkinGrid(user);
+        await renderClanPanel(user);
         profileMessage.textContent = currentAccount.isAdmin ? "Admin profile loaded." : "Profile loaded.";
       }
 
@@ -10187,7 +10565,31 @@
               <div class="admin-user-meta">XP: ${entry.xp} | Best: ${entry.bestTotal} | Points: ${entry.points} | Coins: ${entry.coins} | Flame Coins: ${entry.flameCoins}</div>
             </div>
           `).join("") || `<div class="empty-card">No players yet.</div>`;
-          leaderboardMessage.textContent = "Leaderboard sorted by XP, best score, then points.";
+
+          const clans = await firebaseRead("clans").catch(() => ({}));
+          const clanEntries = Object.entries(clans || {})
+            .map(([key, clan]) => ({
+              key,
+              name: clan?.name || key,
+              points: Number(clan?.points || 0),
+              members: Object.keys(clan?.members || {}).length
+            }))
+            .sort((a, b) => b.points - a.points || b.members - a.members || a.name.localeCompare(b.name))
+            .slice(0, 10);
+
+          leaderboardList.insertAdjacentHTML("beforeend", `
+            <h3>Clan Leaderboard</h3>
+            ${clanEntries.map((clan, index) => `
+              <div class="admin-user-card leaderboard-card clan-card">
+                <div class="admin-user-top">
+                  <span class="admin-user-name">#${index + 1} ${escapeHtml(clan.name)}</span>
+                  <span class="admin-badge">${clan.members} members</span>
+                </div>
+                <div class="admin-user-meta">Clan points: ${clan.points}</div>
+              </div>
+            `).join("") || `<div class="empty-card">No clans yet.</div>`}
+          `);
+          leaderboardMessage.textContent = "Leaderboard sorted by XP. Clan board sorted by clan points.";
         } catch {
           leaderboardList.textContent = "Could not load leaderboard.";
         }
@@ -10411,6 +10813,239 @@
         });
         await grantRewards({ xp: quest.xp, coins: quest.coins, reason: quest.name });
         await renderQuestsMenu();
+      }
+
+      async function claimDailyMission(event) {
+        const button = event.target.closest("[data-daily-mission-id]");
+
+        if (!button || !currentAccount?.username) {
+          return;
+        }
+
+        const mission = dailyMissionDefs.find((item) => item.id === button.dataset.dailyMissionId);
+        const user = await refreshCurrentUserData();
+        const daily = normalizeDailyMissionState(user?.dailyMissions);
+        const progress = Number(daily.progress?.[mission?.id] || 0);
+
+        if (!mission || daily.claimed?.[mission.id] || progress < mission.target) {
+          return;
+        }
+
+        await patchCurrentUser({
+          "dailyMissions/date": daily.date,
+          [`dailyMissions/claimed/${mission.id}`]: true
+        });
+        await grantRewards({ xp: mission.xp, coins: mission.coins, reason: mission.name });
+        await renderProfileMenu();
+        await renderQuestsMenu();
+      }
+
+      async function claimClanMission(event) {
+        const button = event.target.closest("[data-clan-mission-id]");
+
+        if (!button || !currentAccount?.username) {
+          return;
+        }
+
+        const mission = clanMissionDefs.find((item) => item.id === button.dataset.clanMissionId);
+        const user = await refreshCurrentUserData();
+        const key = clanKey(user?.clanId || "");
+
+        if (!mission || !key) {
+          return;
+        }
+
+        const clan = await firebaseRead(`clans/${key}`);
+        const daily = normalizeDailyMissionState(clan?.daily);
+        const progress = Number(daily.progress?.[mission.id] || 0);
+
+        if (daily.claimed?.[mission.id] || progress < mission.target) {
+          return;
+        }
+
+        await firebaseUpdate(`clans/${key}`, {
+          "daily/date": daily.date,
+          [`daily/claimed/${mission.id}`]: true,
+          points: Number(clan?.points || 0) + mission.clanPoints
+        });
+        await grantRewards({ xp: mission.xp, coins: mission.coins, reason: mission.name });
+        profileMessage.textContent = `${mission.name} claimed for your clan.`;
+        await renderProfileMenu();
+      }
+
+      function handlePixelPaletteClick(event) {
+        const button = event.target.closest("[data-pixel-color]");
+
+        if (!button) {
+          return;
+        }
+
+        selectedPixelColor = Number(button.dataset.pixelColor);
+        renderPixelPalette();
+      }
+
+      function handlePixelSkinPaint(event) {
+        const button = event.target.closest("[data-pixel-index]");
+
+        if (!button) {
+          return;
+        }
+
+        const index = Number(button.dataset.pixelIndex);
+        const draft = getPixelSkinDraft().split("");
+        draft[index] = String(selectedPixelColor);
+        pixelSkinDraft = draft.join("");
+        button.style.background = pixelSkinPalette[selectedPixelColor];
+      }
+
+      async function savePixelSkin() {
+        if (!currentAccount?.username) {
+          profileMessage.textContent = "Log in first.";
+          return;
+        }
+
+        const skin = sanitizePixelSkin64(getPixelSkinDraft());
+
+        if (!skin) {
+          profileMessage.textContent = "Pixel skin must be exactly 64x64 with approved colors.";
+          return;
+        }
+
+        await patchCurrentUser({
+          pixelSkin64: skin,
+          "ownedItems/skin-custom64": true
+        });
+        profileMessage.textContent = "64x64 pixel skin saved.";
+        await renderProfileMenu();
+      }
+
+      async function equipPixelSkin() {
+        if (!currentAccount?.username) {
+          profileMessage.textContent = "Log in first.";
+          return;
+        }
+
+        const skin = sanitizePixelSkin64(getPixelSkinDraft(currentUserData));
+
+        if (!skin) {
+          profileMessage.textContent = "Save your 64x64 pixel skin first.";
+          return;
+        }
+
+        playerStyle = {
+          ...playerStyle,
+          skin: "custom64"
+        };
+        savePlayerStyle();
+        await patchCurrentUser({
+          pixelSkin64: skin,
+          "ownedItems/skin-custom64": true,
+          "equipped/skin": "custom64",
+          skin: "custom64"
+        });
+        applyPlayerStyleControls();
+        draw();
+        profileMessage.textContent = "64x64 pixel skin equipped.";
+      }
+
+      function clearPixelSkin() {
+        pixelSkinDraft = makeDefaultPixelSkin64();
+        renderPixelSkinGrid(currentUserData);
+        profileMessage.textContent = "Pixel editor reset. Click Save Pixel Skin to store it.";
+      }
+
+      async function createClanFromProfile() {
+        if (!currentAccount?.username) {
+          profileMessage.textContent = "Log in first.";
+          return;
+        }
+
+        const name = sanitizeClanName(clanNameInput.value);
+        const key = clanKey(name);
+
+        if (!key) {
+          profileMessage.textContent = "Enter a clan name.";
+          return;
+        }
+
+        const user = await refreshCurrentUserData();
+
+        if (user.clanId) {
+          profileMessage.textContent = "Leave your current clan first.";
+          return;
+        }
+
+        const existing = await firebaseRead(`clans/${key}`);
+
+        if (existing) {
+          profileMessage.textContent = "Clan already exists. Use Join Clan.";
+          return;
+        }
+
+        const userKey = getUserKeyFromAccount();
+        await firebaseSet(`clans/${key}`, {
+          name,
+          owner: currentAccount.username,
+          points: 0,
+          createdAt: Date.now(),
+          members: {
+            [userKey]: {
+              username: currentAccount.username,
+              joinedAt: Date.now()
+            }
+          },
+          daily: normalizeDailyMissionState()
+        });
+        await patchCurrentUser({ clanId: name });
+        profileMessage.textContent = `${name} clan created.`;
+        await renderProfileMenu();
+      }
+
+      async function joinClanFromProfile() {
+        if (!currentAccount?.username) {
+          profileMessage.textContent = "Log in first.";
+          return;
+        }
+
+        const name = sanitizeClanName(clanNameInput.value);
+        const key = clanKey(name);
+        const clan = await firebaseRead(`clans/${key}`);
+
+        if (!key || !clan) {
+          profileMessage.textContent = "Clan not found.";
+          return;
+        }
+
+        const userKey = getUserKeyFromAccount();
+        await firebaseUpdate(`clans/${key}`, {
+          [`members/${userKey}`]: {
+            username: currentAccount.username,
+            joinedAt: Date.now()
+          }
+        });
+        await patchCurrentUser({ clanId: clan.name || name });
+        profileMessage.textContent = `Joined ${clan.name || name}.`;
+        await renderProfileMenu();
+      }
+
+      async function leaveClanFromProfile() {
+        if (!currentAccount?.username) {
+          profileMessage.textContent = "Log in first.";
+          return;
+        }
+
+        const user = await refreshCurrentUserData();
+        const key = clanKey(user?.clanId || "");
+
+        if (!key) {
+          profileMessage.textContent = "You are not in a clan.";
+          return;
+        }
+
+        await firebaseRemove(`clans/${key}/members/${getUserKeyFromAccount()}`);
+        await patchCurrentUser({ clanId: "" });
+        profileMessage.textContent = "Left clan.";
+        await renderProfileMenu();
       }
 
       async function addFriendFromInput() {
@@ -11126,6 +11761,13 @@
         const top = part.y * gridSize + 2;
 
         ctx.save();
+
+        if (skin === "custom64") {
+          drawCustomPixelSnakeTile(part, isHead);
+          ctx.restore();
+          return;
+        }
+
         ctx.fillStyle = color;
 
         if (skin === "ghost") {
@@ -11236,6 +11878,31 @@
         }
 
         ctx.restore();
+      }
+
+      function drawCustomPixelSnakeTile(part, isHead) {
+        const skin = sanitizePixelSkin64(currentUserData?.pixelSkin64 || "") || makeDefaultPixelSkin64();
+        const left = part.x * gridSize + 2;
+        const top = part.y * gridSize + 2;
+        const tileSize = gridSize - 4;
+        const sampleSize = 8;
+        const cellSize = tileSize / sampleSize;
+
+        ctx.shadowColor = isHead ? "#5eead4" : "rgba(94, 234, 212, 0.35)";
+        ctx.shadowBlur = isHead ? 16 : 8;
+        for (let y = 0; y < sampleSize; y += 1) {
+          for (let x = 0; x < sampleSize; x += 1) {
+            const sourceX = x * 8;
+            const sourceY = y * 8;
+            const value = Number(skin[sourceY * pixelSkinSize + sourceX] || 0);
+            ctx.fillStyle = pixelSkinPalette[value] || pixelSkinPalette[0];
+            ctx.fillRect(left + x * cellSize, top + y * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
+          }
+        }
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = isHead ? "rgba(248, 250, 252, 0.85)" : "rgba(248, 250, 252, 0.22)";
+        ctx.lineWidth = isHead ? 2 : 1;
+        ctx.strokeRect(left, top, tileSize, tileSize);
       }
 
       function roundTile(x, y, radius) {
@@ -15240,6 +15907,16 @@
       donateList.addEventListener("click", handleDonateAction);
       battlePassList.addEventListener("click", claimBattlePassReward);
       questsList.addEventListener("click", claimQuest);
+      dailyMissionsList.addEventListener("click", claimDailyMission);
+      clanMissionsList.addEventListener("click", claimClanMission);
+      pixelPalette.addEventListener("click", handlePixelPaletteClick);
+      pixelSkinGrid.addEventListener("click", handlePixelSkinPaint);
+      savePixelSkinButton.addEventListener("click", savePixelSkin);
+      equipPixelSkinButton.addEventListener("click", equipPixelSkin);
+      clearPixelSkinButton.addEventListener("click", clearPixelSkin);
+      createClanButton.addEventListener("click", createClanFromProfile);
+      joinClanButton.addEventListener("click", joinClanFromProfile);
+      leaveClanButton.addEventListener("click", leaveClanFromProfile);
       addFriendButton.addEventListener("click", addFriendFromInput);
       friendRequestsList.addEventListener("click", handleFriendAction);
       sentRequestsList.addEventListener("click", handleFriendAction);
