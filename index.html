@@ -5360,6 +5360,108 @@
         box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
       }
 
+      .top-notification {
+        position: fixed;
+        top: max(16px, env(safe-area-inset-top));
+        left: 50%;
+        z-index: 1000;
+        width: min(92vw, 560px);
+        padding: 14px 18px;
+        border: 1px solid rgba(94, 234, 212, 0.38);
+        border-radius: 18px;
+        background:
+          linear-gradient(145deg, rgba(7, 30, 28, 0.96), rgba(13, 40, 52, 0.94)),
+          linear-gradient(90deg, rgba(94, 234, 212, 0.07) 1px, transparent 1px) 0 0 / 18px 18px,
+          linear-gradient(0deg, rgba(250, 204, 21, 0.045) 1px, transparent 1px) 0 0 / 18px 18px;
+        color: #f8fafc;
+        font-weight: 900;
+        text-align: center;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.58);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
+          0 18px 42px rgba(0, 0, 0, 0.42),
+          0 0 28px rgba(45, 212, 191, 0.16);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -24px) scale(0.98);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .top-notification.show {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .cube-skin-studio {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        align-items: center;
+        gap: 18px;
+        padding: 18px;
+        border: 1px solid rgba(250, 204, 21, 0.18);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 22% 20%, rgba(250, 204, 21, 0.16), transparent 32%),
+          linear-gradient(135deg, rgba(14, 116, 89, 0.38), rgba(15, 23, 42, 0.78));
+      }
+
+      .cube-preview {
+        position: relative;
+        width: 132px;
+        height: 132px;
+        margin: 12px;
+        transform: rotateX(58deg) rotateZ(42deg);
+        transform-style: preserve-3d;
+        filter: drop-shadow(0 24px 18px rgba(0, 0, 0, 0.45));
+      }
+
+      .cube-face {
+        position: absolute;
+        inset: 0;
+        border: 2px solid rgba(248, 250, 252, 0.24);
+        border-radius: 10px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(135deg, var(--cube-front-a, #22c55e), var(--cube-front-b, #5eead4));
+      }
+
+      .cube-front {
+        transform: translateZ(66px);
+      }
+
+      .cube-top {
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(0deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(135deg, var(--cube-top-a, #facc15), var(--cube-top-b, #34d399));
+        transform: rotateX(90deg) translateZ(66px);
+      }
+
+      .cube-side {
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 16px 16px,
+          linear-gradient(135deg, var(--cube-side-a, #2dd4bf), var(--cube-side-b, #6366f1));
+        transform: rotateY(90deg) translateZ(66px);
+      }
+
+      .cube-skin-copy {
+        display: grid;
+        gap: 8px;
+        text-align: left;
+      }
+
+      .cube-skin-copy strong {
+        color: #5eead4;
+        font-size: 1.35rem;
+      }
+
+      .cube-skin-copy span {
+        color: rgba(248, 250, 252, 0.82);
+        line-height: 1.35;
+      }
+
       .pixel-skin-toolbar {
         display: grid;
         grid-template-columns: repeat(8, minmax(28px, 1fr));
@@ -5429,6 +5531,21 @@
       }
 
       @media (max-width: 700px) {
+        .top-notification {
+          top: max(10px, env(safe-area-inset-top));
+          font-size: 0.92rem;
+        }
+
+        .cube-skin-studio {
+          grid-template-columns: 1fr;
+          justify-items: center;
+          text-align: center;
+        }
+
+        .cube-skin-copy {
+          text-align: center;
+        }
+
         .pixel-skin-actions,
         .clan-actions {
           grid-template-columns: 1fr;
@@ -5453,6 +5570,7 @@
           <button type="button" id="startPlayButton">Play</button>
           <button type="button" id="startGamesButton">Games</button>
           <button type="button" id="startProfileButton">Profile</button>
+          <button type="button" id="startSkinStudioButton">Skin Studio</button>
           <button type="button" id="startShopButton">Shop</button>
           <button type="button" id="startPremiumButton">Premium</button>
           <button type="button" id="startDonateButton">Donate</button>
@@ -5551,6 +5669,17 @@
           <div class="shop-list" id="dailyMissionsList"></div>
           <h3>64x64 Pixel Skin</h3>
           <div class="pixel-skin-editor">
+            <div class="cube-skin-studio" id="cubeSkinStudio">
+              <div class="cube-preview" aria-hidden="true">
+                <div class="cube-face cube-front"></div>
+                <div class="cube-face cube-top"></div>
+                <div class="cube-face cube-side"></div>
+              </div>
+              <div class="cube-skin-copy">
+                <strong>Cube Skin Studio</strong>
+                <span>Draw a safe 64x64 pixel skin. Only approved palette pixels are saved, so no one can inject cheats.</span>
+              </div>
+            </div>
             <div class="pixel-skin-toolbar" id="pixelPalette"></div>
             <div class="pixel-skin-grid" id="pixelSkinGrid" aria-label="64 by 64 pixel skin editor"></div>
             <div class="pixel-skin-actions">
@@ -6041,6 +6170,8 @@
       </div>
     </div>
 
+    <div class="top-notification" id="topNotification" aria-live="polite" aria-hidden="true"></div>
+
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -6072,6 +6203,7 @@
       const startPlayButton = document.getElementById("startPlayButton");
       const startGamesButton = document.getElementById("startGamesButton");
       const startProfileButton = document.getElementById("startProfileButton");
+      const startSkinStudioButton = document.getElementById("startSkinStudioButton");
       const startShopButton = document.getElementById("startShopButton");
       const startPremiumButton = document.getElementById("startPremiumButton");
       const startDonateButton = document.getElementById("startDonateButton");
@@ -6238,6 +6370,7 @@
       const confirmMessage = document.getElementById("confirmMessage");
       const confirmYesButton = document.getElementById("confirmYesButton");
       const confirmNahButton = document.getElementById("confirmNahButton");
+      const topNotification = document.getElementById("topNotification");
       const statusEl = document.getElementById("status");
       const roomChat = document.getElementById("roomChat");
       const chatMessages = document.getElementById("chatMessages");
@@ -6525,6 +6658,8 @@
       let adminMusicPreviewAudio = null;
       let adminMusicPreviewKey = "";
       let adminMusicPreviewButton = null;
+      let topNotificationTimer = null;
+      let lastTopNotification = "";
       let deferredInstallPrompt = null;
       const colorThemes = {
         teal: { head: "#5eead4", body: "#14b8a6", top: "#99f6e4" },
@@ -10181,6 +10316,34 @@
           .toUpperCase();
       }
 
+      function showTopNotification(message) {
+        const text = String(message || "").trim();
+
+        if (!text || text === "Loading..." || text === lastTopNotification) {
+          return;
+        }
+
+        lastTopNotification = text;
+        topNotification.textContent = text;
+        topNotification.classList.add("show");
+        topNotification.setAttribute("aria-hidden", "false");
+        clearTimeout(topNotificationTimer);
+        topNotificationTimer = setTimeout(() => {
+          topNotification.classList.remove("show");
+          topNotification.setAttribute("aria-hidden", "true");
+          lastTopNotification = "";
+        }, 2600);
+      }
+
+      function watchTopNotificationSource(element) {
+        if (!element) {
+          return;
+        }
+
+        const observer = new MutationObserver(() => showTopNotification(element.textContent));
+        observer.observe(element, { childList: true, characterData: true, subtree: true });
+      }
+
       function getStartGameGenre(gameName, isOnline) {
         if (isOnline) {
           return "Online room";
@@ -10242,6 +10405,14 @@
         }
       }
 
+      async function openSkinStudioFromStart() {
+        showStartSection("profile");
+        await renderProfileMenu();
+        document.getElementById("cubeSkinStudio")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        profileMessage.textContent = "Skin Studio opened. Draw pixels, save, then equip Custom 64x64.";
+        showTopNotification("Skin Studio opened.");
+      }
+
       function updateStartGameShowcase() {
         const gameName = selectedStartMode === "online" ? selectedOnlineGame : selectedStartGame;
         const title = selectedStartMode === "online" ? onlineGameNames[gameName] : games[gameName].title;
@@ -10282,9 +10453,27 @@
       function renderPixelSkinGrid(user) {
         pixelSkinDraft = getPixelSkinDraft(user);
         renderPixelPalette();
+        updateCubeSkinPreview();
         pixelSkinGrid.innerHTML = Array.from(pixelSkinDraft, (value, index) => `
           <button type="button" class="pixel-cell" data-pixel-index="${index}" style="background:${pixelSkinPalette[Number(value)]}"></button>
         `).join("");
+      }
+
+      function updateCubeSkinPreview() {
+        const studio = document.getElementById("cubeSkinStudio");
+        const draft = getPixelSkinDraft();
+
+        if (!studio || !draft) {
+          return;
+        }
+
+        const sample = (x, y) => pixelSkinPalette[Number(draft[y * pixelSkinSize + x] || 0)] || pixelSkinPalette[0];
+        studio.style.setProperty("--cube-front-a", sample(18, 34));
+        studio.style.setProperty("--cube-front-b", sample(44, 34));
+        studio.style.setProperty("--cube-top-a", sample(18, 10));
+        studio.style.setProperty("--cube-top-b", sample(44, 10));
+        studio.style.setProperty("--cube-side-a", sample(50, 24));
+        studio.style.setProperty("--cube-side-b", sample(58, 44));
       }
 
       async function getClan(clanId) {
@@ -10897,6 +11086,7 @@
         draft[index] = String(selectedPixelColor);
         pixelSkinDraft = draft.join("");
         button.style.background = pixelSkinPalette[selectedPixelColor];
+        updateCubeSkinPreview();
       }
 
       function startPixelSkinPaint(event) {
@@ -15848,6 +16038,7 @@
       startProfileButton.addEventListener("click", () => {
         showStartSection("profile");
       });
+      startSkinStudioButton.addEventListener("click", openSkinStudioFromStart);
       startShopButton.addEventListener("click", () => {
         showStartSection("shop");
       });
@@ -16121,6 +16312,8 @@
       populateGeneratedMusicOptions();
       applyPlayerStyleControls();
       applyGameSettingsControls();
+      watchTopNotificationSource(statusEl);
+      watchTopNotificationSource(startStatus);
       scheduleLoadingMusic();
       startGame("snake", false);
       window.setTimeout(showLoadedStartMenu, 900);
