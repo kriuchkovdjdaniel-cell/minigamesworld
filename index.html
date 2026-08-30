@@ -6444,6 +6444,79 @@
         border-radius: 999px;
         background: linear-gradient(180deg, var(--na-cyan), var(--na-violet));
       }
+
+      body[data-graphics="low"]::before,
+      body[data-graphics="low"] .start-screen,
+      body[data-graphics="low"] .start-panel h2,
+      body[data-graphics="low"] h1#gameTitle,
+      body[data-graphics="low"] .game-card-preview {
+        animation: none !important;
+      }
+
+      body[data-graphics="low"] main,
+      body[data-graphics="low"] .start-panel,
+      body[data-graphics="low"] .start-submenu,
+      body[data-graphics="low"] .start-showcase,
+      body[data-graphics="low"] .online-room-panel,
+      body[data-graphics="low"] #gamesRoomFinderPanel,
+      body[data-graphics="low"] .game,
+      body[data-graphics="low"] .pause-panel,
+      body[data-graphics="low"] .admin-panel,
+      body[data-graphics="low"] .shop-item,
+      body[data-graphics="low"] .profile-card,
+      body[data-graphics="low"] .quest-card,
+      body[data-graphics="low"] .admin-user-card {
+        backdrop-filter: none;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 10px 24px rgba(0, 0, 0, 0.34);
+      }
+
+      body[data-graphics="low"] button,
+      body[data-graphics="low"] .game-card-play,
+      body[data-graphics="low"] .showcase-play-button {
+        filter: none;
+        box-shadow:
+          inset 0 2px 0 rgba(255, 255, 255, 0.16),
+          inset 0 -4px 0 rgba(0, 0, 0, 0.2),
+          0 8px 16px rgba(0, 0, 0, 0.26);
+      }
+
+      body[data-graphics="high"] main,
+      body[data-graphics="high"] .start-panel,
+      body[data-graphics="high"] .start-submenu,
+      body[data-graphics="high"] .game,
+      body[data-graphics="high"] .pause-panel {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.14),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+          0 22px 58px rgba(0, 0, 0, 0.48),
+          0 0 38px rgba(53, 215, 232, 0.13),
+          0 0 54px rgba(141, 112, 232, 0.08);
+      }
+
+      body[data-graphics="ultra"]::before,
+      body[data-graphics="ultra"] .start-panel h2,
+      body[data-graphics="ultra"] h1#gameTitle {
+        filter: drop-shadow(0 0 18px rgba(53, 215, 232, 0.25));
+      }
+
+      body[data-graphics="ultra"] main,
+      body[data-graphics="ultra"] .start-panel,
+      body[data-graphics="ultra"] .start-submenu,
+      body[data-graphics="ultra"] .start-showcase,
+      body[data-graphics="ultra"] .online-room-panel,
+      body[data-graphics="ultra"] #gamesRoomFinderPanel,
+      body[data-graphics="ultra"] .game,
+      body[data-graphics="ultra"] .pause-panel,
+      body[data-graphics="ultra"] .admin-panel {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 24px 62px rgba(0, 0, 0, 0.5),
+          0 0 44px rgba(53, 215, 232, 0.16),
+          0 0 72px rgba(141, 112, 232, 0.1);
+      }
     </style>
   </head>
   <body>
@@ -6688,6 +6761,12 @@
               <option value="wasd">WASD</option>
               <option value="arrows">Arrows</option>
             </select>
+            <select id="startGraphicsQualitySelect" aria-label="Graphics quality">
+              <option value="low">Low Graphics</option>
+              <option value="normal">Normal Graphics</option>
+              <option value="high">High Graphics</option>
+              <option value="ultra">Ultra Graphics</option>
+            </select>
             <select id="startSkinSelect" aria-label="Skin">
               <option value="classic">Classic Core</option>
               <option value="round">Orbit Skin</option>
@@ -6913,6 +6992,15 @@
                 <option value="all">WASD + Arrows</option>
                 <option value="wasd">WASD</option>
                 <option value="arrows">Arrows</option>
+              </select>
+            </label>
+            <label>
+              Graphics Quality
+              <select id="graphicsQualitySelect">
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="ultra">Ultra</option>
               </select>
             </label>
             <label>
@@ -7143,6 +7231,7 @@
       const startThemeSelect = document.getElementById("startThemeSelect");
       const startFieldSizeSelect = document.getElementById("startFieldSizeSelect");
       const startControlsSelect = document.getElementById("startControlsSelect");
+      const startGraphicsQualitySelect = document.getElementById("startGraphicsQualitySelect");
       const startSkinSelect = document.getElementById("startSkinSelect");
       const startColorSelect = document.getElementById("startColorSelect");
       const startTrailSelect = document.getElementById("startTrailSelect");
@@ -7304,6 +7393,7 @@
       const themeSelect = document.getElementById("themeSelect");
       const fieldSizeSelect = document.getElementById("fieldSizeSelect");
       const controlsSelect = document.getElementById("controlsSelect");
+      const graphicsQualitySelect = document.getElementById("graphicsQualitySelect");
       const skinSelect = document.getElementById("skinSelect");
       const colorSelect = document.getElementById("colorSelect");
       const trailSelect = document.getElementById("trailSelect");
@@ -7910,6 +8000,8 @@
       const pixelSkinSize = 64;
       const pixelSkinCellCount = pixelSkinSize * pixelSkinSize;
       let pixelSkinDraft = "";
+      let pixelSkinDraftOwner = "";
+      let pixelSkinDirty = false;
       let selectedPixelColor = 2;
       let pixelSkinPainting = false;
 
@@ -7989,13 +8081,15 @@
           return {
             skin: storedStyle?.skin || "classic",
             color: storedStyle?.color || "teal",
-            trail: storedStyle?.trail || ""
+            trail: storedStyle?.trail || "",
+            pixelSkin64: typeof storedStyle?.pixelSkin64 === "string" ? storedStyle.pixelSkin64 : ""
           };
         } catch {
           return {
             skin: "classic",
             color: "teal",
-            trail: ""
+            trail: "",
+            pixelSkin64: ""
           };
         }
       }
@@ -8008,6 +8102,27 @@
         }
 
         return Math.max(0, Math.min(100, Math.round(numberValue)));
+      }
+
+      function normalizeGraphicsQuality(value) {
+        return ["low", "normal", "high", "ultra"].includes(value) ? value : "normal";
+      }
+
+      function getGraphicsQualityRank() {
+        return {
+          low: 0,
+          normal: 1,
+          high: 2,
+          ultra: 3
+        }[normalizeGraphicsQuality(gameSettings?.graphicsQuality)] ?? 1;
+      }
+
+      function getGraphicsEffectLimit(low, normal, high, ultra) {
+        return [low, normal, high, ultra][getGraphicsQualityRank()] ?? normal;
+      }
+
+      function getGraphicsShadowBlur(value) {
+        return value * getGraphicsEffectLimit(0.25, 1, 1.3, 1.65);
       }
 
       function getGameVolume() {
@@ -8107,6 +8222,7 @@
             theme: storedSettings?.theme || "midnight",
             fieldSize: storedSettings?.fieldSize || "normal",
             controls: storedSettings?.controls || "all",
+            graphicsQuality: normalizeGraphicsQuality(storedSettings?.graphicsQuality),
             customMusicUrl: storedSettings?.customMusicUrl || "",
             customMusicList: normalizeMusicList(storedSettings?.customMusicList),
             approvedCustomMusicList: normalizeApprovedMusicList(storedSettings?.approvedCustomMusicList)
@@ -8119,6 +8235,7 @@
             theme: "midnight",
             fieldSize: "normal",
             controls: "all",
+            graphicsQuality: "normal",
             customMusicUrl: "",
             customMusicList: [],
             approvedCustomMusicList: []
@@ -8284,10 +8401,13 @@
         themeSelect.value = gameSettings.theme;
         fieldSizeSelect.value = gameSettings.fieldSize;
         controlsSelect.value = gameSettings.controls;
+        graphicsQualitySelect.value = gameSettings.graphicsQuality;
         startThemeSelect.value = gameSettings.theme;
         startFieldSizeSelect.value = gameSettings.fieldSize;
         startControlsSelect.value = gameSettings.controls;
+        startGraphicsQualitySelect.value = gameSettings.graphicsQuality;
         document.body.dataset.theme = gameSettings.theme;
+        document.body.dataset.graphics = gameSettings.graphicsQuality;
         document.documentElement.style.setProperty("--app-width", appWidths[gameSettings.fieldSize] || appWidths.normal);
         renderCustomMusicLists();
         applyLanguage();
@@ -8313,7 +8433,8 @@
         playerStyle = {
           skin: selectedSkin,
           color: selectedColor,
-          trail: selectedTrail
+          trail: selectedTrail,
+          pixelSkin64: sanitizePixelSkin64(currentUserData?.pixelSkin64 || playerStyle.pixelSkin64 || "")
         };
         savePlayerStyle();
         if (currentAccount?.username) {
@@ -8332,6 +8453,9 @@
           player.skin = playerStyle.skin;
           player.color = playerStyle.color;
           player.trail = playerStyle.trail;
+          player.pixelSkin64 = playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "";
+          onlineLocalDirty = true;
+          syncOnlineState();
         }
 
         draw();
@@ -8371,6 +8495,7 @@
           theme: themeSelect.value,
           fieldSize: fieldSizeSelect.value,
           controls: controlsSelect.value,
+          graphicsQuality: normalizeGraphicsQuality(graphicsQualitySelect.value),
           customMusicUrl: gameSettings.customMusicUrl || "",
           customMusicList: normalizeMusicList(gameSettings.customMusicList),
           approvedCustomMusicList: normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)
@@ -9361,7 +9486,8 @@
           playerStyle = {
             skin: currentUserData.equipped.skin || playerStyle.skin,
             color: currentUserData.equipped.color || playerStyle.color,
-            trail: currentUserData.equipped.trail || playerStyle.trail || ""
+            trail: currentUserData.equipped.trail || playerStyle.trail || "",
+            pixelSkin64: currentUserData.pixelSkin64 || playerStyle.pixelSkin64 || ""
           };
           selectedMusicPack = currentUserData.equipped.music || "";
           savePlayerStyle();
@@ -9500,7 +9626,24 @@
       }
 
       function getPixelSkinDraft(user = currentUserData) {
-        return sanitizePixelSkin64(pixelSkinDraft) || sanitizePixelSkin64(user?.pixelSkin64 || "") || makeDefaultPixelSkin64();
+        return sanitizePixelSkin64(pixelSkinDraft) || getActivePixelSkin64(user) || makeDefaultPixelSkin64();
+      }
+
+      function getActivePixelSkin64(user = currentUserData) {
+        return sanitizePixelSkin64(user?.pixelSkin64 || "") || sanitizePixelSkin64(playerStyle.pixelSkin64 || "");
+      }
+
+      function syncPixelSkinDraft(user = currentUserData, forceReload = false) {
+        const owner = getUserKeyFromAccount() || "guest";
+        const savedSkin = getActivePixelSkin64(user);
+
+        if (forceReload || pixelSkinDraftOwner !== owner || !pixelSkinDraft || (!pixelSkinDirty && savedSkin)) {
+          pixelSkinDraft = savedSkin || makeDefaultPixelSkin64();
+          pixelSkinDraftOwner = owner;
+          pixelSkinDirty = false;
+        }
+
+        return getPixelSkinDraft(user);
       }
 
       async function addQuestProgress(id, amount) {
@@ -10772,8 +10915,9 @@
 
       function spawnScoreBurst() {
         const origin = getPointEffectPosition();
-        for (let index = 0; index < 6; index += 1) {
-          const angle = (Math.PI * 2 * index) / 6 + Math.random() * 0.4;
+        const burstCount = getGraphicsEffectLimit(2, 6, 9, 12);
+        for (let index = 0; index < burstCount; index += 1) {
+          const angle = (Math.PI * 2 * index) / burstCount + Math.random() * 0.4;
           const speed = 1.5 + Math.random() * 2.4;
           scoreBursts.push({
             x: origin.x,
@@ -10786,7 +10930,7 @@
           });
         }
 
-        scoreBursts = scoreBursts.slice(-90);
+        scoreBursts = scoreBursts.slice(-getGraphicsEffectLimit(28, 90, 130, 180));
       }
 
       function hasCoinFlamesEquipped() {
@@ -10833,7 +10977,8 @@
         }
 
         const origin = getPointEffectPosition();
-        for (let index = 0; index < 8; index += 1) {
+        const flameCount = getGraphicsEffectLimit(2, 8, 12, 16);
+        for (let index = 0; index < flameCount; index += 1) {
           coinFlames.push({
             x: origin.x + (Math.random() - 0.5) * 18,
             y: origin.y + (Math.random() - 0.5) * 18,
@@ -10845,7 +10990,7 @@
           });
         }
 
-        coinFlames = coinFlames.slice(-80);
+        coinFlames = coinFlames.slice(-getGraphicsEffectLimit(24, 80, 120, 160));
       }
 
       function drawCoinFlames() {
@@ -10869,7 +11014,7 @@
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.shadowColor = "#f97316";
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = getGraphicsShadowBlur(18);
           ctx.fillStyle = "#f97316";
           ctx.beginPath();
           ctx.arc(flame.x, flame.y + flame.size * 0.35, flame.size * 0.7, 0, Math.PI * 2);
@@ -10910,7 +11055,7 @@
           ctx.save();
           ctx.globalAlpha = alpha;
           ctx.shadowColor = "#5eead4";
-          ctx.shadowBlur = 12;
+          ctx.shadowBlur = getGraphicsShadowBlur(12);
           ctx.fillStyle = "#fef08a";
           ctx.beginPath();
           ctx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2);
@@ -11124,6 +11269,7 @@
         themeSelect.value = startThemeSelect.value;
         fieldSizeSelect.value = startFieldSizeSelect.value;
         controlsSelect.value = startControlsSelect.value;
+        graphicsQualitySelect.value = startGraphicsQualitySelect.value;
         customMusicUrlInput.value = startCustomMusicUrlInput.value.trim();
         updateGameSettings();
       }
@@ -11339,8 +11485,8 @@
         `).join("");
       }
 
-      function renderPixelSkinGrid(user) {
-        pixelSkinDraft = getPixelSkinDraft(user);
+      function renderPixelSkinGrid(user, forceReload = false) {
+        pixelSkinDraft = syncPixelSkinDraft(user, forceReload);
         renderPixelPalette();
         updateCubeSkinPreview();
         pixelSkinGrid.innerHTML = Array.from(pixelSkinDraft, (value, index) => `
@@ -11974,6 +12120,7 @@
         const draft = getPixelSkinDraft().split("");
         draft[index] = String(selectedPixelColor);
         pixelSkinDraft = draft.join("");
+        pixelSkinDirty = true;
         button.style.background = pixelSkinPalette[selectedPixelColor];
         updateCubeSkinPreview();
       }
@@ -12012,6 +12159,14 @@
           pixelSkin64: skin,
           "ownedItems/skin-custom64": true
         });
+        playerStyle = {
+          ...playerStyle,
+          pixelSkin64: skin
+        };
+        savePlayerStyle();
+        pixelSkinDraft = skin;
+        pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
+        pixelSkinDirty = false;
         profileMessage.textContent = "64x64 pixel skin saved.";
         await renderProfileMenu();
       }
@@ -12031,7 +12186,8 @@
 
         playerStyle = {
           ...playerStyle,
-          skin: "custom64"
+          skin: "custom64",
+          pixelSkin64: skin
         };
         savePlayerStyle();
         await patchCurrentUser({
@@ -12042,11 +12198,16 @@
         });
         applyPlayerStyleControls();
         draw();
+        pixelSkinDraft = skin;
+        pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
+        pixelSkinDirty = false;
         profileMessage.textContent = "64x64 pixel skin equipped.";
       }
 
       function clearPixelSkin() {
         pixelSkinDraft = makeDefaultPixelSkin64();
+        pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
+        pixelSkinDirty = true;
         renderPixelSkinGrid(currentUserData);
         profileMessage.textContent = "Pixel editor reset. Click Save Pixel Skin to store it.";
       }
@@ -12478,6 +12639,10 @@
       }
 
       function drawBoard() {
+        const qualityRank = getGraphicsQualityRank();
+        const glowAlpha = getGraphicsEffectLimit(0.045, 0.13, 0.17, 0.22);
+        const gridAlpha = getGraphicsEffectLimit(0.045, 0.105, 0.13, 0.16);
+        const lineStep = qualityRank === 0 ? gridSize * 2 : gridSize;
         const boardGradient = ctx.createRadialGradient(
           canvas.width * 0.5,
           canvas.height * 0.18,
@@ -12486,7 +12651,7 @@
           canvas.height * 0.55,
           canvas.width * 0.76
         );
-        boardGradient.addColorStop(0, "rgba(20, 184, 166, 0.13)");
+        boardGradient.addColorStop(0, `rgba(20, 184, 166, ${glowAlpha})`);
         boardGradient.addColorStop(0.45, "rgba(15, 23, 42, 0.08)");
         boardGradient.addColorStop(1, "rgba(2, 6, 23, 0.72)");
 
@@ -12495,10 +12660,9 @@
         ctx.fillStyle = boardGradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.105)";
+        ctx.strokeStyle = `rgba(148, 163, 184, ${gridAlpha})`;
         ctx.lineWidth = 1;
-        for (let line = 0; line <= tileCount; line += 1) {
-          const position = line * gridSize;
+        for (let position = 0; position <= canvas.width; position += lineStep) {
           ctx.beginPath();
           ctx.moveTo(position, 0);
           ctx.lineTo(position, canvas.height);
@@ -12510,12 +12674,14 @@
         }
 
         ctx.save();
-        ctx.strokeStyle = "rgba(94, 234, 212, 0.18)";
+        ctx.strokeStyle = `rgba(94, 234, 212, ${getGraphicsEffectLimit(0.08, 0.18, 0.24, 0.3)})`;
         ctx.lineWidth = 4;
         ctx.strokeRect(3, 3, canvas.width - 6, canvas.height - 6);
-        ctx.strokeStyle = "rgba(250, 204, 21, 0.08)";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+        if (qualityRank > 0) {
+          ctx.strokeStyle = `rgba(250, 204, 21, ${getGraphicsEffectLimit(0, 0.08, 0.12, 0.16)})`;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+        }
         ctx.restore();
       }
 
@@ -12526,7 +12692,7 @@
         const theme = getTheme(playerStyle.color);
         drawSnakeTrail(snake, playerStyle.trail, theme);
         snake.forEach((part, index) => {
-          drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0, playerStyle.pixelSkin64);
         });
       }
 
@@ -12545,16 +12711,18 @@
           crown: ["#facc15", "#c084fc"]
         };
         const colors = trailColors[trail] || [theme.top, theme.body];
+        const trailStep = getGraphicsQualityRank() === 0 ? 3 : 1;
+        const visibleParts = parts.slice(1).filter((_, index) => index % trailStep === 0);
 
         ctx.save();
-        parts.slice(1).forEach((part, index) => {
+        visibleParts.forEach((part, index) => {
           const alpha = Math.max(0.08, 0.42 - index * 0.045);
           const cx = part.x * gridSize + gridSize / 2;
           const cy = part.y * gridSize + gridSize / 2;
           const pulse = Math.sin(Date.now() / 130 + index) * 1.8;
           ctx.globalAlpha = alpha;
           ctx.shadowColor = colors[index % colors.length];
-          ctx.shadowBlur = trail === "flame" || trail === "crown" ? 18 : 12;
+          ctx.shadowBlur = getGraphicsShadowBlur(trail === "flame" || trail === "crown" ? 18 : 12);
           ctx.fillStyle = colors[index % colors.length];
 
           if (trail === "stars" || trail === "crown") {
@@ -12839,7 +13007,7 @@
         ctx.fillText(`Meteors ${starMeteors.length}`, 16, canvas.height - 16);
       }
 
-      function drawSnakeTile(part, color, skin, isHead) {
+      function drawSnakeTile(part, color, skin, isHead, pixelSkin64 = "") {
         const radiusBySkin = {
           classic: isHead ? 7 : 5,
           round: 9,
@@ -12860,7 +13028,7 @@
         ctx.save();
 
         if (skin === "custom64") {
-          drawCustomPixelSnakeTile(part, isHead);
+          drawCustomPixelSnakeTile(part, isHead, pixelSkin64);
           ctx.restore();
           return;
         }
@@ -12870,12 +13038,12 @@
         if (skin === "ghost") {
           ctx.globalAlpha = isHead ? 0.82 : 0.58;
           ctx.shadowColor = "#e0f2fe";
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = getGraphicsShadowBlur(18);
         }
 
         if (skin === "neon" || skin === "sigma" || skin === "royal" || skin === "prism" || skin === "lava" || skin === "cosmic") {
           ctx.shadowColor = color;
-          ctx.shadowBlur = skin === "royal" || skin === "cosmic" ? 24 : skin === "sigma" || skin === "lava" ? 20 : 14;
+          ctx.shadowBlur = getGraphicsShadowBlur(skin === "royal" || skin === "cosmic" ? 24 : skin === "sigma" || skin === "lava" ? 20 : 14);
         }
 
         if (skin === "prism") {
@@ -12977,8 +13145,10 @@
         ctx.restore();
       }
 
-      function drawCustomPixelSnakeTile(part, isHead) {
-        const skin = sanitizePixelSkin64(currentUserData?.pixelSkin64 || "") || makeDefaultPixelSkin64();
+      function drawCustomPixelSnakeTile(part, isHead, pixelSkin64 = "") {
+        const skin = sanitizePixelSkin64(pixelSkin64)
+          || getActivePixelSkin64(currentUserData)
+          || makeDefaultPixelSkin64();
         const left = part.x * gridSize + 2;
         const top = part.y * gridSize + 2;
         const tileSize = gridSize - 4;
@@ -12986,7 +13156,7 @@
         const cellSize = tileSize / sampleSize;
 
         ctx.shadowColor = isHead ? "#5eead4" : "rgba(94, 234, 212, 0.35)";
-        ctx.shadowBlur = isHead ? 16 : 8;
+        ctx.shadowBlur = getGraphicsShadowBlur(isHead ? 16 : 8);
         for (let y = 0; y < sampleSize; y += 1) {
           for (let x = 0; x < sampleSize; x += 1) {
             const sourceX = x * 8;
@@ -14908,12 +15078,16 @@
         const username = currentAccount?.username || slot.toUpperCase();
         const skin = playerStyle.skin;
         const color = playerStyle.color;
+        const pixelSkin64 = skin === "custom64"
+          ? getActivePixelSkin64(currentUserData)
+          : "";
 
         if (gameName === "online-tanks") {
           return {
             username,
             skin,
             color,
+            pixelSkin64,
             x: slot === "p1" ? 140 : 380,
             y: slot === "p1" ? 280 : 280,
             dir: slot === "p1" ? { x: 1, y: 0 } : { x: -1, y: 0 },
@@ -14928,6 +15102,7 @@
             username,
             skin,
             color,
+            pixelSkin64,
             x: slot === "p1" ? 136 : 328,
             y: canvas.height - 44,
             score: 0,
@@ -14940,6 +15115,7 @@
             username,
             skin,
             color,
+            pixelSkin64,
             x: slot === "p1" ? 34 : canvas.width - 50,
             y: canvas.height / 2 - 42,
             width: 16,
@@ -14978,6 +15154,7 @@
             username,
             skin,
             color,
+            pixelSkin64,
             x: start.x,
             y: start.y,
             size: 28,
@@ -14991,6 +15168,7 @@
           username,
           skin,
           color,
+          pixelSkin64,
           snake: slot === "p1"
             ? [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }]
             : [{ x: 20, y: 10 }, { x: 21, y: 10 }, { x: 22, y: 10 }],
@@ -15308,6 +15486,9 @@
           state.playersState[slot].username = currentAccount.username;
           state.playersState[slot].skin = playerStyle.skin;
           state.playersState[slot].color = playerStyle.color;
+          state.playersState[slot].pixelSkin64 = playerStyle.skin === "custom64"
+            ? getActivePixelSkin64(currentUserData)
+            : "";
         }
 
         if (gameName === "online-snake") {
@@ -16431,7 +16612,7 @@
         const skin = player.skin || "classic";
 
         player.snake.forEach((part, index) => {
-          drawSnakeTile(part, index === 0 ? theme.head : theme.body, skin, index === 0);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, skin, index === 0, player.pixelSkin64);
         });
       }
 
@@ -17031,7 +17212,7 @@
       gamesRoomVisibilitySelect.addEventListener("change", () => {
         startRoomVisibilitySelect.value = gamesRoomVisibilitySelect.value;
       });
-      [startSoundSelect, startLanguageSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect].forEach((select) => {
+      [startSoundSelect, startLanguageSelect, startThemeSelect, startFieldSizeSelect, startControlsSelect, startGraphicsQualitySelect].forEach((select) => {
         select.addEventListener("change", updateGameSettingsFromStart);
       });
       startSoundSelect.addEventListener("input", updateGameSettingsFromStart);
@@ -17124,6 +17305,7 @@
       themeSelect.addEventListener("change", updateGameSettings);
       fieldSizeSelect.addEventListener("change", updateGameSettings);
       controlsSelect.addEventListener("change", updateGameSettings);
+      graphicsQualitySelect.addEventListener("change", updateGameSettings);
       customMusicListSelect.addEventListener("change", () => selectCustomMusicUrl("game"));
       localMusicFileInput.addEventListener("change", () => chooseLocalMusicFile("game"));
       saveCustomMusicButton.addEventListener("click", () => saveCustomMusicUrl("game"));
