@@ -6887,6 +6887,7 @@
       const pixelSkinCellCount = pixelSkinSize * pixelSkinSize;
       let pixelSkinDraft = "";
       let selectedPixelColor = 2;
+      let pixelSkinPainting = false;
 
       function startGame(gameName, unlockMusic = true) {
         if (unlockMusic) {
@@ -10896,6 +10897,23 @@
         draft[index] = String(selectedPixelColor);
         pixelSkinDraft = draft.join("");
         button.style.background = pixelSkinPalette[selectedPixelColor];
+      }
+
+      function startPixelSkinPaint(event) {
+        pixelSkinPainting = true;
+        handlePixelSkinPaint(event);
+      }
+
+      function continuePixelSkinPaint(event) {
+        if (!pixelSkinPainting) {
+          return;
+        }
+
+        handlePixelSkinPaint(event);
+      }
+
+      function stopPixelSkinPaint() {
+        pixelSkinPainting = false;
       }
 
       async function savePixelSkin() {
@@ -15910,7 +15928,9 @@
       dailyMissionsList.addEventListener("click", claimDailyMission);
       clanMissionsList.addEventListener("click", claimClanMission);
       pixelPalette.addEventListener("click", handlePixelPaletteClick);
-      pixelSkinGrid.addEventListener("click", handlePixelSkinPaint);
+      pixelSkinGrid.addEventListener("pointerdown", startPixelSkinPaint);
+      pixelSkinGrid.addEventListener("pointerover", continuePixelSkinPaint);
+      window.addEventListener("pointerup", stopPixelSkinPaint);
       savePixelSkinButton.addEventListener("click", savePixelSkin);
       equipPixelSkinButton.addEventListener("click", equipPixelSkin);
       clearPixelSkinButton.addEventListener("click", clearPixelSkin);
