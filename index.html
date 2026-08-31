@@ -7713,35 +7713,39 @@
         { id: "music-boss", type: "music", value: "boss", name: "Boss Music Pack", cost: 0, premium: true }
       ];
       const musicPackCatalog = [
-        { value: "chill-menu", label: "Chill Menu", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
-        { value: "loading-adventure", label: "Loading Adventure", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
-        { value: "snake-neon", label: "Snake Neon", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
-        { value: "apple-happy", label: "Apple Drop Happy", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
-        { value: "brick-retro", label: "Brick Breaker Retro", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
-        { value: "gem-speed", label: "Gem Dash Speed", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
-        { value: "laser-tension", label: "Laser Escape Tension", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
-        { value: "rpg-fantasy", label: "Crystal RPG Fantasy", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
-        { value: "online-energy", label: "Online Battle Energy", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
-        { value: "fire-boost", label: "Fire Boost", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
+        { value: "drift-phonk", label: "Drift Phonk", mood: "phonk", wave: "square", speed: 0.58, octave: 0.72 },
+        { value: "midnight-phonk", label: "Midnight Phonk", mood: "phonk", wave: "square", speed: 0.62, octave: 0.64 },
+        { value: "cowbell-phonk", label: "Cowbell Phonk", mood: "phonk", wave: "square", speed: 0.54, octave: 0.78 },
+        { value: "arena-phonk", label: "Arena Phonk", mood: "phonk", wave: "sawtooth", speed: 0.6, octave: 0.68 },
+        { value: "chill-menu", label: "Emerald Lounge", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
+        { value: "loading-adventure", label: "Loading Rush", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
+        { value: "snake-neon", label: "Neon Snake Pulse", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
+        { value: "apple-happy", label: "Apple Drop Bounce", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
+        { value: "brick-retro", label: "Brick Breaker Drive", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
+        { value: "gem-speed", label: "Gem Dash Sprint", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
+        { value: "laser-tension", label: "Laser Escape Night", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
+        { value: "rpg-fantasy", label: "Crystal RPG Quest", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
+        { value: "online-energy", label: "Online Battle Charge", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
+        { value: "fire-boost", label: "Fire Boost Run", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
         { value: "crystal-dreams", label: "Crystal Dreams", mood: "crystal", wave: "sine", speed: 1.12, octave: 1.3 },
-        { value: "cyber-night", label: "Cyber Night", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
-        { value: "boss-fight", label: "Boss Fight", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
+        { value: "cyber-night", label: "Cyber Nightfall", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
+        { value: "boss-fight", label: "Boss Fight Drive", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
         { value: "golden-victory", label: "Golden Victory", mood: "victory", wave: "triangle", speed: 0.9, octave: 1.2 },
         { value: "space-rush", label: "Space Rush", mood: "space", wave: "square", speed: 0.74, octave: 1.45 },
         { value: "dark-arena", label: "Dark Arena", mood: "arena", wave: "sawtooth", speed: 0.8, octave: 0.7 },
         { value: "rainbow-party", label: "Rainbow Party", mood: "party", wave: "square", speed: 0.62, octave: 1.25 },
-        { value: "main-calm", label: "Main Menu Calm", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
+        { value: "main-calm", label: "Main Menu Flow", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
         { value: "main-epic", label: "Main Menu Epic", mood: "epic", wave: "triangle", speed: 0.88, octave: 0.95 },
-        { value: "main-funny", label: "Main Menu Funny", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
-        { value: "main-roblox", label: "Main Menu Roblox-style", mood: "happy", wave: "triangle", speed: 0.9, octave: 1.1 },
-        { value: "main-minecraft", label: "Main Menu Minecraft-style", mood: "calm", wave: "sine", speed: 1.35, octave: 0.8 },
-        { value: "win-theme", label: "Win Theme", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
-        { value: "lose-theme", label: "Lose Theme", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
-        { value: "admin-theme", label: "Admin Panel Theme", mood: "cyber", wave: "square", speed: 0.94, octave: 0.82 },
-        { value: "shop-theme", label: "Shop Theme", mood: "crystal", wave: "triangle", speed: 1.02, octave: 1.15 },
-        { value: "battle-pass-theme", label: "Battle Pass Theme", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
-        { value: "friend-lobby-theme", label: "Friend Lobby Theme", mood: "soft", wave: "sine", speed: 1.08, octave: 1.05 },
-        { value: "tournament-theme", label: "Tournament Theme", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 },
+        { value: "main-funny", label: "Main Menu Bounce", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
+        { value: "main-roblox", label: "Block Party Menu", mood: "happy", wave: "triangle", speed: 0.9, octave: 1.1 },
+        { value: "main-minecraft", label: "Pixel Meadow Menu", mood: "calm", wave: "sine", speed: 1.35, octave: 0.8 },
+        { value: "win-theme", label: "Win Screen Anthem", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
+        { value: "lose-theme", label: "Lose Screen Dark", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
+        { value: "admin-theme", label: "Admin Cyber Loop", mood: "cyber", wave: "square", speed: 0.94, octave: 0.82 },
+        { value: "shop-theme", label: "Shop Crystal Loop", mood: "crystal", wave: "triangle", speed: 1.02, octave: 1.15 },
+        { value: "battle-pass-theme", label: "Battle Pass March", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
+        { value: "friend-lobby-theme", label: "Friend Lobby Glow", mood: "soft", wave: "sine", speed: 1.08, octave: 1.05 },
+        { value: "tournament-theme", label: "Tournament Charge", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 },
         { value: "emerald-pulse", label: "Emerald Pulse", mood: "neon", wave: "triangle", speed: 0.72, octave: 1.08 },
         { value: "midnight-drive", label: "Midnight Drive", mood: "cyber", wave: "sawtooth", speed: 0.78, octave: 0.92 },
         { value: "pixel-quest", label: "Pixel Quest", mood: "fantasy", wave: "square", speed: 0.92, octave: 1.05 },
@@ -9031,10 +9035,15 @@
       const softMusicMoods = new Set(["soft", "calm", "crystal", "fantasy", "space"]);
       const darkMusicMoods = new Set(["boss", "dark", "arena", "cyber"]);
       const fastMusicMoods = new Set(["party", "speed", "energy", "victory", "happy"]);
+      const phonkMusicMoods = new Set(["phonk"]);
 
       function getSoftMusicWave(wave, mood, role = "lead") {
         if (role === "bass") {
           return "sine";
+        }
+
+        if (phonkMusicMoods.has(mood)) {
+          return role === "chord" ? "triangle" : "square";
         }
 
         if (role === "chord") {
@@ -9049,6 +9058,10 @@
       }
 
       function getMusicTempoFloor(mood) {
+        if (phonkMusicMoods.has(mood)) {
+          return 185;
+        }
+
         if (softMusicMoods.has(mood)) {
           return 310;
         }
@@ -9066,7 +9079,9 @@
         }
 
         let softened = Math.round(note);
-        const highLimit = role === "bass" ? 220 : softMusicMoods.has(mood) ? 640 : 760;
+        const highLimit = role === "bass"
+          ? phonkMusicMoods.has(mood) ? 150 : 220
+          : phonkMusicMoods.has(mood) ? 620 : softMusicMoods.has(mood) ? 640 : 760;
 
         while (softened > highLimit) {
           softened = Math.round(softened * 0.5);
@@ -9169,6 +9184,92 @@
         gain.gain.exponentialRampToValueAtTime(0.0001, end);
         oscillator.connect(filter);
         filter.connect(gain);
+        gain.connect(musicGain);
+        oscillator.start(now);
+        oscillator.stop(end + 0.04);
+      }
+
+      function createMusicDriveCurve(amount = 12) {
+        const samples = 256;
+        const curve = new Float32Array(samples);
+
+        for (let index = 0; index < samples; index += 1) {
+          const x = (index * 2) / samples - 1;
+          curve[index] = ((3 + amount) * x * 20 * Math.PI / 180) / (Math.PI + amount * Math.abs(x));
+        }
+
+        return curve;
+      }
+
+      function playPhonkCowbell(frequency, duration, volume = 0.1, options = {}) {
+        const audioContext = getMusicContext();
+
+        if (!audioContext || !musicGain || frequency <= 0) {
+          return;
+        }
+
+        const now = audioContext.currentTime + Math.max(0, Number(options.offset || 0));
+        const end = now + Math.max(0.08, duration);
+        const baseFrequency = Math.max(240, Math.min(620, softenMusicNote(frequency, "phonk", "melody")));
+        const filter = audioContext.createBiquadFilter();
+        const gain = audioContext.createGain();
+        const drive = audioContext.createWaveShaper();
+        const voices = [baseFrequency, baseFrequency * 1.48];
+
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(900, now);
+        filter.Q.setValueAtTime(1.35, now);
+        drive.curve = createMusicDriveCurve(8);
+        drive.oversample = "2x";
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(volume * getGameVolume(), now + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+        voices.forEach((voiceFrequency, index) => {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = index === 0 ? "square" : "triangle";
+          oscillator.frequency.setValueAtTime(voiceFrequency, now);
+          oscillator.detune.setValueAtTime(index === 0 ? -4 : 3, now);
+          oscillator.connect(filter);
+          oscillator.start(now);
+          oscillator.stop(end + 0.03);
+        });
+
+        filter.connect(drive);
+        drive.connect(gain);
+        gain.connect(musicGain);
+      }
+
+      function playPhonkBass(frequency, duration, volume = 0.13, options = {}) {
+        const audioContext = getMusicContext();
+
+        if (!audioContext || !musicGain || frequency <= 0) {
+          return;
+        }
+
+        const now = audioContext.currentTime + Math.max(0, Number(options.offset || 0));
+        const end = now + Math.max(0.16, duration);
+        const baseFrequency = Math.max(42, Math.min(120, softenMusicNote(frequency, "phonk", "bass")));
+        const oscillator = audioContext.createOscillator();
+        const filter = audioContext.createBiquadFilter();
+        const drive = audioContext.createWaveShaper();
+        const gain = audioContext.createGain();
+
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(baseFrequency, now);
+        oscillator.frequency.exponentialRampToValueAtTime(Math.max(38, baseFrequency * 0.82), end);
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(360, now);
+        filter.Q.setValueAtTime(0.7, now);
+        drive.curve = createMusicDriveCurve(18);
+        drive.oversample = "2x";
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(volume * getGameVolume(), now + 0.025);
+        gain.gain.setValueAtTime(volume * getGameVolume() * 0.55, end - 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, end);
+        oscillator.connect(filter);
+        filter.connect(drive);
+        drive.connect(gain);
         gain.connect(musicGain);
         oscillator.start(now);
         oscillator.stop(end + 0.04);
@@ -9304,6 +9405,7 @@
           boss: [-12, -5, 0, 7],
           arena: [-5, 7, 0, 10],
           cyber: [3, 7, 10, 7],
+          phonk: [-12, -5, 3, 7],
           space: [12, 19, 7, 24],
           victory: [12, 16, 19, 7]
         }[mood] || [7, 12, 5, 12];
@@ -9312,6 +9414,23 @@
       }
 
       function playMusicDrumPattern(mood, step, delaySeconds) {
+        if (phonkMusicMoods.has(mood)) {
+          const grooveStep = step % 16;
+          if ([0, 3, 6, 10, 14].includes(grooveStep)) {
+            playMusicDrum("kick", grooveStep === 0 ? 0.11 : 0.082);
+          }
+          if (grooveStep === 4 || grooveStep === 12) {
+            playMusicDrum("snare", 0.06);
+          }
+          if (step % 2 === 0) {
+            playMusicDrum("hat", 0.022);
+          }
+          if (grooveStep === 7 || grooveStep === 15) {
+            playMusicDrum("hat", 0.014, delaySeconds * 0.42);
+          }
+          return;
+        }
+
         if (["soft", "calm", "crystal", "fantasy", "space"].includes(mood)) {
           if (step % 16 === 0) playMusicDrum("kick", 0.036);
           if (step % 8 === 6) playMusicDrum("hat", 0.012, delaySeconds * 0.45);
@@ -9452,11 +9571,30 @@
             victory: [0, 4, 7, 12, 16, 12, 7, 4],
             space: [12, 0, 19, 7, 12, 24, 19, 7],
             arena: [-12, 0, -7, 5, -12, 7, 0, -5],
+            phonk: [-12, 0, 3, -5, 7, 0, -7, 3],
             party: [0, 12, 4, 16, 7, 19, 12, 4],
             epic: [-12, 0, 7, 12, 5, 12, 7, 0],
             funny: [0, 7, 0, 12, -5, 7, 2, 0],
             calm: [0, 0, 5, 7, 0, 5, 2, 0]
           };
+
+          if (generatedPack.mood === "phonk") {
+            const phonkMelodies = {
+              "drift-phonk": [392, 0, 466, 392, 0, 349, 392, 0, 587, 0, 523, 466, 392, 0, 330, 349],
+              "midnight-phonk": [330, 0, 392, 370, 0, 294, 330, 0, 494, 0, 440, 392, 370, 0, 294, 330],
+              "cowbell-phonk": [440, 0, 523, 440, 0, 392, 440, 0, 659, 0, 587, 523, 440, 0, 392, 370],
+              "arena-phonk": [294, 0, 370, 330, 0, 247, 294, 0, 440, 0, 415, 370, 330, 0, 277, 294]
+            };
+            const phonkBass = [55, 55, 0, 82, 73, 73, 0, 65, 55, 55, 98, 0, 73, 65, 55, 0];
+
+            return finishMusicPattern({
+              melody: phonkMelodies[generatedPack.value] || phonkMelodies["drift-phonk"],
+              bass: phonkBass,
+              wave: "square",
+              delay: generatedPack.value === "cowbell-phonk" ? 176 : 188
+            }, "phonk", "generated");
+          }
+
           const offsets = moodOffsets[generatedPack.mood] || moodOffsets.bright;
           const transpose = (note, index) => {
             if (!note) {
@@ -9605,61 +9743,95 @@
           const chordDuration = Math.min(1.15, delaySeconds * 4.6);
           const shouldPlayLead = !softMood || step % 2 === 0;
 
-          if (note && shouldPlayLead) {
-            playMusicTone(note, leadDuration, pattern.wave, softMood ? 0.088 : 0.112, {
-              mood,
-              role: "lead",
-              filter: ["boss", "dark", "arena"].includes(mood) ? 1100 : softMood ? 1500 : 1850,
-              q: 0.52,
-              release: 0.16
-            });
+          if (phonkMusicMoods.has(mood)) {
+            if (note && step % 2 === 0) {
+              playPhonkCowbell(note, Math.min(0.19, delaySeconds * 0.82), 0.086);
+            }
 
-            if (step % (softMood ? 8 : 4) === 0) {
-              playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.9, pattern.wave, 0.03, {
-                mood,
-                role: "lead",
-                offset: delaySeconds * 0.25,
-                filter: softMood ? 1450 : 1650,
-                detune: 4,
-                release: 0.18
+            if (note && step % 8 === 5) {
+              playPhonkCowbell(getMusicHarmonyNote(note, mood, step), Math.min(0.16, delaySeconds * 0.72), 0.054, {
+                offset: delaySeconds * 0.36
               });
             }
 
-            if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 8 === 1) {
-              playMusicTone(note * 1.5, Math.min(0.28, delaySeconds * 0.95), "sine", 0.018, {
+            if (bassNote && (step % 4 === 0 || step % 8 === 3)) {
+              playPhonkBass(bassNote, Math.min(0.5, delaySeconds * 2.25), step % 8 === 3 ? 0.095 : 0.135);
+            }
+
+            if (bassNote && step % 16 === 0) {
+              playMusicChord(
+                bassNote * 2,
+                [0, 3, 7],
+                Math.min(0.55, delaySeconds * 2.6),
+                "triangle",
+                0.022,
+                {
+                  mood,
+                  role: "chord",
+                  offset: delaySeconds * 0.12,
+                  filter: 820,
+                  attack: 0.035,
+                  release: 0.24
+                }
+              );
+            }
+          } else {
+            if (note && shouldPlayLead) {
+              playMusicTone(note, leadDuration, pattern.wave, softMood ? 0.088 : 0.112, {
                 mood,
                 role: "lead",
-                offset: delaySeconds * 0.55,
-                filter: 2200,
-                attack: 0.018,
-                release: 0.14
+                filter: ["boss", "dark", "arena"].includes(mood) ? 1100 : softMood ? 1500 : 1850,
+                q: 0.52,
+                release: 0.16
               });
-            }
-          }
 
-          if (step % 4 === 0 && bassNote) {
-            playMusicTone(bassNote, Math.min(0.78, delaySeconds * 3.4), "sine", ["boss", "arena"].includes(mood) ? 0.13 : 0.1, {
-              mood,
-              role: "bass",
-              filter: 620,
-              attack: 0.018,
-              release: 0.2
-            });
-            playMusicChord(
-              bassNote * 2,
-              getMusicChordIntervals(mood, step),
-              chordDuration,
-              "triangle",
-              softMood ? 0.038 : 0.032,
-              {
-                mood,
-                role: "chord",
-                offset: delaySeconds * 0.08,
-                filter: ["boss", "dark", "arena"].includes(mood) ? 850 : 1400,
-                attack: 0.045,
-                release: 0.28
+              if (step % (softMood ? 8 : 4) === 0) {
+                playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.9, pattern.wave, 0.03, {
+                  mood,
+                  role: "lead",
+                  offset: delaySeconds * 0.25,
+                  filter: softMood ? 1450 : 1650,
+                  detune: 4,
+                  release: 0.18
+                });
               }
-            );
+
+              if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 8 === 1) {
+                playMusicTone(note * 1.5, Math.min(0.28, delaySeconds * 0.95), "sine", 0.018, {
+                  mood,
+                  role: "lead",
+                  offset: delaySeconds * 0.55,
+                  filter: 2200,
+                  attack: 0.018,
+                  release: 0.14
+                });
+              }
+            }
+
+            if (step % 4 === 0 && bassNote) {
+              playMusicTone(bassNote, Math.min(0.78, delaySeconds * 3.4), "sine", ["boss", "arena"].includes(mood) ? 0.13 : 0.1, {
+                mood,
+                role: "bass",
+                filter: 620,
+                attack: 0.018,
+                release: 0.2
+              });
+              playMusicChord(
+                bassNote * 2,
+                getMusicChordIntervals(mood, step),
+                chordDuration,
+                "triangle",
+                softMood ? 0.038 : 0.032,
+                {
+                  mood,
+                  role: "chord",
+                  offset: delaySeconds * 0.08,
+                  filter: ["boss", "dark", "arena"].includes(mood) ? 850 : 1400,
+                  attack: 0.045,
+                  release: 0.28
+                }
+              );
+            }
           }
 
           playMusicDrumPattern(mood, step, delaySeconds);
