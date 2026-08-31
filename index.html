@@ -7622,6 +7622,7 @@
       let confirmResolver = null;
       let musicContext = null;
       let musicGain = null;
+      let musicNoiseBuffer = null;
       let musicTimer = null;
       let musicStep = 0;
       let musicUnlocked = false;
@@ -7738,7 +7739,17 @@
         { value: "shop-theme", label: "Shop Theme", mood: "crystal", wave: "triangle", speed: 1.02, octave: 1.15 },
         { value: "battle-pass-theme", label: "Battle Pass Theme", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
         { value: "friend-lobby-theme", label: "Friend Lobby Theme", mood: "soft", wave: "sine", speed: 1.08, octave: 1.05 },
-        { value: "tournament-theme", label: "Tournament Theme", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 }
+        { value: "tournament-theme", label: "Tournament Theme", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 },
+        { value: "emerald-pulse", label: "Emerald Pulse", mood: "neon", wave: "triangle", speed: 0.72, octave: 1.08 },
+        { value: "midnight-drive", label: "Midnight Drive", mood: "cyber", wave: "sawtooth", speed: 0.78, octave: 0.92 },
+        { value: "pixel-quest", label: "Pixel Quest", mood: "fantasy", wave: "square", speed: 0.92, octave: 1.05 },
+        { value: "arcade-stadium", label: "Arcade Stadium", mood: "energy", wave: "triangle", speed: 0.7, octave: 1.18 },
+        { value: "deep-space", label: "Deep Space", mood: "space", wave: "sine", speed: 1.02, octave: 0.86 },
+        { value: "coin-carnival", label: "Coin Carnival", mood: "party", wave: "square", speed: 0.66, octave: 1.22 },
+        { value: "royal-dungeon", label: "Royal Dungeon", mood: "arena", wave: "sawtooth", speed: 0.86, octave: 0.78 },
+        { value: "crystal-lullaby", label: "Crystal Lullaby", mood: "crystal", wave: "sine", speed: 1.18, octave: 1.22 },
+        { value: "final-boss", label: "Final Boss", mood: "boss", wave: "sawtooth", speed: 0.62, octave: 0.72 },
+        { value: "sunset-arcade", label: "Sunset Arcade", mood: "victory", wave: "triangle", speed: 0.82, octave: 1.12 }
       ];
       const allShopItems = [...shopItems, ...premiumItems];
       const battlePassRewards = [
@@ -9013,11 +9024,11 @@
           musicGain.connect(musicContext.destination);
         }
 
-        musicGain.gain.value = Math.min(1, getGameVolume() * 0.75);
+        musicGain.gain.value = Math.min(1, getGameVolume() * 0.86);
         return musicContext;
       }
 
-      function playMusicTone(frequency, duration, type = "triangle", volume = 0.18) {
+      function playMusicTone(frequency, duration, type = "triangle", volume = 0.18, options = {}) {
         const audioContext = getMusicContext();
 
         if (!audioContext || !musicGain || frequency <= 0) {
@@ -9025,18 +9036,184 @@
         }
 
         const oscillator = audioContext.createOscillator();
+        const filter = audioContext.createBiquadFilter();
         const gain = audioContext.createGain();
-        const now = audioContext.currentTime;
+        const now = audioContext.currentTime + Math.max(0, Number(options.offset || 0));
+        const attack = Math.max(0.006, Number(options.attack ?? 0.018));
+        const releaseStart = now + Math.max(attack + 0.01, duration - Number(options.release ?? 0.05));
+        const end = now + Math.max(0.03, duration);
+        const voiceVolume = volume * Math.max(0.05, getGameVolume());
 
         oscillator.type = type;
         oscillator.frequency.setValueAtTime(frequency, now);
+        if (options.slideTo) {
+          oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, options.slideTo), end);
+        }
+        oscillator.detune.setValueAtTime(Number(options.detune || 0), now);
+        filter.type = options.filterType || "lowpass";
+        filter.frequency.setValueAtTime(Number(options.filter || 2200), now);
+        filter.Q.setValueAtTime(Number(options.q || 0.7), now);
         gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(volume * Math.max(0.05, getGameVolume()), now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-        oscillator.connect(gain);
+        gain.gain.linearRampToValueAtTime(voiceVolume, now + attack);
+        gain.gain.setValueAtTime(voiceVolume * 0.68, releaseStart);
+        gain.gain.exponentialRampToValueAtTime(0.0001, end);
+        oscillator.connect(filter);
+        filter.connect(gain);
         gain.connect(musicGain);
         oscillator.start(now);
-        oscillator.stop(now + duration + 0.03);
+        oscillator.stop(end + 0.04);
+      }
+
+      function playMusicChord(root, intervals, duration, wave, volume, options = {}) {
+        if (!root) {
+          return;
+        }
+
+        intervals.forEach((semitone, index) => {
+          playMusicTone(
+            Math.max(45, Math.round(root * Math.pow(2, semitone / 12))),
+            duration,
+            wave,
+            volume / Math.max(1, intervals.length - 0.7),
+            {
+              ...options,
+              offset: Number(options.offset || 0) + index * 0.012,
+              detune: (Number(options.detune || 0) + (index - 1) * 4)
+            }
+          );
+        });
+      }
+
+      function getMusicNoiseBuffer(audioContext) {
+        if (musicNoiseBuffer && musicNoiseBuffer.sampleRate === audioContext.sampleRate) {
+          return musicNoiseBuffer;
+        }
+
+        const length = Math.floor(audioContext.sampleRate * 0.28);
+        const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        for (let index = 0; index < length; index += 1) {
+          data[index] = (Math.random() * 2 - 1) * (1 - index / length);
+        }
+
+        musicNoiseBuffer = buffer;
+        return buffer;
+      }
+
+      function playMusicDrum(type, volume = 0.1, offset = 0) {
+        const audioContext = getMusicContext();
+
+        if (!audioContext || !musicGain || getGameVolume() <= 0) {
+          return;
+        }
+
+        const now = audioContext.currentTime + Math.max(0, offset);
+        const gain = audioContext.createGain();
+        gain.connect(musicGain);
+
+        if (type === "kick") {
+          const oscillator = audioContext.createOscillator();
+          oscillator.type = "sine";
+          oscillator.frequency.setValueAtTime(118, now);
+          oscillator.frequency.exponentialRampToValueAtTime(44, now + 0.18);
+          gain.gain.setValueAtTime(volume * getGameVolume(), now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+          oscillator.connect(gain);
+          oscillator.start(now);
+          oscillator.stop(now + 0.22);
+          return;
+        }
+
+        const source = audioContext.createBufferSource();
+        const filter = audioContext.createBiquadFilter();
+        source.buffer = getMusicNoiseBuffer(audioContext);
+        filter.type = type === "hat" ? "highpass" : "bandpass";
+        filter.frequency.setValueAtTime(type === "hat" ? 6500 : 1300, now);
+        filter.Q.setValueAtTime(type === "hat" ? 0.45 : 1.2, now);
+        gain.gain.setValueAtTime(volume * getGameVolume(), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (type === "hat" ? 0.05 : 0.14));
+        source.connect(filter);
+        filter.connect(gain);
+        source.start(now);
+        source.stop(now + 0.16);
+      }
+
+      function getMusicMoodForCurrentGame(pack) {
+        const generatedPack = musicPackCatalog.find((item) => item.value === pack);
+        if (generatedPack) {
+          return generatedPack.mood;
+        }
+
+        if (pack === "retro" || pack === "chiptune") return "retro";
+        if (pack === "premium") return "crystal";
+        if (pack === "boss") return "boss";
+        if (currentGame === "laser-dodge") return "dark";
+        if (currentGame === "solo-pong") return "retro";
+        if (currentGame === "coin-rush" || currentGame === "catcher") return "happy";
+        if (currentGame === "sigma-rpg" || currentGame === "star-collector") return "fantasy";
+        if (currentGame.startsWith("online-")) return "energy";
+        return "neon";
+      }
+
+      function getMusicChordIntervals(mood, step) {
+        const minor = ["dark", "boss", "arena", "cyber"].includes(mood);
+        const suspended = ["space", "crystal", "fantasy"].includes(mood) && step % 16 >= 8;
+
+        if (suspended) {
+          return [0, 5, 7, 12];
+        }
+
+        if (minor) {
+          return [0, 3, 7, 10];
+        }
+
+        if (mood === "party" || mood === "happy" || mood === "victory") {
+          return [0, 4, 7, 12];
+        }
+
+        return [0, 4, 7];
+      }
+
+      function getMusicHarmonyNote(note, mood, step) {
+        if (!note) {
+          return 0;
+        }
+
+        const semitones = {
+          soft: [7, 12, 5, 12],
+          calm: [5, 7, 12, 7],
+          crystal: [12, 7, 14, 7],
+          fantasy: [7, 12, 5, 14],
+          neon: [12, 7, 12, 5],
+          energy: [7, 12, 7, 15],
+          party: [12, 16, 7, 19],
+          retro: [7, 0, 12, 0],
+          dark: [-5, 0, 7, 0],
+          boss: [-12, -5, 0, 7],
+          arena: [-5, 7, 0, 10],
+          cyber: [3, 7, 10, 7],
+          space: [12, 19, 7, 24],
+          victory: [12, 16, 19, 7]
+        }[mood] || [7, 12, 5, 12];
+
+        return Math.max(45, Math.round(note * Math.pow(2, semitones[step % semitones.length] / 12)));
+      }
+
+      function playMusicDrumPattern(mood, step, delaySeconds) {
+        if (["soft", "calm", "crystal", "fantasy", "space"].includes(mood)) {
+          if (step % 8 === 0) playMusicDrum("kick", 0.055);
+          if (step % 4 === 2) playMusicDrum("hat", 0.028, delaySeconds * 0.35);
+          return;
+        }
+
+        playMusicDrum("hat", ["party", "speed", "energy"].includes(mood) ? 0.05 : 0.036);
+        if (step % 8 === 0 || (["boss", "arena"].includes(mood) && step % 8 === 4)) {
+          playMusicDrum("kick", ["boss", "arena"].includes(mood) ? 0.12 : 0.09);
+        }
+        if (step % 8 === 4) {
+          playMusicDrum("snare", ["boss", "arena"].includes(mood) ? 0.08 : 0.058);
+        }
       }
 
       function getMusicPattern() {
@@ -9076,6 +9253,18 @@
             bass: [110, 123, 110, 147, 110, 123, 165, 147],
             wave: "sawtooth",
             delay: 180
+          },
+          "sigma-rpg": {
+            melody: [294, 349, 392, 523, 587, 523, 392, 349, 330, 392, 440, 587, 659, 587, 440, 392],
+            bass: [147, 147, 175, 175, 196, 196, 131, 131],
+            wave: "triangle",
+            delay: 270
+          },
+          "star-collector": {
+            melody: [659, 784, 988, 880, 784, 659, 587, 0, 740, 880, 1175, 988, 880, 740, 659, 0],
+            bass: [165, 196, 247, 220, 165, 196, 247, 220],
+            wave: "sine",
+            delay: 225
           },
           "online-snake": {
             melody: [440, 523, 587, 659, 587, 523, 440, 0, 392, 494, 523, 587, 523, 494, 392, 0],
@@ -9118,12 +9307,19 @@
             bass: [123, 123, 147, 147, 185, 185, 165, 165],
             wave: "sawtooth",
             delay: 190
+          },
+          "online-bomb-tag": {
+            melody: [196, 0, 294, 330, 392, 330, 294, 0, 220, 0, 330, 370, 440, 370, 330, 0],
+            bass: [98, 98, 110, 110, 123, 123, 147, 147],
+            wave: "sawtooth",
+            delay: 175
           }
         };
 
         const basePattern = patterns[currentGame] || patterns.snake;
         const pack = selectedMusicPack || currentUserData?.equipped?.music || "";
         const generatedPack = musicPackCatalog.find((item) => item.value === pack);
+        const mood = getMusicMoodForCurrentGame(pack);
 
         if (generatedPack) {
           const moodOffsets = {
@@ -9162,7 +9358,9 @@
             melody: basePattern.melody.map(transpose),
             bass: basePattern.bass.map((note, index) => transpose(note, index) * (generatedPack.mood === "boss" || generatedPack.mood === "dark" ? 0.75 : 0.5)),
             wave: generatedPack.wave,
-            delay: Math.max(95, Math.round(basePattern.delay * generatedPack.speed))
+            delay: Math.max(95, Math.round(basePattern.delay * generatedPack.speed)),
+            mood: generatedPack.mood,
+            layer: "generated"
           };
         }
 
@@ -9171,7 +9369,9 @@
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.5 : 0.75)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 0.5)),
             wave: "square",
-            delay: Math.round(basePattern.delay * 1.12)
+            delay: Math.round(basePattern.delay * 1.12),
+            mood: "retro",
+            layer: "classic"
           };
         }
 
@@ -9180,7 +9380,9 @@
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 4 === 0 ? 1.5 : 1.25)) : 0),
             bass: basePattern.bass.map((note, index) => Math.round(note * (index % 2 ? 1 : 0.75))),
             wave: "square",
-            delay: Math.max(145, Math.round(basePattern.delay * 0.76))
+            delay: Math.max(145, Math.round(basePattern.delay * 0.76)),
+            mood: "retro",
+            layer: "classic"
           };
         }
 
@@ -9189,7 +9391,9 @@
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 3 === 0 ? 1.25 : 1)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 1.1)),
             wave: "triangle",
-            delay: Math.max(160, Math.round(basePattern.delay * 0.88))
+            delay: Math.max(160, Math.round(basePattern.delay * 0.88)),
+            mood: "crystal",
+            layer: "premium"
           };
         }
 
@@ -9198,11 +9402,17 @@
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.85 : 0.65)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 0.6)),
             wave: "sawtooth",
-            delay: Math.max(170, Math.round(basePattern.delay * 0.82))
+            delay: Math.max(170, Math.round(basePattern.delay * 0.82)),
+            mood: "boss",
+            layer: "premium"
           };
         }
 
-        return basePattern;
+        return {
+          ...basePattern,
+          mood,
+          layer: "game"
+        };
       }
 
       function isDirectAudioUrl(url) {
@@ -9286,18 +9496,59 @@
           const pattern = getMusicPattern();
           const melody = pattern.melody;
           const bass = pattern.bass;
-          const note = melody[musicStep % melody.length];
+          const step = musicStep;
+          const delaySeconds = pattern.delay / 1000;
+          const note = melody[step % melody.length];
+          const bassNote = bass[Math.floor(step / 4) % bass.length];
+          const mood = pattern.mood || "neon";
+          const leadDuration = Math.min(0.34, delaySeconds * 1.18);
+          const chordDuration = Math.min(0.72, delaySeconds * 3.5);
 
           if (note) {
-            playMusicTone(note, Math.min(0.28, pattern.delay / 1000), pattern.wave, 0.28);
+            playMusicTone(note, leadDuration, pattern.wave, 0.2, {
+              filter: ["boss", "dark", "arena"].includes(mood) ? 1500 : 3000,
+              q: 0.85
+            });
+
+            if (step % 2 === 0) {
+              playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.82, pattern.wave, 0.075, {
+                offset: delaySeconds * 0.22,
+                filter: ["crystal", "space", "fantasy"].includes(mood) ? 4200 : 2400,
+                detune: 5
+              });
+            }
+
+            if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 4 === 1) {
+              playMusicTone(note * 2, Math.min(0.18, delaySeconds * 0.72), "sine", 0.055, {
+                offset: delaySeconds * 0.5,
+                filter: 5200,
+                attack: 0.008
+              });
+            }
           }
 
-          if (musicStep % 4 === 0) {
-            playMusicTone(bass[Math.floor(musicStep / 4) % bass.length], 0.42, "sine", 0.2);
+          if (step % 4 === 0 && bassNote) {
+            playMusicTone(bassNote, 0.52, "sine", ["boss", "arena"].includes(mood) ? 0.22 : 0.16, {
+              filter: 850,
+              attack: 0.012
+            });
+            playMusicChord(
+              bassNote * 2,
+              getMusicChordIntervals(mood, step),
+              chordDuration,
+              ["retro", "cyber", "boss", "arena"].includes(mood) ? "square" : "triangle",
+              ["soft", "calm", "crystal", "fantasy", "space"].includes(mood) ? 0.07 : 0.052,
+              {
+                offset: delaySeconds * 0.08,
+                filter: ["boss", "dark", "arena"].includes(mood) ? 1200 : 2100,
+                attack: 0.035
+              }
+            );
           }
 
+          playMusicDrumPattern(mood, step, delaySeconds);
           musicStep += 1;
-          musicTimer = setTimeout(tickMusic, getMusicPattern().delay);
+          musicTimer = setTimeout(tickMusic, pattern.delay);
         };
 
         tickMusic();
