@@ -7622,6 +7622,8 @@
       let confirmResolver = null;
       let musicContext = null;
       let musicGain = null;
+      let musicFilter = null;
+      let musicCompressor = null;
       let musicNoiseBuffer = null;
       let musicTimer = null;
       let musicStep = 0;
@@ -8991,24 +8993,111 @@
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           const audioContext = new AudioContextClass();
           const oscillator = audioContext.createOscillator();
+          const filter = audioContext.createBiquadFilter();
           const gain = audioContext.createGain();
           const tones = {
-            point: 620,
-            gameover: 180,
-            shoot: 360
+            point: 520,
+            gameover: 145,
+            shoot: 310
           };
+          const durations = {
+            point: 0.11,
+            gameover: 0.26,
+            shoot: 0.09
+          };
+          const now = audioContext.currentTime;
+          const duration = durations[type] || 0.12;
 
           oscillator.frequency.value = tones[type] || 440;
-          oscillator.type = "square";
-          gain.gain.setValueAtTime(0.06 * volume, audioContext.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.12);
-          oscillator.connect(gain);
+          oscillator.type = type === "gameover" ? "triangle" : "sine";
+          if (type === "shoot") {
+            oscillator.frequency.exponentialRampToValueAtTime(190, now + duration);
+          }
+          filter.type = "lowpass";
+          filter.frequency.value = type === "point" ? 1350 : 950;
+          filter.Q.value = 0.55;
+          gain.gain.setValueAtTime((type === "gameover" ? 0.05 : 0.035) * volume, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          oscillator.connect(filter);
+          filter.connect(gain);
           gain.connect(audioContext.destination);
           oscillator.start();
-          oscillator.stop(audioContext.currentTime + 0.12);
+          oscillator.stop(now + duration);
         } catch {
           // Sound is optional.
         }
+      }
+
+      const softMusicMoods = new Set(["soft", "calm", "crystal", "fantasy", "space"]);
+      const darkMusicMoods = new Set(["boss", "dark", "arena", "cyber"]);
+      const fastMusicMoods = new Set(["party", "speed", "energy", "victory", "happy"]);
+
+      function getSoftMusicWave(wave, mood, role = "lead") {
+        if (role === "bass") {
+          return "sine";
+        }
+
+        if (role === "chord") {
+          return softMusicMoods.has(mood) ? "sine" : "triangle";
+        }
+
+        if (wave === "square" || wave === "sawtooth") {
+          return darkMusicMoods.has(mood) || mood === "retro" ? "triangle" : "sine";
+        }
+
+        return wave === "sine" ? "sine" : "triangle";
+      }
+
+      function getMusicTempoFloor(mood) {
+        if (softMusicMoods.has(mood)) {
+          return 310;
+        }
+
+        if (darkMusicMoods.has(mood) || fastMusicMoods.has(mood)) {
+          return 240;
+        }
+
+        return 265;
+      }
+
+      function softenMusicNote(note, mood, role = "melody") {
+        if (!note) {
+          return 0;
+        }
+
+        let softened = Math.round(note);
+        const highLimit = role === "bass" ? 220 : softMusicMoods.has(mood) ? 640 : 760;
+
+        while (softened > highLimit) {
+          softened = Math.round(softened * 0.5);
+        }
+
+        if (role === "bass" && softened > 210) {
+          softened = Math.round(softened * 0.5);
+        }
+
+        if (role === "melody" && darkMusicMoods.has(mood)) {
+          softened = Math.round(softened * 0.88);
+        }
+
+        return Math.max(role === "bass" ? 65 : 90, softened);
+      }
+
+      function finishMusicPattern(pattern, mood, layer) {
+        const finalMood = mood || "neon";
+        const delay = Math.max(
+          getMusicTempoFloor(finalMood),
+          Math.round(Number(pattern.delay || 260) * 1.14)
+        );
+
+        return {
+          melody: (pattern.melody || []).map((note) => softenMusicNote(note, finalMood, "melody")),
+          bass: (pattern.bass || []).map((note) => softenMusicNote(note, finalMood, "bass")),
+          wave: getSoftMusicWave(pattern.wave || "triangle", finalMood, "lead"),
+          delay,
+          mood: finalMood,
+          layer
+        };
       }
 
       function getMusicContext() {
@@ -9021,10 +9110,25 @@
         if (!musicContext) {
           musicContext = new AudioContextClass();
           musicGain = musicContext.createGain();
-          musicGain.connect(musicContext.destination);
+          musicFilter = musicContext.createBiquadFilter();
+          musicCompressor = musicContext.createDynamicsCompressor();
+          musicFilter.type = "lowpass";
+          musicFilter.frequency.value = 2050;
+          musicFilter.Q.value = 0.45;
+          musicCompressor.threshold.value = -22;
+          musicCompressor.knee.value = 18;
+          musicCompressor.ratio.value = 2.6;
+          musicCompressor.attack.value = 0.016;
+          musicCompressor.release.value = 0.24;
+          musicGain.connect(musicFilter);
+          musicFilter.connect(musicCompressor);
+          musicCompressor.connect(musicContext.destination);
         }
 
-        musicGain.gain.value = Math.min(1, getGameVolume() * 0.86);
+        const now = musicContext.currentTime;
+        musicGain.gain.setTargetAtTime(Math.min(0.85, getGameVolume() * 0.72), now, 0.08);
+        musicFilter?.frequency.setTargetAtTime(getGameVolume() > 0.75 ? 2200 : 1900, now, 0.08);
+        musicFilter?.Q.setTargetAtTime(0.45, now, 0.08);
         return musicContext;
       }
 
@@ -9038,24 +9142,30 @@
         const oscillator = audioContext.createOscillator();
         const filter = audioContext.createBiquadFilter();
         const gain = audioContext.createGain();
+        const mood = options.mood || "";
+        const role = options.role || "lead";
         const now = audioContext.currentTime + Math.max(0, Number(options.offset || 0));
-        const attack = Math.max(0.006, Number(options.attack ?? 0.018));
-        const releaseStart = now + Math.max(attack + 0.01, duration - Number(options.release ?? 0.05));
+        const attack = Math.max(0.012, Number(options.attack ?? 0.028));
+        const releaseStart = now + Math.max(attack + 0.02, duration - Number(options.release ?? 0.12));
         const end = now + Math.max(0.03, duration);
         const voiceVolume = volume * Math.max(0.05, getGameVolume());
+        const safeFrequency = softenMusicNote(frequency, mood, role === "bass" ? "bass" : "melody");
 
-        oscillator.type = type;
-        oscillator.frequency.setValueAtTime(frequency, now);
+        oscillator.type = getSoftMusicWave(type, mood, role);
+        oscillator.frequency.setValueAtTime(safeFrequency, now);
         if (options.slideTo) {
-          oscillator.frequency.exponentialRampToValueAtTime(Math.max(40, options.slideTo), end);
+          oscillator.frequency.exponentialRampToValueAtTime(
+            Math.max(40, softenMusicNote(options.slideTo, mood, role === "bass" ? "bass" : "melody")),
+            end
+          );
         }
         oscillator.detune.setValueAtTime(Number(options.detune || 0), now);
         filter.type = options.filterType || "lowpass";
-        filter.frequency.setValueAtTime(Number(options.filter || 2200), now);
-        filter.Q.setValueAtTime(Number(options.q || 0.7), now);
+        filter.frequency.setValueAtTime(Number(options.filter || (role === "bass" ? 680 : 1650)), now);
+        filter.Q.setValueAtTime(Number(options.q || 0.5), now);
         gain.gain.setValueAtTime(0.0001, now);
         gain.gain.linearRampToValueAtTime(voiceVolume, now + attack);
-        gain.gain.setValueAtTime(voiceVolume * 0.68, releaseStart);
+        gain.gain.setValueAtTime(voiceVolume * 0.55, releaseStart);
         gain.gain.exponentialRampToValueAtTime(0.0001, end);
         oscillator.connect(filter);
         filter.connect(gain);
@@ -9078,7 +9188,8 @@
             {
               ...options,
               offset: Number(options.offset || 0) + index * 0.012,
-              detune: (Number(options.detune || 0) + (index - 1) * 4)
+              detune: (Number(options.detune || 0) + (index - 1) * 4),
+              role: options.role || "chord"
             }
           );
         });
@@ -9115,13 +9226,13 @@
         if (type === "kick") {
           const oscillator = audioContext.createOscillator();
           oscillator.type = "sine";
-          oscillator.frequency.setValueAtTime(118, now);
-          oscillator.frequency.exponentialRampToValueAtTime(44, now + 0.18);
-          gain.gain.setValueAtTime(volume * getGameVolume(), now);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+          oscillator.frequency.setValueAtTime(98, now);
+          oscillator.frequency.exponentialRampToValueAtTime(42, now + 0.2);
+          gain.gain.setValueAtTime(volume * getGameVolume() * 0.82, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.23);
           oscillator.connect(gain);
           oscillator.start(now);
-          oscillator.stop(now + 0.22);
+          oscillator.stop(now + 0.25);
           return;
         }
 
@@ -9129,10 +9240,10 @@
         const filter = audioContext.createBiquadFilter();
         source.buffer = getMusicNoiseBuffer(audioContext);
         filter.type = type === "hat" ? "highpass" : "bandpass";
-        filter.frequency.setValueAtTime(type === "hat" ? 6500 : 1300, now);
-        filter.Q.setValueAtTime(type === "hat" ? 0.45 : 1.2, now);
-        gain.gain.setValueAtTime(volume * getGameVolume(), now);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + (type === "hat" ? 0.05 : 0.14));
+        filter.frequency.setValueAtTime(type === "hat" ? 3900 : 900, now);
+        filter.Q.setValueAtTime(type === "hat" ? 0.25 : 0.85, now);
+        gain.gain.setValueAtTime(volume * getGameVolume() * (type === "hat" ? 0.48 : 0.72), now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + (type === "hat" ? 0.035 : 0.16));
         source.connect(filter);
         filter.connect(gain);
         source.start(now);
@@ -9202,17 +9313,19 @@
 
       function playMusicDrumPattern(mood, step, delaySeconds) {
         if (["soft", "calm", "crystal", "fantasy", "space"].includes(mood)) {
-          if (step % 8 === 0) playMusicDrum("kick", 0.055);
-          if (step % 4 === 2) playMusicDrum("hat", 0.028, delaySeconds * 0.35);
+          if (step % 16 === 0) playMusicDrum("kick", 0.036);
+          if (step % 8 === 6) playMusicDrum("hat", 0.012, delaySeconds * 0.45);
           return;
         }
 
-        playMusicDrum("hat", ["party", "speed", "energy"].includes(mood) ? 0.05 : 0.036);
+        if (step % 2 === 0) {
+          playMusicDrum("hat", ["party", "speed", "energy"].includes(mood) ? 0.022 : 0.016);
+        }
         if (step % 8 === 0 || (["boss", "arena"].includes(mood) && step % 8 === 4)) {
-          playMusicDrum("kick", ["boss", "arena"].includes(mood) ? 0.12 : 0.09);
+          playMusicDrum("kick", ["boss", "arena"].includes(mood) ? 0.078 : 0.056);
         }
         if (step % 8 === 4) {
-          playMusicDrum("snare", ["boss", "arena"].includes(mood) ? 0.08 : 0.058);
+          playMusicDrum("snare", ["boss", "arena"].includes(mood) ? 0.048 : 0.034);
         }
       }
 
@@ -9354,65 +9467,51 @@
             return Math.max(55, Math.round(note * generatedPack.octave * Math.pow(2, semitone / 12)));
           };
 
-          return {
+          return finishMusicPattern({
             melody: basePattern.melody.map(transpose),
             bass: basePattern.bass.map((note, index) => transpose(note, index) * (generatedPack.mood === "boss" || generatedPack.mood === "dark" ? 0.75 : 0.5)),
             wave: generatedPack.wave,
-            delay: Math.max(95, Math.round(basePattern.delay * generatedPack.speed)),
-            mood: generatedPack.mood,
-            layer: "generated"
-          };
+            delay: Math.max(160, Math.round(basePattern.delay * generatedPack.speed))
+          }, generatedPack.mood, "generated");
         }
 
         if (pack === "retro") {
-          return {
+          return finishMusicPattern({
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.5 : 0.75)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 0.5)),
             wave: "square",
-            delay: Math.round(basePattern.delay * 1.12),
-            mood: "retro",
-            layer: "classic"
-          };
+            delay: Math.round(basePattern.delay * 1.12)
+          }, "retro", "classic");
         }
 
         if (pack === "chiptune") {
-          return {
+          return finishMusicPattern({
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 4 === 0 ? 1.5 : 1.25)) : 0),
             bass: basePattern.bass.map((note, index) => Math.round(note * (index % 2 ? 1 : 0.75))),
             wave: "square",
-            delay: Math.max(145, Math.round(basePattern.delay * 0.76)),
-            mood: "retro",
-            layer: "classic"
-          };
+            delay: Math.max(205, Math.round(basePattern.delay * 0.86))
+          }, "retro", "classic");
         }
 
         if (pack === "premium") {
-          return {
+          return finishMusicPattern({
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 3 === 0 ? 1.25 : 1)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 1.1)),
             wave: "triangle",
-            delay: Math.max(160, Math.round(basePattern.delay * 0.88)),
-            mood: "crystal",
-            layer: "premium"
-          };
+            delay: Math.max(230, Math.round(basePattern.delay * 0.96))
+          }, "crystal", "premium");
         }
 
         if (pack === "boss") {
-          return {
+          return finishMusicPattern({
             melody: basePattern.melody.map((note, index) => note ? Math.round(note * (index % 2 ? 0.85 : 0.65)) : 0),
             bass: basePattern.bass.map((note) => Math.round(note * 0.6)),
             wave: "sawtooth",
-            delay: Math.max(170, Math.round(basePattern.delay * 0.82)),
-            mood: "boss",
-            layer: "premium"
-          };
+            delay: Math.max(235, Math.round(basePattern.delay * 0.9))
+          }, "boss", "premium");
         }
 
-        return {
-          ...basePattern,
-          mood,
-          layer: "game"
-        };
+        return finishMusicPattern(basePattern, mood, "game");
       }
 
       function isDirectAudioUrl(url) {
@@ -9501,47 +9600,64 @@
           const note = melody[step % melody.length];
           const bassNote = bass[Math.floor(step / 4) % bass.length];
           const mood = pattern.mood || "neon";
-          const leadDuration = Math.min(0.34, delaySeconds * 1.18);
-          const chordDuration = Math.min(0.72, delaySeconds * 3.5);
+          const softMood = softMusicMoods.has(mood);
+          const leadDuration = Math.min(0.58, delaySeconds * (softMood ? 2.05 : 1.65));
+          const chordDuration = Math.min(1.15, delaySeconds * 4.6);
+          const shouldPlayLead = !softMood || step % 2 === 0;
 
-          if (note) {
-            playMusicTone(note, leadDuration, pattern.wave, 0.2, {
-              filter: ["boss", "dark", "arena"].includes(mood) ? 1500 : 3000,
-              q: 0.85
+          if (note && shouldPlayLead) {
+            playMusicTone(note, leadDuration, pattern.wave, softMood ? 0.088 : 0.112, {
+              mood,
+              role: "lead",
+              filter: ["boss", "dark", "arena"].includes(mood) ? 1100 : softMood ? 1500 : 1850,
+              q: 0.52,
+              release: 0.16
             });
 
-            if (step % 2 === 0) {
-              playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.82, pattern.wave, 0.075, {
-                offset: delaySeconds * 0.22,
-                filter: ["crystal", "space", "fantasy"].includes(mood) ? 4200 : 2400,
-                detune: 5
+            if (step % (softMood ? 8 : 4) === 0) {
+              playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.9, pattern.wave, 0.03, {
+                mood,
+                role: "lead",
+                offset: delaySeconds * 0.25,
+                filter: softMood ? 1450 : 1650,
+                detune: 4,
+                release: 0.18
               });
             }
 
-            if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 4 === 1) {
-              playMusicTone(note * 2, Math.min(0.18, delaySeconds * 0.72), "sine", 0.055, {
-                offset: delaySeconds * 0.5,
-                filter: 5200,
-                attack: 0.008
+            if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 8 === 1) {
+              playMusicTone(note * 1.5, Math.min(0.28, delaySeconds * 0.95), "sine", 0.018, {
+                mood,
+                role: "lead",
+                offset: delaySeconds * 0.55,
+                filter: 2200,
+                attack: 0.018,
+                release: 0.14
               });
             }
           }
 
           if (step % 4 === 0 && bassNote) {
-            playMusicTone(bassNote, 0.52, "sine", ["boss", "arena"].includes(mood) ? 0.22 : 0.16, {
-              filter: 850,
-              attack: 0.012
+            playMusicTone(bassNote, Math.min(0.78, delaySeconds * 3.4), "sine", ["boss", "arena"].includes(mood) ? 0.13 : 0.1, {
+              mood,
+              role: "bass",
+              filter: 620,
+              attack: 0.018,
+              release: 0.2
             });
             playMusicChord(
               bassNote * 2,
               getMusicChordIntervals(mood, step),
               chordDuration,
-              ["retro", "cyber", "boss", "arena"].includes(mood) ? "square" : "triangle",
-              ["soft", "calm", "crystal", "fantasy", "space"].includes(mood) ? 0.07 : 0.052,
+              "triangle",
+              softMood ? 0.038 : 0.032,
               {
+                mood,
+                role: "chord",
                 offset: delaySeconds * 0.08,
-                filter: ["boss", "dark", "arena"].includes(mood) ? 1200 : 2100,
-                attack: 0.035
+                filter: ["boss", "dark", "arena"].includes(mood) ? 850 : 1400,
+                attack: 0.045,
+                release: 0.28
               }
             );
           }
