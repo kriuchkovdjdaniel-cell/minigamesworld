@@ -6517,6 +6517,885 @@
           0 0 28px rgba(53, 215, 232, 0.08),
           0 0 42px rgba(141, 112, 232, 0.05);
       }
+
+      /* MiniGameWorld hub redesign: final shared web/app visual layer. */
+      :root {
+        --mgw-bg: #020b0b;
+        --mgw-bg-soft: #061817;
+        --mgw-panel: rgba(5, 22, 24, 0.94);
+        --mgw-panel-2: rgba(8, 30, 32, 0.9);
+        --mgw-card: rgba(10, 38, 42, 0.86);
+        --mgw-card-strong: rgba(14, 55, 57, 0.9);
+        --mgw-border: rgba(80, 205, 169, 0.28);
+        --mgw-border-soft: rgba(124, 232, 201, 0.14);
+        --mgw-text: #f4fff8;
+        --mgw-muted: #b5ccc8;
+        --mgw-cyan: #28b7d7;
+        --mgw-cyan-2: #2f86dc;
+        --mgw-emerald: #28bd7b;
+        --mgw-emerald-2: #209c74;
+        --mgw-violet: #7b5ed6;
+        --mgw-violet-2: #a04f8a;
+        --mgw-gold: #c5a934;
+        --mgw-gold-2: #7fb14c;
+        --mgw-rose: #bc496f;
+        --mgw-danger: #d24b5d;
+        --mgw-shadow: rgba(0, 0, 0, 0.5);
+        --mgw-glow: rgba(39, 185, 202, 0.14);
+      }
+
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 18% 8%, rgba(46, 171, 145, 0.12), transparent 30%),
+          radial-gradient(circle at 78% 18%, rgba(96, 85, 175, 0.1), transparent 28%),
+          linear-gradient(135deg, var(--mgw-bg), #04110f 45%, #051b16);
+      }
+
+      body::before {
+        opacity: 0.2 !important;
+        filter: none !important;
+        background-image:
+          linear-gradient(rgba(62, 205, 174, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(62, 205, 174, 0.1) 1px, transparent 1px) !important;
+        background-size: 24px 24px !important;
+      }
+
+      body::after {
+        opacity: 0.16 !important;
+        filter: blur(22px) !important;
+      }
+
+      body[data-runtime] {
+        color: var(--mgw-text);
+      }
+
+      body[data-runtime] .start-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        min-height: 100dvh;
+        padding: clamp(0.75rem, 2vw, 1.5rem);
+        overflow: auto;
+        background:
+          radial-gradient(circle at 12% 8%, rgba(35, 188, 131, 0.12), transparent 24rem),
+          linear-gradient(135deg, rgba(1, 9, 9, 0.96), rgba(4, 24, 19, 0.95));
+      }
+
+      body[data-runtime] .start-screen.closed {
+        display: none !important;
+      }
+
+      body[data-runtime] .start-panel {
+        width: min(1240px, calc(100vw - 2rem));
+        height: min(840px, calc(100dvh - 2rem));
+        min-height: 0;
+        display: grid !important;
+        grid-template-columns: minmax(220px, 278px) minmax(0, 1fr);
+        grid-template-rows: auto auto auto auto 8px minmax(0, 1fr);
+        grid-template-areas:
+          "brand content"
+          "splash content"
+          "runtime content"
+          "status content"
+          "loader content"
+          "nav content";
+        gap: 0.7rem 1rem;
+        padding: clamp(0.9rem, 1.8vw, 1.25rem);
+        overflow: hidden;
+        border: 1px solid var(--mgw-border);
+        border-radius: 18px;
+        background:
+          linear-gradient(135deg, rgba(6, 16, 20, 0.96), rgba(7, 32, 28, 0.9)),
+          linear-gradient(90deg, rgba(40, 183, 215, 0.05), rgba(40, 189, 123, 0.06));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 24px 70px var(--mgw-shadow),
+          0 0 28px var(--mgw-glow);
+      }
+
+      body[data-runtime] .start-panel > h2 {
+        grid-area: brand;
+        margin: 0;
+        align-self: end;
+        color: var(--mgw-text);
+        font-size: clamp(2.2rem, 4vw, 4.2rem);
+        line-height: 0.9;
+        letter-spacing: 0;
+        text-align: left;
+        text-transform: uppercase;
+        text-shadow:
+          0 4px 0 rgba(0, 0, 0, 0.65),
+          0 0 16px rgba(64, 218, 194, 0.16);
+        filter: none;
+        animation: none;
+      }
+
+      body[data-runtime] .start-splash {
+        grid-area: splash;
+        justify-self: start;
+        margin: 0;
+        padding: 0.25rem 0.6rem;
+        border: 1px solid rgba(197, 169, 52, 0.35);
+        border-radius: 999px;
+        background: rgba(12, 21, 17, 0.85);
+        color: #f1df76;
+        font-size: 0.82rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        transform: none;
+      }
+
+      body[data-runtime] .runtime-chip {
+        grid-area: runtime;
+        justify-self: start;
+        width: fit-content;
+        padding: 0.34rem 0.72rem;
+        border: 1px solid rgba(70, 199, 174, 0.35);
+        border-radius: 8px;
+        background: rgba(3, 18, 20, 0.9);
+        color: var(--mgw-muted);
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      body[data-runtime="web"] .runtime-chip {
+        color: #f2de7a;
+        border-color: rgba(197, 169, 52, 0.46);
+      }
+
+      body[data-runtime="app"] .runtime-chip {
+        color: #a9f1cf;
+        border-color: rgba(40, 189, 123, 0.45);
+      }
+
+      body[data-runtime] #startStatus {
+        grid-area: status;
+        min-height: 2.4rem;
+        margin: 0;
+        padding: 0.62rem 0.75rem;
+        border: 1px solid var(--mgw-border-soft);
+        border-radius: 10px;
+        background: rgba(3, 15, 17, 0.72);
+        color: #f3e86c;
+        font-size: clamp(0.76rem, 1.2vw, 0.9rem);
+        line-height: 1.25;
+        text-align: left;
+      }
+
+      body[data-runtime] .loading-bar {
+        grid-area: loader;
+        width: 100%;
+        height: 8px;
+        margin: 0;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(6, 12, 20, 0.92);
+      }
+
+      body[data-runtime] .loading-fill {
+        background: linear-gradient(90deg, var(--mgw-emerald), var(--mgw-cyan), var(--mgw-violet));
+        box-shadow: none;
+      }
+
+      body[data-runtime] .start-screen.loaded .loading-bar {
+        display: none;
+      }
+
+      body[data-runtime] .start-screen:not(.loaded) .start-actions,
+      body[data-runtime] .start-screen:not(.loaded) .start-submenu {
+        display: none !important;
+      }
+
+      body[data-runtime] .start-actions {
+        grid-area: nav;
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-height: 0;
+        margin: 0;
+        padding: 0.65rem;
+        overflow: auto;
+        border: 1px solid var(--mgw-border-soft);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(6, 27, 28, 0.74), rgba(5, 17, 20, 0.9));
+      }
+
+      body[data-runtime] .start-actions::before {
+        content: "Menu";
+        padding: 0.1rem 0.35rem 0.35rem;
+        color: var(--mgw-muted);
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      body[data-runtime] button,
+      body[data-runtime] select,
+      body[data-runtime] input,
+      body[data-runtime] textarea {
+        letter-spacing: 0;
+        font-family: inherit;
+      }
+
+      body[data-runtime] button {
+        min-height: 2.85rem;
+        border: 1px solid rgba(108, 226, 204, 0.34);
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--mgw-emerald-2), var(--mgw-cyan-2));
+        color: var(--mgw-text);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.22),
+          0 10px 20px rgba(0, 0, 0, 0.25);
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.42);
+        transition: transform 140ms ease, filter 140ms ease, border-color 140ms ease;
+      }
+
+      body[data-runtime] button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        border-color: rgba(145, 244, 224, 0.55);
+      }
+
+      body[data-runtime] button:active:not(:disabled) {
+        transform: translateY(1px);
+        filter: brightness(0.95);
+      }
+
+      body[data-runtime] button:disabled {
+        opacity: 0.52;
+        cursor: not-allowed;
+        filter: grayscale(0.25);
+      }
+
+      body[data-runtime] .start-actions > button {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.7rem 0.85rem;
+        border-radius: 9px;
+        background: linear-gradient(135deg, rgba(30, 134, 116, 0.9), rgba(37, 126, 161, 0.92));
+        font-size: 0.9rem;
+      }
+
+      body[data-runtime] #startPlayButton,
+      body[data-runtime] .showcase-play-button,
+      body[data-runtime] #startShowcaseAction {
+        background: linear-gradient(135deg, #28bda1, #2d82d8);
+      }
+
+      body[data-runtime] #startPremiumButton,
+      body[data-runtime] #startDonateButton,
+      body[data-runtime] #startBattlePassButton,
+      body[data-runtime] .premium-item button,
+      body[data-runtime] .donate-showcase + .shop-list button {
+        background: linear-gradient(135deg, var(--mgw-gold), var(--mgw-gold-2));
+      }
+
+      body[data-runtime] #startSocialButton,
+      body[data-runtime] #startSkinStudioButton,
+      body[data-runtime] #startAdminButton,
+      body[data-runtime] .admin-panel button:not(.admin-danger) {
+        background: linear-gradient(135deg, var(--mgw-violet-2), var(--mgw-violet));
+      }
+
+      body[data-runtime] .admin-danger,
+      body[data-runtime] #clearRoomsButton,
+      body[data-runtime] #resetAllScoresButton,
+      body[data-runtime] [data-admin-action*="ban"],
+      body[data-runtime] [data-admin-action*="delete"] {
+        background: linear-gradient(135deg, #9b3246, var(--mgw-danger)) !important;
+        border-color: rgba(255, 138, 154, 0.36) !important;
+      }
+
+      body[data-runtime] .start-actions > button.hub-active,
+      body[data-runtime] .start-actions > button.selected {
+        border-color: rgba(242, 224, 108, 0.72);
+        background: linear-gradient(135deg, rgba(38, 151, 118, 0.95), rgba(96, 91, 181, 0.92));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.2),
+          inset 4px 0 0 rgba(242, 224, 108, 0.72),
+          0 10px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      body[data-runtime] .start-submenu {
+        grid-area: content;
+        display: none !important;
+        min-width: 0;
+        min-height: 0;
+        max-height: none;
+        margin: 0;
+        padding: clamp(1rem, 1.8vw, 1.35rem);
+        overflow: hidden;
+        pointer-events: none;
+        opacity: 1;
+        transform: none;
+        border: 1px solid var(--mgw-border);
+        border-radius: 16px;
+        background:
+          linear-gradient(180deg, rgba(5, 18, 23, 0.96), rgba(5, 33, 27, 0.9)),
+          linear-gradient(90deg, rgba(40, 183, 215, 0.04), rgba(123, 94, 214, 0.035));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 18px 38px rgba(0, 0, 0, 0.36);
+      }
+
+      body[data-runtime] .start-submenu.open {
+        display: block !important;
+        pointer-events: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+
+      body[data-runtime] .start-submenu > button[id^="startBackFrom"] {
+        display: none !important;
+      }
+
+      body[data-runtime] .start-submenu h3,
+      body[data-runtime] .admin-section-title {
+        margin: 0 0 0.9rem;
+        color: var(--mgw-text);
+        font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+        text-align: left;
+        text-transform: uppercase;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+      }
+
+      body[data-runtime] .start-submenu h3:not(:first-child) {
+        margin-top: 1.25rem;
+      }
+
+      body[data-runtime] .start-showcase,
+      body[data-runtime] .online-room-panel,
+      body[data-runtime] .install-required-panel,
+      body[data-runtime] .clan-panel,
+      body[data-runtime] .pixel-skin-editor,
+      body[data-runtime] .admin-panel,
+      body[data-runtime] .game,
+      body[data-runtime] .pause-panel,
+      body[data-runtime] .auth-panel,
+      body[data-runtime] .confirm-panel {
+        border: 1px solid var(--mgw-border);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(8, 28, 31, 0.92), rgba(9, 45, 36, 0.82));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 14px 30px rgba(0, 0, 0, 0.32);
+      }
+
+      body[data-runtime] .start-showcase {
+        display: grid;
+        grid-template-columns: minmax(120px, 210px) minmax(0, 1fr);
+        gap: 1rem;
+        align-items: center;
+        margin: 0 0 1rem;
+        padding: 1rem;
+      }
+
+      body[data-runtime] .showcase-thumb,
+      body[data-runtime] .game-thumb {
+        border-radius: 12px;
+        border: 1px solid rgba(117, 237, 209, 0.22);
+        background:
+          radial-gradient(circle at 72% 28%, rgba(242, 224, 108, 0.8) 0 14%, transparent 15%),
+          linear-gradient(145deg, rgba(38, 177, 128, 0.78), rgba(37, 120, 176, 0.78));
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      }
+
+      body[data-runtime] .showcase-copy {
+        min-width: 0;
+      }
+
+      body[data-runtime] .showcase-copy strong {
+        color: var(--mgw-text);
+        font-size: clamp(1.5rem, 2.6vw, 2.5rem);
+        line-height: 1;
+      }
+
+      body[data-runtime] .showcase-copy span,
+      body[data-runtime] .showcase-copy p,
+      body[data-runtime] .room-note,
+      body[data-runtime] .admin-user-meta,
+      body[data-runtime] .shop-item span,
+      body[data-runtime] .quest-card span {
+        color: var(--mgw-muted);
+      }
+
+      body[data-runtime] .game-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+        gap: 0.85rem;
+        margin-bottom: 1rem;
+        overflow: visible;
+      }
+
+      body[data-runtime] .game-card-grid button[data-start-game],
+      body[data-runtime] .game-card-grid button[data-start-online-game] {
+        position: relative;
+        display: grid;
+        grid-template-rows: minmax(92px, 1fr) auto auto;
+        gap: 0.6rem;
+        min-height: 190px;
+        padding: 0.8rem;
+        align-items: stretch;
+        text-align: left;
+        border-radius: 13px;
+        background: linear-gradient(145deg, rgba(20, 126, 89, 0.88), rgba(31, 116, 151, 0.84));
+        animation: none !important;
+      }
+
+      body[data-runtime] .game-card-grid button[data-start-online-game] {
+        background: linear-gradient(145deg, rgba(74, 92, 160, 0.9), rgba(35, 142, 119, 0.84));
+      }
+
+      body[data-runtime] .game-card-grid button.selected {
+        border-color: rgba(242, 224, 108, 0.72);
+        background: linear-gradient(145deg, rgba(42, 139, 103, 0.95), rgba(102, 83, 168, 0.9));
+      }
+
+      body[data-runtime] .game-card-title {
+        color: var(--mgw-text);
+        font-size: 1rem;
+        line-height: 1.1;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.45);
+      }
+
+      body[data-runtime] .game-card-meta {
+        color: rgba(231, 246, 240, 0.78);
+        font-size: 0.78rem;
+      }
+
+      body[data-runtime] .game-card-play {
+        display: grid;
+        place-items: center;
+        min-height: 2.55rem;
+        padding: 0.45rem 0.55rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--mgw-cyan), var(--mgw-cyan-2));
+        color: var(--mgw-text);
+        font-size: 0.86rem;
+      }
+
+      body[data-runtime] .online-room-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr);
+        gap: 1rem;
+        margin-top: 1.2rem;
+        padding: 1rem;
+      }
+
+      body[data-runtime] .online-room-panel > h3 {
+        grid-column: 1 / -1;
+        text-align: center;
+        margin-bottom: 0;
+      }
+
+      body[data-runtime] .online-room-controls,
+      body[data-runtime] .online-room-lobby {
+        min-width: 0;
+      }
+
+      body[data-runtime] .online-room-lobby {
+        padding: 0;
+      }
+
+      body[data-runtime] .admin-rooms,
+      body[data-runtime] .admin-users,
+      body[data-runtime] .shop-list,
+      body[data-runtime] .battle-pass-board {
+        min-height: 0;
+        overflow-x: hidden;
+      }
+
+      body[data-runtime] .shop-list,
+      body[data-runtime] .battle-pass-board {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      body[data-runtime] .shop-item,
+      body[data-runtime] .quest-card,
+      body[data-runtime] .admin-user-card,
+      body[data-runtime] .admin-room-card,
+      body[data-runtime] .profile-card,
+      body[data-runtime] .empty-card {
+        border: 1px solid var(--mgw-border-soft);
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(8, 34, 37, 0.9), rgba(15, 50, 41, 0.75));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+      }
+
+      body[data-runtime] .profile-grid,
+      body[data-runtime] .admin-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+      }
+
+      body[data-runtime] input:not([type="range"]),
+      body[data-runtime] select,
+      body[data-runtime] textarea {
+        width: 100%;
+        min-height: 2.75rem;
+        border: 1px solid rgba(112, 224, 198, 0.24);
+        border-radius: 10px;
+        background: rgba(2, 12, 18, 0.86);
+        color: var(--mgw-text);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      body[data-runtime] input:focus,
+      body[data-runtime] select:focus,
+      body[data-runtime] textarea:focus {
+        outline: 2px solid rgba(45, 191, 205, 0.34);
+        outline-offset: 2px;
+        border-color: rgba(116, 237, 212, 0.56);
+      }
+
+      body[data-runtime] input[type="range"] {
+        accent-color: var(--mgw-cyan);
+      }
+
+      body[data-runtime] .install-required-panel {
+        display: grid;
+        gap: 1rem;
+        max-width: 620px;
+        margin: 0 auto;
+        padding: clamp(1.1rem, 2.8vw, 2rem);
+        text-align: center;
+      }
+
+      body[data-runtime] .install-required-panel strong {
+        color: var(--mgw-text);
+        font-size: clamp(1.7rem, 3vw, 2.7rem);
+        line-height: 1;
+        text-shadow: 0 3px 0 rgba(0, 0, 0, 0.45);
+      }
+
+      body[data-runtime] .hub-kicker,
+      body[data-runtime] .admin-badge {
+        display: inline-grid;
+        place-items: center;
+        width: fit-content;
+        justify-self: center;
+        padding: 0.28rem 0.62rem;
+        border-radius: 999px;
+        background: rgba(197, 169, 52, 0.16);
+        color: #f2de7a;
+        font-size: 0.72rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      body[data-runtime] .pixel-skin-editor {
+        display: grid;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      body[data-runtime] .cube-skin-studio {
+        display: grid;
+        grid-template-columns: minmax(130px, 180px) minmax(0, 1fr);
+        gap: 1rem;
+        align-items: center;
+        border: 1px solid var(--mgw-border-soft);
+        border-radius: 12px;
+        background: rgba(2, 13, 17, 0.55);
+      }
+
+      body[data-runtime] .cube-preview {
+        min-height: 150px;
+        transform: scale(0.92);
+      }
+
+      body[data-runtime] .cube-skin-copy strong {
+        color: var(--mgw-text);
+        font-size: clamp(1.3rem, 2.2vw, 2rem);
+      }
+
+      body[data-runtime] .pixel-skin-toolbar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
+        gap: 0.45rem;
+      }
+
+      body[data-runtime] .pixel-skin-toolbar button {
+        min-height: 2.2rem;
+        aspect-ratio: 1;
+        padding: 0;
+        border-radius: 8px;
+      }
+
+      body[data-runtime] .pixel-skin-grid {
+        width: min(100%, 560px);
+        aspect-ratio: 1;
+        display: grid;
+        grid-template-columns: repeat(64, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        justify-self: center;
+        overflow: hidden;
+        border: 2px solid rgba(120, 232, 206, 0.3);
+        border-radius: 10px;
+        background: #031010;
+        image-rendering: pixelated;
+      }
+
+      body[data-runtime] .pixel-cell {
+        min-width: 0;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        transform: none;
+      }
+
+      body[data-runtime] .pixel-skin-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.65rem;
+      }
+
+      body[data-runtime] main {
+        border: 1px solid var(--mgw-border);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(4, 15, 18, 0.94), rgba(7, 31, 27, 0.88));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 20px 60px rgba(0, 0, 0, 0.42);
+      }
+
+      body[data-runtime] header,
+      body[data-runtime] .account-bar,
+      body[data-runtime] .scoreboard,
+      body[data-runtime] .controls,
+      body[data-runtime] .room-chat {
+        border-color: var(--mgw-border-soft);
+        background: rgba(5, 20, 24, 0.76);
+      }
+
+      body[data-runtime] #board {
+        border-color: rgba(106, 224, 201, 0.28);
+        border-radius: 14px;
+        background: rgba(1, 10, 13, 0.94);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+          0 15px 32px rgba(0, 0, 0, 0.34);
+      }
+
+      body[data-runtime] .play-panel,
+      body[data-runtime] .pause-panel,
+      body[data-runtime] .auth-panel,
+      body[data-runtime] .confirm-panel {
+        max-width: min(92vw, 460px);
+        padding: clamp(1rem, 2vw, 1.4rem);
+      }
+
+      body[data-runtime] .top-notification {
+        top: max(0.8rem, env(safe-area-inset-top));
+        border: 1px solid rgba(117, 237, 209, 0.32);
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(6, 23, 27, 0.96), rgba(28, 53, 49, 0.93));
+        color: var(--mgw-text);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+      }
+
+      body[data-runtime] .pad button {
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(35, 151, 127, 0.92), rgba(42, 127, 185, 0.9));
+      }
+
+      body[data-runtime] .start-panel,
+      body[data-runtime] .start-actions,
+      body[data-runtime] .start-submenu,
+      body[data-runtime] .shop-list,
+      body[data-runtime] .admin-users,
+      body[data-runtime] .admin-rooms,
+      body[data-runtime] .battle-pass-board,
+      body[data-runtime] .chat-messages {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(70, 199, 174, 0.72) rgba(3, 12, 14, 0.72);
+      }
+
+      body[data-runtime] .start-panel::-webkit-scrollbar,
+      body[data-runtime] .start-actions::-webkit-scrollbar,
+      body[data-runtime] .start-submenu::-webkit-scrollbar,
+      body[data-runtime] .shop-list::-webkit-scrollbar,
+      body[data-runtime] .admin-users::-webkit-scrollbar,
+      body[data-runtime] .admin-rooms::-webkit-scrollbar,
+      body[data-runtime] .battle-pass-board::-webkit-scrollbar,
+      body[data-runtime] .chat-messages::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+
+      body[data-runtime] .start-panel::-webkit-scrollbar-thumb,
+      body[data-runtime] .start-actions::-webkit-scrollbar-thumb,
+      body[data-runtime] .start-submenu::-webkit-scrollbar-thumb,
+      body[data-runtime] .shop-list::-webkit-scrollbar-thumb,
+      body[data-runtime] .admin-users::-webkit-scrollbar-thumb,
+      body[data-runtime] .admin-rooms::-webkit-scrollbar-thumb,
+      body[data-runtime] .battle-pass-board::-webkit-scrollbar-thumb,
+      body[data-runtime] .chat-messages::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: rgba(70, 199, 174, 0.72);
+      }
+
+      body[data-graphics="low"][data-runtime]::before {
+        opacity: 0.08 !important;
+      }
+
+      body[data-graphics="low"][data-runtime] * {
+        animation: none !important;
+        text-shadow: none !important;
+      }
+
+      body[data-graphics="normal"][data-runtime] .start-panel > h2,
+      body[data-graphics="normal"][data-runtime] .game-card-grid button.selected {
+        animation: none !important;
+      }
+
+      body[data-graphics="low"][data-runtime] .start-panel,
+      body[data-graphics="low"][data-runtime] .start-submenu,
+      body[data-graphics="low"][data-runtime] main,
+      body[data-graphics="low"][data-runtime] .game,
+      body[data-graphics="low"][data-runtime] .pause-panel {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34);
+      }
+
+      body[data-graphics="ultra"][data-runtime] .start-panel,
+      body[data-graphics="ultra"][data-runtime] .start-submenu,
+      body[data-graphics="ultra"][data-runtime] main,
+      body[data-graphics="ultra"][data-runtime] .game,
+      body[data-graphics="ultra"][data-runtime] .pause-panel {
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          0 24px 64px rgba(0, 0, 0, 0.46),
+          0 0 24px rgba(39, 185, 202, 0.1);
+      }
+
+      @media (max-width: 860px) {
+        body[data-runtime] .start-screen {
+          align-items: stretch;
+          padding: 0;
+        }
+
+        body[data-runtime] .start-panel {
+          width: 100vw;
+          height: 100dvh;
+          border-radius: 0;
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+          grid-template-areas:
+            "brand"
+            "splash"
+            "runtime"
+            "status"
+            "nav"
+            "content";
+          gap: 0.55rem;
+          padding: max(0.65rem, env(safe-area-inset-top)) 0.65rem max(0.75rem, env(safe-area-inset-bottom));
+        }
+
+        body[data-runtime] .start-panel > h2 {
+          font-size: clamp(2rem, 12vw, 3.6rem);
+          text-align: center;
+          justify-self: center;
+        }
+
+        body[data-runtime] .start-splash,
+        body[data-runtime] .runtime-chip {
+          justify-self: center;
+        }
+
+        body[data-runtime] #startStatus {
+          min-height: 2.15rem;
+          text-align: center;
+        }
+
+        body[data-runtime] .start-actions {
+          display: grid !important;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          max-height: min(28dvh, 15rem);
+          padding: 0.55rem;
+          overflow-y: auto;
+        }
+
+        body[data-runtime] .start-actions::before {
+          grid-column: 1 / -1;
+          text-align: center;
+        }
+
+        body[data-runtime] .start-actions > button {
+          min-height: 2.65rem;
+          justify-content: center;
+          padding: 0.55rem;
+          font-size: clamp(0.72rem, 3.2vw, 0.86rem);
+          text-align: center;
+        }
+
+        body[data-runtime] .start-submenu {
+          padding: 0.75rem;
+          border-radius: 14px;
+        }
+
+        body[data-runtime] .start-showcase,
+        body[data-runtime] .online-room-panel,
+        body[data-runtime] .cube-skin-studio {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        body[data-runtime] .game-card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 0.65rem;
+        }
+
+        body[data-runtime] .game-card-grid button[data-start-game],
+        body[data-runtime] .game-card-grid button[data-start-online-game] {
+          min-height: 150px;
+          padding: 0.62rem;
+        }
+
+        body[data-runtime] .showcase-copy,
+        body[data-runtime] .cube-skin-copy {
+          text-align: center;
+        }
+
+        body[data-runtime] .showcase-copy strong {
+          font-size: clamp(1.45rem, 8vw, 2.2rem);
+        }
+
+        body[data-runtime] .pixel-skin-actions {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 430px) {
+        body[data-runtime] .game-card-grid {
+          grid-template-columns: 1fr;
+        }
+
+        body[data-runtime] .profile-grid,
+        body[data-runtime] .admin-stats {
+          grid-template-columns: 1fr;
+        }
+
+        body[data-runtime] .start-actions {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        body[data-runtime] .start-actions > button {
+          min-width: 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -6524,6 +7403,7 @@
       <div class="start-panel" id="startPanel">
         <h2>MiniGameWorld</h2>
         <div class="start-splash">MiniGameWorld Hub</div>
+        <div class="runtime-chip" id="runtimeBadge">Web Preview</div>
         <p id="startStatus">Loading...</p>
         <div class="loading-bar" aria-hidden="true">
           <div class="loading-fill"></div>
@@ -6544,6 +7424,15 @@
           <button type="button" id="startAccountButton">Account</button>
           <button type="button" id="startInstallButton" hidden>Install App</button>
           <button type="button" id="startAdminButton" hidden>Admin Panel</button>
+        </div>
+        <div class="start-submenu" id="startInstallGateMenu" aria-label="Install MiniGameWorld app">
+          <h3>MiniGameWorld App</h3>
+          <div class="install-required-panel">
+            <span class="hub-kicker">Desktop App Required</span>
+            <strong>Install the app to play minigames</strong>
+            <p id="installGateReason">The website lets you manage your account, shop, music, clans, missions, and leaderboards. Gameplay opens in the MiniGameWorld desktop app.</p>
+            <button type="button" id="installGateButton">Install App</button>
+          </div>
         </div>
         <div class="start-submenu" id="startGamesMenu" aria-label="Main menu games">
           <button type="button" id="startBackFromGames">Back</button>
@@ -6629,27 +7518,6 @@
           <div class="admin-users" id="profileBestScores"></div>
           <h3>Daily Missions</h3>
           <div class="shop-list" id="dailyMissionsList"></div>
-          <h3>64x64 Pixel Skin</h3>
-          <div class="pixel-skin-editor">
-            <div class="cube-skin-studio" id="cubeSkinStudio">
-              <div class="cube-preview" aria-hidden="true">
-                <div class="cube-face cube-front"></div>
-                <div class="cube-face cube-top"></div>
-                <div class="cube-face cube-side"></div>
-              </div>
-              <div class="cube-skin-copy">
-                <strong>Cube Skin Studio</strong>
-                <span>Draw a safe 64x64 pixel skin. Only approved palette pixels are saved, so no one can inject cheats.</span>
-              </div>
-            </div>
-            <div class="pixel-skin-toolbar" id="pixelPalette"></div>
-            <div class="pixel-skin-grid" id="pixelSkinGrid" aria-label="64 by 64 pixel skin editor"></div>
-            <div class="pixel-skin-actions">
-              <button type="button" id="savePixelSkinButton">Save Pixel Skin</button>
-              <button type="button" id="equipPixelSkinButton">Equip Pixel Skin</button>
-              <button type="button" id="clearPixelSkinButton">Clear</button>
-            </div>
-          </div>
           <h3>Clan</h3>
           <div class="clan-panel">
             <div class="clan-actions">
@@ -6730,6 +7598,31 @@
           <h3>Your Friends</h3>
           <div class="admin-users" id="friendsList"></div>
           <p class="room-note" id="socialMessage"></p>
+        </div>
+        <div class="start-submenu" id="startSkinStudioMenu" aria-label="Skin Studio">
+          <button type="button" id="startBackFromSkinStudio">Back</button>
+          <h3>Skin Studio</h3>
+          <div class="pixel-skin-editor">
+            <div class="cube-skin-studio" id="cubeSkinStudio">
+              <div class="cube-preview" aria-hidden="true">
+                <div class="cube-face cube-front"></div>
+                <div class="cube-face cube-top"></div>
+                <div class="cube-face cube-side"></div>
+              </div>
+              <div class="cube-skin-copy">
+                <strong>64x64 Cube Painter</strong>
+                <span>Draw your own cube skin with approved palette pixels only, so saved skins stay fair.</span>
+              </div>
+            </div>
+            <div class="pixel-skin-toolbar" id="pixelPalette"></div>
+            <div class="pixel-skin-grid" id="pixelSkinGrid" aria-label="64 by 64 pixel skin editor"></div>
+            <div class="pixel-skin-actions">
+              <button type="button" id="savePixelSkinButton">Save Pixel Skin</button>
+              <button type="button" id="equipPixelSkinButton">Equip Pixel Skin</button>
+              <button type="button" id="clearPixelSkinButton">Clear</button>
+            </div>
+          </div>
+          <p class="room-note" id="skinStudioMessage">Draw pixels, save, then equip Custom 64x64 from Settings.</p>
         </div>
         <div class="start-submenu" id="startSettingsMenu" aria-label="Main menu settings">
           <h3>Settings</h3>
@@ -6896,7 +7789,7 @@
       </section>
 
       <header>
-        <h1 id="gameTitle">Snake</h1>
+        <h1 id="gameTitle">Neon Snake</h1>
         <div class="scoreboard" id="localScoreboard" aria-label="Scoreboard">
           <div class="stat">Score <span id="score">0</span></div>
           <div class="stat">Best <span id="best">0</span></div>
@@ -6911,7 +7804,7 @@
         <canvas id="board" width="560" height="560"></canvas>
         <div class="play-overlay" id="playOverlay" aria-hidden="true">
           <div class="play-panel">
-            <h2 id="playTitle">Snake</h2>
+            <h2 id="playTitle">Neon Snake</h2>
             <p id="playMessage"></p>
             <button type="button" id="playButton">Play</button>
             <button type="button" id="cancelWaitButton" hidden>Leave Room</button>
@@ -7091,7 +7984,7 @@
           <button type="button" id="snakeClassic">Neon Snake</button>
           <button type="button" id="appleCatcher">Apple Drop</button>
           <button type="button" id="dodgeBlocks">Gem Dash</button>
-          <button type="button" id="soloPong">Solo Pong</button>
+          <button type="button" id="soloPong">Brick Breaker</button>
           <button type="button" id="coinRush">Coin Dash</button>
           <button type="button" id="laserDodge">Laser Escape</button>
           <button type="button" id="sigmaRpg">Crystal RPG</button>
@@ -7176,6 +8069,7 @@
       const cancelWaitButton = document.getElementById("cancelWaitButton");
       const startScreen = document.getElementById("startScreen");
       const startPanel = document.getElementById("startPanel");
+      const runtimeBadge = document.getElementById("runtimeBadge");
       const startStatus = document.getElementById("startStatus");
       const startPlayButton = document.getElementById("startPlayButton");
       const startGamesButton = document.getElementById("startGamesButton");
@@ -7192,6 +8086,9 @@
       const startAccountButton = document.getElementById("startAccountButton");
       const startInstallButton = document.getElementById("startInstallButton");
       const startAdminButton = document.getElementById("startAdminButton");
+      const startInstallGateMenu = document.getElementById("startInstallGateMenu");
+      const installGateReason = document.getElementById("installGateReason");
+      const installGateButton = document.getElementById("installGateButton");
       const startGamesMenu = document.getElementById("startGamesMenu");
       const startOnlineRoomMenu = document.getElementById("startOnlineRoomMenu");
       const startProfileMenu = document.getElementById("startProfileMenu");
@@ -7202,6 +8099,7 @@
       const startLeaderboardMenu = document.getElementById("startLeaderboardMenu");
       const startQuestsMenu = document.getElementById("startQuestsMenu");
       const startSocialMenu = document.getElementById("startSocialMenu");
+      const startSkinStudioMenu = document.getElementById("startSkinStudioMenu");
       const startSettingsMenu = document.getElementById("startSettingsMenu");
       const startAccountMenu = document.getElementById("startAccountMenu");
       const startBackFromGames = document.getElementById("startBackFromGames");
@@ -7214,6 +8112,7 @@
       const startBackFromLeaderboard = document.getElementById("startBackFromLeaderboard");
       const startBackFromQuests = document.getElementById("startBackFromQuests");
       const startBackFromSocial = document.getElementById("startBackFromSocial");
+      const startBackFromSkinStudio = document.getElementById("startBackFromSkinStudio");
       const startShowcaseThumb = document.getElementById("startShowcaseThumb");
       const startShowcaseIcon = document.getElementById("startShowcaseIcon");
       const startShowcaseTitle = document.getElementById("startShowcaseTitle");
@@ -7274,6 +8173,7 @@
       const savePixelSkinButton = document.getElementById("savePixelSkinButton");
       const equipPixelSkinButton = document.getElementById("equipPixelSkinButton");
       const clearPixelSkinButton = document.getElementById("clearPixelSkinButton");
+      const skinStudioMessage = document.getElementById("skinStudioMessage");
       const clanNameInput = document.getElementById("clanNameInput");
       const createClanButton = document.getElementById("createClanButton");
       const joinClanButton = document.getElementById("joinClanButton");
@@ -7419,7 +8319,7 @@
       ];
       const games = {
         snake: {
-          title: "Snake",
+          title: "Neon Snake",
           bestKey: "snake-best",
           help: "Use arrow keys or WASD to play."
         },
@@ -7843,6 +8743,7 @@
           leaderboard: "Leaderboard",
           quests: "Quests",
           social: "Social",
+          skinStudio: "Skin Studio",
           settings: "Settings",
           account: "Account",
           installApp: "Install App",
@@ -7887,6 +8788,7 @@
           leaderboard: "Лидеры",
           quests: "Квесты",
           social: "Друзья",
+          skinStudio: "Студия скинов",
           settings: "Настройки",
           account: "Аккаунт",
           installApp: "Установить",
@@ -7931,6 +8833,7 @@
           leaderboard: "Лідери",
           quests: "Квести",
           social: "Друзі",
+          skinStudio: "Студія скінів",
           settings: "Налаштування",
           account: "Акаунт",
           installApp: "Встановити",
@@ -8017,6 +8920,10 @@
       let pixelSkinPainting = false;
 
       function startGame(gameName, unlockMusic = true) {
+        if (unlockMusic !== false && !requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[gameName]?.title || "minigames"}.`)) {
+          return;
+        }
+
         if (unlockMusic) {
           unlockBackgroundMusic();
         }
@@ -8301,6 +9208,7 @@
         setText(startLeaderboardButton, "leaderboard");
         setText(startQuestsButton, "quests");
         setText(startSocialButton, "social");
+        setText(startSkinStudioButton, "skinStudio");
         setText(startSettingsButton, "settings");
         setText(startAccountButton, "account");
         setText(startInstallButton, "installApp");
@@ -8315,6 +9223,7 @@
         setText(startBackFromLeaderboard, "back");
         setText(startBackFromQuests, "back");
         setText(startBackFromSocial, "back");
+        setText(startBackFromSkinStudio, "back");
         setText(startBackFromSettings, "back");
         setText(startBackFromAccount, "back");
         setText(startBackFromAdmin, "back");
@@ -11693,6 +12602,10 @@
       }
 
       function playLocalGame() {
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[currentGame]?.title || "minigames"}.`)) {
+          return;
+        }
+
         if (
           !waitingToPlay ||
           currentGame.startsWith("online-")
@@ -11715,8 +12628,84 @@
         startScreen.setAttribute("aria-hidden", "true");
       }
 
+      function isDesktopRuntime() {
+        const host = window.location.hostname.toLowerCase();
+        const protocol = window.location.protocol.toLowerCase();
+
+        return Boolean(
+          window.__TAURI__ ||
+          window.__TAURI_INTERNALS__ ||
+          window.__TAURI_IPC__ ||
+          host === "tauri.localhost" ||
+          protocol === "tauri:" ||
+          protocol === "asset:"
+        );
+      }
+
+      function canPlayGames() {
+        return isDesktopRuntime();
+      }
+
+      function syncRuntimeUi() {
+        const runtime = canPlayGames() ? "app" : "web";
+        document.body.dataset.runtime = runtime;
+        runtimeBadge.textContent = runtime === "app" ? "Desktop App" : "Web Preview";
+        startInstallButton.hidden = runtime === "app";
+      }
+
+      function setHubSection(section) {
+        const currentSection = section === "main" ? "games" : section;
+        document.body.dataset.hubSection = currentSection;
+
+        const navButtons = [
+          [startGamesButton, "games"],
+          [startProfileButton, "profile"],
+          [startSkinStudioButton, "skinStudio"],
+          [startShopButton, "shop"],
+          [startPremiumButton, "premium"],
+          [startDonateButton, "donate"],
+          [startBattlePassButton, "battlePass"],
+          [startLeaderboardButton, "leaderboard"],
+          [startQuestsButton, "quests"],
+          [startSocialButton, "social"],
+          [startSettingsButton, "settings"],
+          [startAccountButton, "account"],
+          [startInstallButton, "install"],
+          [startAdminButton, "admin"]
+        ];
+
+        navButtons.forEach(([button, buttonSection]) => {
+          if (button) {
+            button.classList.toggle("hub-active", buttonSection === currentSection);
+          }
+        });
+
+        return currentSection;
+      }
+
+      function showInstallRequired(reason = "Install the MiniGameWorld desktop app to play minigames.") {
+        syncRuntimeUi();
+        installGateReason.textContent = reason;
+        startStatus.textContent = "MiniGameWorld App required for gameplay.";
+        startScreen.classList.remove("closed");
+        startScreen.classList.add("loaded", "submenu-open");
+        startScreen.setAttribute("aria-hidden", "false");
+        showStartSection("install");
+        showTopNotification("Install MiniGameWorld App to play.");
+      }
+
+      function requireDesktopGameplay(reason) {
+        if (canPlayGames()) {
+          return true;
+        }
+
+        showInstallRequired(reason);
+        return false;
+      }
+
       function showMainMenu() {
         stopLoadingMusic();
+        syncRuntimeUi();
         startScreen.classList.remove("closed");
         startScreen.classList.add("loaded");
         startScreen.classList.remove("submenu-open");
@@ -11728,17 +12717,21 @@
       }
 
       function showStartSection(section) {
+        section = setHubSection(section);
+
         if (section === "admin" && !currentAccount?.isAdmin) {
-          section = "main";
+          section = setHubSection("games");
         }
 
         if (section !== "onlineRoom") {
           setOnlineRoomCreateOnly(false);
         }
 
+        startInstallGateMenu.classList.toggle("open", section === "install");
         startGamesMenu.classList.toggle("open", section === "games");
         startOnlineRoomMenu.classList.toggle("open", section === "onlineRoom");
         startProfileMenu.classList.toggle("open", section === "profile");
+        startSkinStudioMenu.classList.toggle("open", section === "skinStudio");
         startShopMenu.classList.toggle("open", section === "shop");
         startPremiumMenu.classList.toggle("open", section === "premium");
         startDonateMenu.classList.toggle("open", section === "donate");
@@ -11749,7 +12742,7 @@
         startSettingsMenu.classList.toggle("open", section === "settings");
         startAccountMenu.classList.toggle("open", section === "account");
         startAdminMenu.classList.toggle("open", section === "admin");
-        startScreen.classList.toggle("submenu-open", section !== "main");
+        startScreen.classList.add("submenu-open");
         startPanel.scrollTop = 0;
         if (section === "admin") {
           startAdminPanelMount.appendChild(adminPanel);
@@ -11779,6 +12772,9 @@
         }
         if (section === "profile") {
           renderProfileMenu();
+        }
+        if (section === "skinStudio") {
+          renderSkinStudioMenu();
         }
         if (section === "shop") {
           renderShopMenu();
@@ -11813,6 +12809,14 @@
       }
 
       function playFromStartMenu() {
+        const gameTitle = selectedStartMode === "online"
+          ? onlineGameNames[selectedOnlineGame]
+          : games[selectedStartGame].title;
+
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${gameTitle}. Web mode keeps account, shop, music, clans, missions, and leaderboards open.`)) {
+          return;
+        }
+
         unlockBackgroundMusic();
 
         if (selectedStartMode === "online") {
@@ -11986,13 +12990,17 @@
       }
 
       function playStartCard(button) {
-        unlockBackgroundMusic();
-
         const soloGame = button.dataset.startGame;
         const onlineGame = button.dataset.startOnlineGame;
 
         if (soloGame) {
           selectSoloGameFromStart(soloGame);
+
+          if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[soloGame].title}.`)) {
+            return;
+          }
+
+          unlockBackgroundMusic();
           startGame(soloGame);
           closeStartScreen();
           if (waitingToPlay && isSinglePlayerGame(currentGame)) {
@@ -12002,15 +13010,22 @@
         }
 
         if (onlineGame) {
+          selectOnlineGameFromStart(onlineGame, false, true);
+
+          if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to open ${onlineGameNames[onlineGame]} rooms.`)) {
+            return;
+          }
+
+          unlockBackgroundMusic();
           selectOnlineGameFromStart(onlineGame, true, true);
         }
       }
 
       async function openSkinStudioFromStart() {
-        showStartSection("profile");
-        await renderProfileMenu();
-        document.getElementById("cubeSkinStudio")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        showStartSection("skinStudio");
+        await renderSkinStudioMenu();
         profileMessage.textContent = "Skin Studio opened. Draw pixels, save, then equip Custom 64x64.";
+        skinStudioMessage.textContent = profileMessage.textContent;
         showTopNotification("Skin Studio opened.");
       }
 
@@ -12176,6 +13191,25 @@
         renderPixelSkinGrid(user);
         await renderClanPanel(user);
         profileMessage.textContent = currentAccount.isAdmin ? "Admin profile loaded." : "Profile loaded.";
+      }
+
+      async function renderSkinStudioMenu() {
+        if (!currentAccount?.username) {
+          renderPixelSkinGrid(null, true);
+          skinStudioMessage.textContent = "Log in to save and equip your 64x64 cube skin.";
+          return;
+        }
+
+        const user = await refreshCurrentUserData();
+        renderPixelSkinGrid(user);
+        skinStudioMessage.textContent = user.pixelSkin64
+          ? "Saved cube skin loaded."
+          : "Draw pixels, save, then equip Custom 64x64 from Settings.";
+      }
+
+      function setSkinStudioMessage(message) {
+        profileMessage.textContent = message;
+        skinStudioMessage.textContent = message;
       }
 
       async function renderShopMenu() {
@@ -12710,14 +13744,14 @@
 
       async function savePixelSkin() {
         if (!currentAccount?.username) {
-          profileMessage.textContent = "Log in first.";
+          setSkinStudioMessage("Log in first.");
           return;
         }
 
         const skin = sanitizePixelSkin64(getPixelSkinDraft());
 
         if (!skin) {
-          profileMessage.textContent = "Pixel skin must be exactly 64x64 with approved colors.";
+          setSkinStudioMessage("Pixel skin must be exactly 64x64 with approved colors.");
           return;
         }
 
@@ -12733,20 +13767,21 @@
         pixelSkinDraft = skin;
         pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
         pixelSkinDirty = false;
-        profileMessage.textContent = "64x64 pixel skin saved.";
+        setSkinStudioMessage("64x64 pixel skin saved.");
         await renderProfileMenu();
+        await renderSkinStudioMenu();
       }
 
       async function equipPixelSkin() {
         if (!currentAccount?.username) {
-          profileMessage.textContent = "Log in first.";
+          setSkinStudioMessage("Log in first.");
           return;
         }
 
         const skin = sanitizePixelSkin64(getPixelSkinDraft(currentUserData));
 
         if (!skin) {
-          profileMessage.textContent = "Save your 64x64 pixel skin first.";
+          setSkinStudioMessage("Save your 64x64 pixel skin first.");
           return;
         }
 
@@ -12767,7 +13802,7 @@
         pixelSkinDraft = skin;
         pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
         pixelSkinDirty = false;
-        profileMessage.textContent = "64x64 pixel skin equipped.";
+        setSkinStudioMessage("64x64 pixel skin equipped.");
       }
 
       function clearPixelSkin() {
@@ -12775,7 +13810,7 @@
         pixelSkinDraftOwner = getUserKeyFromAccount() || "guest";
         pixelSkinDirty = true;
         renderPixelSkinGrid(currentUserData);
-        profileMessage.textContent = "Pixel editor reset. Click Save Pixel Skin to store it.";
+        setSkinStudioMessage("Pixel editor reset. Click Save Pixel Skin to store it.");
       }
 
       async function createClanFromProfile() {
@@ -13008,12 +14043,21 @@
       }
 
       async function createRoomFromStart() {
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to create ${onlineGameNames[selectedOnlineGame]} rooms.`)) {
+          return;
+        }
+
         closeStartScreen();
         await createRoom();
       }
 
       async function joinRoomFromStart() {
         roomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to join ${onlineGameNames[selectedOnlineGame]} rooms.`)) {
+          return;
+        }
+
         closeStartScreen();
         await joinRoom();
       }
@@ -13021,6 +14065,11 @@
       async function createRoomFromGamesMenu() {
         startRoomVisibilitySelect.value = gamesRoomVisibilitySelect.value;
         gamesRoomNote.textContent = `Creating ${onlineGameNames[selectedOnlineGame]} room...`;
+
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to create ${onlineGameNames[selectedOnlineGame]} rooms.`)) {
+          return;
+        }
+
         closeStartScreen();
         await createRoom();
       }
@@ -13034,6 +14083,11 @@
         if (!code) {
           return;
         }
+
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to join room ${code}.`)) {
+          return;
+        }
+
         closeStartScreen();
         await joinRoom();
       }
@@ -13141,12 +14195,21 @@
           roomCodeInput.value = joinButton.dataset.lobbyJoin;
           startRoomCodeInput.value = joinButton.dataset.lobbyJoin;
           gamesRoomCodeInput.value = joinButton.dataset.lobbyJoin;
+
+          if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to join room ${joinButton.dataset.lobbyJoin}.`)) {
+            return;
+          }
+
           closeStartScreen();
           await joinRoom();
           return;
         }
 
         if (spectateButton) {
+          if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to spectate room ${spectateButton.dataset.lobbySpectate}.`)) {
+            return;
+          }
+
           closeStartScreen();
           await spectateOnlineRoom(spectateButton.dataset.lobbySpectate);
         }
@@ -17450,6 +18513,10 @@
       }
 
       async function createRoom() {
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to create ${onlineGameNames[selectedOnlineGame]} rooms.`)) {
+          return;
+        }
+
         createRoomButton.disabled = true;
         joinRoomButton.disabled = true;
         roomCodeEl.textContent = "";
@@ -17516,6 +18583,10 @@
       }
 
       async function joinRoom() {
+        if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to join online rooms.`)) {
+          return;
+        }
+
         const code = roomCodeInput.value.trim().toUpperCase();
 
         if (!code) {
@@ -17625,32 +18696,25 @@
       }
 
       function setupInstallAppButton() {
+        syncRuntimeUi();
+
         window.addEventListener("beforeinstallprompt", (event) => {
           event.preventDefault();
           deferredInstallPrompt = event;
-          startInstallButton.hidden = false;
+          syncRuntimeUi();
         });
 
         window.addEventListener("appinstalled", () => {
           deferredInstallPrompt = null;
-          startInstallButton.hidden = true;
+          syncRuntimeUi();
           startStatus.textContent = "MiniGameWorld installed.";
         });
       }
 
-      async function installSigmaApp() {
-        if (!deferredInstallPrompt) {
-          startStatus.textContent = "Use browser menu -> Add to Home screen.";
-          return;
-        }
-
-        deferredInstallPrompt.prompt();
-        const result = await deferredInstallPrompt.userChoice;
-        deferredInstallPrompt = null;
-        startInstallButton.hidden = true;
-        startStatus.textContent = result.outcome === "accepted"
-          ? "MiniGameWorld install started."
-          : "Install canceled.";
+      async function installMiniGameWorldApp() {
+        window.open("https://github.com/kriuchkovdjdaniel-cell/minigamesworld/releases/latest", "_blank", "noopener");
+        startStatus.textContent = "Download the MiniGameWorld desktop app from GitHub Releases.";
+        showInstallRequired("Download and open the MiniGameWorld desktop app to play. The website stays open for profile, shop, music, clans, missions, and leaderboards.");
       }
 
       registerServiceWorker();
@@ -17702,7 +18766,8 @@
       startAccountButton.addEventListener("click", () => {
         showStartSection("account");
       });
-      startInstallButton.addEventListener("click", installSigmaApp);
+      startInstallButton.addEventListener("click", installMiniGameWorldApp);
+      installGateButton.addEventListener("click", installMiniGameWorldApp);
       startAdminButton.addEventListener("click", () => {
         showStartSection("admin");
       });
@@ -17716,6 +18781,7 @@
       startBackFromLeaderboard.addEventListener("click", () => showStartSection("main"));
       startBackFromQuests.addEventListener("click", () => showStartSection("main"));
       startBackFromSocial.addEventListener("click", () => showStartSection("main"));
+      startBackFromSkinStudio.addEventListener("click", () => showStartSection("main"));
       startBackFromSettings.addEventListener("click", () => showStartSection("main"));
       startBackFromAccount.addEventListener("click", () => showStartSection("main"));
       startBackFromAdmin.addEventListener("click", () => showStartSection("main"));
