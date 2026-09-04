@@ -6597,13 +6597,11 @@
         min-height: 0;
         display: grid !important;
         grid-template-columns: minmax(220px, 278px) minmax(0, 1fr);
-        grid-template-rows: auto auto auto auto 8px minmax(0, 1fr);
+        grid-template-rows: auto auto auto minmax(0, 1fr);
         grid-template-areas:
-          "brand content"
-          "splash content"
-          "runtime content"
-          "status content"
-          "loader content"
+          "brand brand"
+          "splash status"
+          "runtime loader"
           "nav content";
         gap: 0.7rem 1rem;
         padding: clamp(0.9rem, 1.8vw, 1.25rem);
@@ -6622,12 +6620,14 @@
       body[data-runtime] .start-panel > h2 {
         grid-area: brand;
         margin: 0;
-        align-self: end;
+        align-self: center;
+        justify-self: center;
+        max-width: 100%;
         color: var(--mgw-text);
-        font-size: clamp(2.2rem, 4vw, 4.2rem);
+        font-size: clamp(2.7rem, 6.2vw, 5.8rem);
         line-height: 0.9;
         letter-spacing: 0;
-        text-align: left;
+        text-align: center;
         text-transform: uppercase;
         text-shadow:
           0 4px 0 rgba(0, 0, 0, 0.65),
@@ -6654,6 +6654,7 @@
       body[data-runtime] .runtime-chip {
         grid-area: runtime;
         justify-self: start;
+        align-self: center;
         width: fit-content;
         padding: 0.34rem 0.72rem;
         border: 1px solid rgba(70, 199, 174, 0.35);
@@ -6677,6 +6678,7 @@
 
       body[data-runtime] #startStatus {
         grid-area: status;
+        align-self: stretch;
         min-height: 2.4rem;
         margin: 0;
         padding: 0.62rem 0.75rem;
@@ -6691,6 +6693,7 @@
 
       body[data-runtime] .loading-bar {
         grid-area: loader;
+        align-self: center;
         width: 100%;
         height: 8px;
         margin: 0;
@@ -6851,6 +6854,11 @@
         pointer-events: auto;
         overflow-x: hidden;
         overflow-y: auto;
+      }
+
+      body[data-runtime] #startDonateMenu.open,
+      body[data-runtime] #startInstallGateMenu.open {
+        align-self: start;
       }
 
       body[data-runtime] .start-submenu > button[id^="startBackFrom"] {
@@ -7017,6 +7025,43 @@
       body[data-runtime] .battle-pass-board {
         display: grid;
         gap: 0.75rem;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-showcase {
+        margin-bottom: 0.8rem;
+      }
+
+      body[data-runtime] #startDonateMenu .shop-list {
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        align-content: start;
+        max-height: none;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.65rem;
+        align-items: center;
+        min-height: 0;
+        padding: 0.85rem;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card > div:first-child {
+        min-width: 0;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card button {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
+      body[data-runtime] #donateMessage {
+        margin: 0.8rem 0 0;
+        padding: 0.7rem 0.85rem;
+        border: 1px solid rgba(197, 169, 52, 0.22);
+        border-radius: 10px;
+        background: rgba(6, 20, 18, 0.72);
+        text-align: center;
       }
 
       body[data-runtime] .shop-item,
@@ -7306,9 +7351,10 @@
         }
 
         body[data-runtime] .start-panel > h2 {
-          font-size: clamp(2rem, 12vw, 3.6rem);
+          font-size: clamp(1.9rem, 9vw, 3.2rem);
           text-align: center;
           justify-self: center;
+          white-space: nowrap;
         }
 
         body[data-runtime] .start-splash,
