@@ -404,7 +404,7 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.12),
           inset 0 0 0 1px rgba(94, 234, 212, 0.1),
           0 26px 60px rgba(0, 0, 0, 0.42),
-          0 0 70px rgba(34, 197, 94, 0.16);
+          0 0 34px rgba(34, 197, 94, 0.07);
         backdrop-filter: blur(8px);
         animation: menuArrive 420ms ease both;
       }
@@ -6491,14 +6491,14 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.14),
           inset 0 0 0 1px rgba(255, 255, 255, 0.04),
           0 22px 58px rgba(0, 0, 0, 0.48),
-          0 0 38px rgba(53, 215, 232, 0.13),
-          0 0 54px rgba(141, 112, 232, 0.08);
+          0 0 24px rgba(53, 215, 232, 0.07),
+          0 0 34px rgba(141, 112, 232, 0.045);
       }
 
       body[data-graphics="ultra"]::before,
       body[data-graphics="ultra"] .start-panel h2,
       body[data-graphics="ultra"] h1#gameTitle {
-        filter: drop-shadow(0 0 18px rgba(53, 215, 232, 0.25));
+        filter: drop-shadow(0 0 10px rgba(53, 215, 232, 0.12));
       }
 
       body[data-graphics="ultra"] main,
@@ -6514,8 +6514,8 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.16),
           inset 0 0 0 1px rgba(255, 255, 255, 0.05),
           0 24px 62px rgba(0, 0, 0, 0.5),
-          0 0 44px rgba(53, 215, 232, 0.16),
-          0 0 72px rgba(141, 112, 232, 0.1);
+          0 0 28px rgba(53, 215, 232, 0.08),
+          0 0 42px rgba(141, 112, 232, 0.05);
       }
     </style>
   </head>
@@ -6811,11 +6811,11 @@
               <option value="crown">Crown Glow Trail</option>
             </select>
             <select id="startMusicSelect" aria-label="Music pack">
-              <option value="">Standard Music</option>
-              <option value="retro">Retro Music</option>
-              <option value="chiptune">Chiptune Music</option>
-              <option value="premium">Premium Music</option>
-              <option value="boss">Boss Music</option>
+              <option value="">Game Soundtrack</option>
+              <option value="retro">Pixel Bass Pack</option>
+              <option value="chiptune">Arcade Pulse Pack</option>
+              <option value="premium">Crystal VIP Pack</option>
+              <option value="boss">Boss Bass Pack</option>
             </select>
             <input class="custom-music-field" id="startCustomMusicUrlInput" type="url" maxlength="300" placeholder="Music URL: MP3/OGG/WAV, YouTube Music or Spotify">
             <input class="custom-music-field" id="startLocalMusicFileInput" type="file" accept="audio/*,.mp3,.ogg,.wav,.m4a,.aac" aria-label="Choose local music file">
@@ -7058,11 +7058,11 @@
             <label>
               Music
               <select id="musicSelect">
-                <option value="">Standard</option>
-                <option value="retro">Retro</option>
-                <option value="chiptune">Chiptune</option>
-                <option value="premium">Premium</option>
-                <option value="boss">Boss</option>
+                <option value="">Game Soundtrack</option>
+                <option value="retro">Pixel Bass Pack</option>
+                <option value="chiptune">Arcade Pulse Pack</option>
+                <option value="premium">Crystal VIP Pack</option>
+                <option value="boss">Boss Bass Pack</option>
               </select>
             </label>
             <label class="custom-music-field">
@@ -7698,8 +7698,8 @@
         { id: "color-galaxy", type: "color", value: "galaxy", name: "Galaxy Color", cost: 0, flameCost: 70 },
         { id: "color-mintfire", type: "color", value: "mintfire", name: "Mint Flame Color", cost: 0, flameCost: 85 },
         { id: "effect-coin-flames", type: "effect", value: "coin-flames", name: "Coin Flames", flameCost: 75 },
-        { id: "music-retro", type: "music", value: "retro", name: "Retro Music Pack", cost: 120 },
-        { id: "music-chiptune", type: "music", value: "chiptune", name: "Chiptune Pack", cost: 150 }
+        { id: "music-retro", type: "music", value: "retro", name: "Pixel Bass Pack", cost: 120 },
+        { id: "music-chiptune", type: "music", value: "chiptune", name: "Arcade Pulse Pack", cost: 150 }
       ];
       const premiumItems = [
         { id: "skin-sigma", type: "skin", value: "sigma", name: "Mythic Premium Skin", cost: 0, premium: true },
@@ -7709,117 +7709,111 @@
         { id: "color-ice", type: "color", value: "ice", name: "Ice Premium Color", cost: 0, premium: true },
         { id: "trail-vip", type: "trail", value: "vip", name: "VIP Glow Trail", cost: 0, vip: true },
         { id: "trail-crown", type: "trail", value: "crown", name: "Crown Glow Trail", cost: 0, premium: true },
-        { id: "music-premium", type: "music", value: "premium", name: "Premium Music Pack", cost: 0, premium: true },
-        { id: "music-boss", type: "music", value: "boss", name: "Boss Music Pack", cost: 0, premium: true }
+        { id: "music-premium", type: "music", value: "premium", name: "Crystal VIP Pack", cost: 0, premium: true },
+        { id: "music-boss", type: "music", value: "boss", name: "Boss Bass Pack", cost: 0, premium: true }
       ];
       const musicPackCatalog = [
-        { value: "drift-phonk", label: "Drift Phonk", mood: "phonk", wave: "square", speed: 0.58, octave: 0.72 },
-        { value: "midnight-phonk", label: "Midnight Phonk", mood: "phonk", wave: "square", speed: 0.62, octave: 0.64 },
-        { value: "cowbell-phonk", label: "Cowbell Phonk", mood: "phonk", wave: "square", speed: 0.54, octave: 0.78 },
-        { value: "arena-phonk", label: "Arena Phonk", mood: "phonk", wave: "sawtooth", speed: 0.6, octave: 0.68 },
-        { value: "chill-menu", label: "Emerald Lounge", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
-        { value: "loading-adventure", label: "Loading Rush", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
-        { value: "snake-neon", label: "Neon Snake Pulse", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
-        { value: "apple-happy", label: "Apple Drop Bounce", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
-        { value: "brick-retro", label: "Brick Breaker Drive", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
-        { value: "gem-speed", label: "Gem Dash Sprint", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
-        { value: "laser-tension", label: "Laser Escape Night", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
-        { value: "rpg-fantasy", label: "Crystal RPG Quest", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
-        { value: "online-energy", label: "Online Battle Charge", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
-        { value: "fire-boost", label: "Fire Boost Run", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
-        { value: "crystal-dreams", label: "Crystal Dreams", mood: "crystal", wave: "sine", speed: 1.12, octave: 1.3 },
-        { value: "cyber-night", label: "Cyber Nightfall", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
-        { value: "boss-fight", label: "Boss Fight Drive", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
-        { value: "golden-victory", label: "Golden Victory", mood: "victory", wave: "triangle", speed: 0.9, octave: 1.2 },
-        { value: "space-rush", label: "Space Rush", mood: "space", wave: "square", speed: 0.74, octave: 1.45 },
-        { value: "dark-arena", label: "Dark Arena", mood: "arena", wave: "sawtooth", speed: 0.8, octave: 0.7 },
-        { value: "rainbow-party", label: "Rainbow Party", mood: "party", wave: "square", speed: 0.62, octave: 1.25 },
-        { value: "main-calm", label: "Main Menu Flow", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
-        { value: "main-epic", label: "Main Menu Epic", mood: "epic", wave: "triangle", speed: 0.88, octave: 0.95 },
-        { value: "main-funny", label: "Main Menu Bounce", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
-        { value: "main-roblox", label: "Block Party Menu", mood: "happy", wave: "triangle", speed: 0.9, octave: 1.1 },
-        { value: "main-minecraft", label: "Pixel Meadow Menu", mood: "calm", wave: "sine", speed: 1.35, octave: 0.8 },
-        { value: "win-theme", label: "Win Screen Anthem", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
-        { value: "lose-theme", label: "Lose Screen Dark", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
-        { value: "admin-theme", label: "Admin Cyber Loop", mood: "cyber", wave: "square", speed: 0.94, octave: 0.82 },
-        { value: "shop-theme", label: "Shop Crystal Loop", mood: "crystal", wave: "triangle", speed: 1.02, octave: 1.15 },
-        { value: "battle-pass-theme", label: "Battle Pass March", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
-        { value: "friend-lobby-theme", label: "Friend Lobby Glow", mood: "soft", wave: "sine", speed: 1.08, octave: 1.05 },
-        { value: "tournament-theme", label: "Tournament Charge", mood: "energy", wave: "sawtooth", speed: 0.68, octave: 1.05 },
-        { value: "emerald-pulse", label: "Emerald Pulse", mood: "neon", wave: "triangle", speed: 0.72, octave: 1.08 },
-        { value: "midnight-drive", label: "Midnight Drive", mood: "cyber", wave: "sawtooth", speed: 0.78, octave: 0.92 },
-        { value: "pixel-quest", label: "Pixel Quest", mood: "fantasy", wave: "square", speed: 0.92, octave: 1.05 },
-        { value: "arcade-stadium", label: "Arcade Stadium", mood: "energy", wave: "triangle", speed: 0.7, octave: 1.18 },
-        { value: "deep-space", label: "Deep Space", mood: "space", wave: "sine", speed: 1.02, octave: 0.86 },
-        { value: "coin-carnival", label: "Coin Carnival", mood: "party", wave: "square", speed: 0.66, octave: 1.22 },
-        { value: "royal-dungeon", label: "Royal Dungeon", mood: "arena", wave: "sawtooth", speed: 0.86, octave: 0.78 },
-        { value: "crystal-lullaby", label: "Crystal Lullaby", mood: "crystal", wave: "sine", speed: 1.18, octave: 1.22 },
-        { value: "final-boss", label: "Final Boss", mood: "boss", wave: "sawtooth", speed: 0.62, octave: 0.72 },
-        { value: "sunset-arcade", label: "Sunset Arcade", mood: "victory", wave: "triangle", speed: 0.82, octave: 1.12 }
+        { value: "drift-phonk", label: "Night Drift Phonk", mood: "phonk", wave: "square", speed: 0.58, octave: 0.72 },
+        { value: "midnight-phonk", label: "Midnight 808 Phonk", mood: "phonk", wave: "square", speed: 0.62, octave: 0.64 },
+        { value: "cowbell-phonk", label: "Cowbell Drive Phonk", mood: "phonk", wave: "square", speed: 0.54, octave: 0.78 },
+        { value: "arena-phonk", label: "Arena 808 Phonk", mood: "phonk", wave: "sawtooth", speed: 0.6, octave: 0.68 },
+        { value: "chill-menu", label: "Emerald Night Flow", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
+        { value: "loading-adventure", label: "Launch Runner", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
+        { value: "snake-neon", label: "Serpent Neonline", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
+        { value: "apple-happy", label: "Apple Bouncebeat", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
+        { value: "brick-retro", label: "Block Break Groove", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
+        { value: "gem-speed", label: "Gemline Overdrive", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
+        { value: "laser-tension", label: "Laser Noir", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
+        { value: "rpg-fantasy", label: "Crystal Questline", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
+        { value: "online-energy", label: "Battlewire Charge", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
+        { value: "fire-boost", label: "Flame Circuit", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
+        { value: "crystal-dreams", label: "Crystal Skyline", mood: "crystal", wave: "sine", speed: 1.12, octave: 1.3 },
+        { value: "cyber-night", label: "Cyber Alleyway", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
+        { value: "boss-fight", label: "Boss Pressureline", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
+        { value: "golden-victory", label: "Gold Win Run", mood: "victory", wave: "triangle", speed: 0.9, octave: 1.2 },
+        { value: "space-rush", label: "Orbit Speedline", mood: "space", wave: "square", speed: 0.74, octave: 1.45 },
+        { value: "dark-arena", label: "Shadow Arena Bass", mood: "arena", wave: "sawtooth", speed: 0.8, octave: 0.7 },
+        { value: "rainbow-party", label: "Neon Party Rush", mood: "party", wave: "square", speed: 0.62, octave: 1.25 },
+        { value: "main-calm", label: "Menu Nightwave", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
+        { value: "main-epic", label: "Menu Hero Pulse", mood: "epic", wave: "triangle", speed: 0.88, octave: 0.95 },
+        { value: "main-funny", label: "Arcade Jumpbeat", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
+        { value: "win-theme", label: "Champion Spark", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
+        { value: "lose-theme", label: "Dark Reset", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
+        { value: "battle-pass-theme", label: "Season Engine", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
+        { value: "emerald-pulse", label: "Emerald Voltage", mood: "neon", wave: "triangle", speed: 0.72, octave: 1.08 },
+        { value: "midnight-drive", label: "Midnight Motor", mood: "cyber", wave: "sawtooth", speed: 0.78, octave: 0.92 },
+        { value: "pixel-quest", label: "Pixel Adventureline", mood: "fantasy", wave: "square", speed: 0.92, octave: 1.05 },
+        { value: "arcade-stadium", label: "Stadium Thunder", mood: "energy", wave: "triangle", speed: 0.7, octave: 1.18 },
+        { value: "deep-space", label: "Deep Orbit Signal", mood: "space", wave: "sine", speed: 1.02, octave: 0.86 },
+        { value: "coin-carnival", label: "Coin Parade", mood: "party", wave: "square", speed: 0.66, octave: 1.22 },
+        { value: "royal-dungeon", label: "Royal Dungeon Bass", mood: "arena", wave: "sawtooth", speed: 0.86, octave: 0.78 },
+        { value: "crystal-lullaby", label: "Crystal Sleep Mode", mood: "crystal", wave: "sine", speed: 1.18, octave: 1.22 },
+        { value: "final-boss", label: "Final Bossline", mood: "boss", wave: "sawtooth", speed: 0.62, octave: 0.72 },
+        { value: "sunset-arcade", label: "Sunset Speedrun", mood: "victory", wave: "triangle", speed: 0.82, octave: 1.12 }
       ];
       const allShopItems = [...shopItems, ...premiumItems];
       const battlePassRewards = [
         { level: 1, free: "100 coins", premium: "Royal Gold VIP color", coins: 100, xp: 0, premiumItem: "color-gold" },
         { level: 2, free: "80 XP", premium: "VIP trail", coins: 0, xp: 80, premiumItem: "trail-vip" },
         { level: 3, free: "Sky Pulse color", premium: "Crystal skin", coins: 0, xp: 0, freeItem: "color-blue", premiumItem: "skin-sigma" },
-        { level: 4, free: "150 coins", premium: "Premium music", coins: 150, xp: 0, premiumItem: "music-premium" },
+        { level: 4, free: "150 coins", premium: "Crystal VIP Pack", coins: 150, xp: 0, premiumItem: "music-premium" },
         { level: 5, free: "200 XP", premium: "Premium badge glow", coins: 0, xp: 200, premiumItem: "skin-sigma" },
         { level: 6, free: "Amber color", premium: "Ruby premium color", coins: 0, xp: 0, freeItem: "color-orange", premiumItem: "color-ruby" },
         { level: 7, free: "120 XP charge", premium: "Crown trail", coins: 0, xp: 120, premiumItem: "trail-crown" },
-        { level: 8, free: "Violet color", premium: "Boss music pack", coins: 0, xp: 0, freeItem: "color-purple", premiumItem: "music-boss" },
+        { level: 8, free: "Violet color", premium: "Boss Bass Pack", coins: 0, xp: 0, freeItem: "color-purple", premiumItem: "music-boss" },
         { level: 9, free: "250 coin vault", premium: "Royal premium skin", coins: 250, xp: 0, premiumItem: "skin-royal" },
         { level: 10, free: "300 XP boost", premium: "Ice premium color", coins: 0, xp: 300, premiumItem: "color-ice" },
         { level: 11, free: "Rose color", premium: "Legend crown trail", coins: 0, xp: 0, freeItem: "color-pink", premiumItem: "trail-crown" },
         { level: 12, free: "500 coin jackpot", premium: "Crystal Legend skin", coins: 500, xp: 0, premiumItem: "skin-sigma" },
         { level: 13, free: "Toxic Lime color", premium: "Ruby storm color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-ruby" },
-        { level: 14, free: "220 XP shard", premium: "Boss arena music", coins: 0, xp: 220, premiumItem: "music-boss" },
+        { level: 14, free: "220 XP shard", premium: "Boss Arena Bass", coins: 0, xp: 220, premiumItem: "music-boss" },
         { level: 15, free: "Comet trail", premium: "Royal glow skin", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "skin-royal" },
         { level: 16, free: "350 coin chest", premium: "Ice crystal color", coins: 350, xp: 0, premiumItem: "color-ice" },
         { level: 17, free: "Ice Cyan color", premium: "Crown comet trail", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "trail-crown" },
-        { level: 18, free: "Chiptune pack", premium: "Premium synth music", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
+        { level: 18, free: "Arcade Pulse Pack", premium: "Crystal VIP Mix", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
         { level: 19, free: "Glass skin", premium: "Crystal royal skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-sigma" },
         { level: 20, free: "600 coin bank", premium: "VIP gold crown", coins: 600, xp: 0, premiumItem: "color-gold" },
         { level: 21, free: "420 XP core", premium: "Boss crown trail", coins: 0, xp: 420, premiumItem: "trail-crown" },
         { level: 22, free: "Spark trail", premium: "Ice boss color", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "color-ice" },
-        { level: 23, free: "Retro music pack", premium: "Royal finale music", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
+        { level: 23, free: "Pixel Bass Pack", premium: "Boss Finale Bass", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
         { level: 24, free: "1000 coin finale", premium: "Crystal champion skin", coins: 1000, xp: 0, premiumItem: "skin-sigma" },
         { level: 25, free: "Neon skin", premium: "Royal neon skin", coins: 0, xp: 0, freeItem: "skin-neon", premiumItem: "skin-royal" },
-        { level: 26, free: "650 XP engine", premium: "Premium bass music", coins: 0, xp: 650, premiumItem: "music-premium" },
+        { level: 26, free: "650 XP engine", premium: "Crystal Bass Mix", coins: 0, xp: 650, premiumItem: "music-premium" },
         { level: 27, free: "Block skin", premium: "Crown spark trail", coins: 0, xp: 0, freeItem: "skin-block", premiumItem: "trail-crown" },
         { level: 28, free: "1400 coin vault", premium: "Ruby royal color", coins: 1400, xp: 0, premiumItem: "color-ruby" },
-        { level: 29, free: "Round skin", premium: "Crystal boss mix", coins: 0, xp: 0, freeItem: "skin-round", premiumItem: "music-boss" },
+        { level: 29, free: "Round skin", premium: "Boss Pressure Mix", coins: 0, xp: 0, freeItem: "skin-round", premiumItem: "music-boss" },
         { level: 30, free: "2000 coin trophy", premium: "Season champion bundle", coins: 2000, xp: 0, premiumItem: "skin-sigma" },
         { level: 31, free: "720 XP booster", premium: "Royal Gold color", coins: 0, xp: 720, premiumItem: "color-gold" },
         { level: 32, free: "Spark trail token", premium: "VIP comet trail", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "trail-vip" },
         { level: 33, free: "1650 coin box", premium: "Ice crown color", coins: 1650, xp: 0, premiumItem: "color-ice" },
-        { level: 34, free: "Neon arcade tune", premium: "Premium arcade tune", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
+        { level: 34, free: "Arcade Pulse Tune", premium: "Crystal Arcade Mix", coins: 0, xp: 0, freeItem: "music-chiptune", premiumItem: "music-premium" },
         { level: 35, free: "Glass hero skin", premium: "Royal hero skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-royal" },
         { level: 36, free: "850 XP crystal", premium: "Ruby crown color", coins: 0, xp: 850, premiumItem: "color-ruby" },
-        { level: 37, free: "1850 coin crate", premium: "Boss crown song", coins: 1850, xp: 0, premiumItem: "music-boss" },
+        { level: 37, free: "1850 coin crate", premium: "Boss Crown Bass", coins: 1850, xp: 0, premiumItem: "music-boss" },
         { level: 38, free: "Ice Cyan wave color", premium: "Ice wave color", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "color-ice" },
         { level: 39, free: "Comet burst trail", premium: "Crown burst trail", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "trail-crown" },
         { level: 40, free: "2500 coin mega chest", premium: "Crystal mega skin", coins: 2500, xp: 0, premiumItem: "skin-sigma" },
-        { level: 41, free: "950 XP battery", premium: "Premium battery music", coins: 0, xp: 950, premiumItem: "music-premium" },
+        { level: 41, free: "950 XP battery", premium: "Crystal Battery Mix", coins: 0, xp: 950, premiumItem: "music-premium" },
         { level: 42, free: "Toxic Lime speed color", premium: "Royal Gold speed color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-gold" },
         { level: 43, free: "2050 coin safe", premium: "Royal safe skin", coins: 2050, xp: 0, premiumItem: "skin-royal" },
-        { level: 44, free: "Retro boss beat", premium: "Boss finale beat", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
+        { level: 44, free: "Pixel Bass Beat", premium: "Boss Finale Beat", coins: 0, xp: 0, freeItem: "music-retro", premiumItem: "music-boss" },
         { level: 45, free: "Block champion skin", premium: "Crystal champion frame", coins: 0, xp: 0, freeItem: "skin-block", premiumItem: "skin-sigma" },
         { level: 46, free: "1100 XP relic", premium: "Ruby relic color", coins: 0, xp: 1100, premiumItem: "color-ruby" },
         { level: 47, free: "2300 coin drop", premium: "VIP drop trail", coins: 2300, xp: 0, premiumItem: "trail-vip" },
         { level: 48, free: "Violet storm color", premium: "Ice storm color", coins: 0, xp: 0, freeItem: "color-purple", premiumItem: "color-ice" },
         { level: 49, free: "Round legend skin", premium: "Royal legend skin", coins: 0, xp: 0, freeItem: "skin-round", premiumItem: "skin-royal" },
         { level: 50, free: "3000 coin crown", premium: "Premium crown bundle", coins: 3000, xp: 0, premiumItem: "trail-crown" },
-        { level: 51, free: "1250 XP capsule", premium: "Boss capsule music", coins: 0, xp: 1250, premiumItem: "music-boss" },
+        { level: 51, free: "1250 XP capsule", premium: "Boss Capsule Mix", coins: 0, xp: 1250, premiumItem: "music-boss" },
         { level: 52, free: "Amber flame color", premium: "Royal Gold flame color", coins: 0, xp: 0, freeItem: "color-orange", premiumItem: "color-gold" },
         { level: 53, free: "2550 coin stash", premium: "Ruby stash color", coins: 2550, xp: 0, premiumItem: "color-ruby" },
         { level: 54, free: "Neon pulse skin", premium: "Crystal pulse skin", coins: 0, xp: 0, freeItem: "skin-neon", premiumItem: "skin-sigma" },
         { level: 55, free: "Comet pulse trail", premium: "Crown pulse trail", coins: 0, xp: 0, freeItem: "trail-comet", premiumItem: "trail-crown" },
-        { level: 56, free: "1400 XP reactor", premium: "Premium reactor music", coins: 0, xp: 1400, premiumItem: "music-premium" },
+        { level: 56, free: "1400 XP reactor", premium: "Crystal Reactor Mix", coins: 0, xp: 1400, premiumItem: "music-premium" },
         { level: 57, free: "Ice Cyan reactor color", premium: "Ice reactor color", coins: 0, xp: 0, freeItem: "color-cyan", premiumItem: "color-ice" },
         { level: 58, free: "3200 coin reactor", premium: "Royal reactor skin", coins: 3200, xp: 0, premiumItem: "skin-royal" },
         { level: 59, free: "Glass galaxy skin", premium: "Crystal galaxy skin", coins: 0, xp: 0, freeItem: "skin-glass", premiumItem: "skin-sigma" },
         { level: 60, free: "4000 coin grand prize", premium: "Grand premium bundle", coins: 4000, xp: 0, premiumItem: "skin-sigma" },
-        { level: 61, free: "1600 XP overdrive", premium: "Boss overdrive music", coins: 0, xp: 1600, premiumItem: "music-boss" },
+        { level: 61, free: "1600 XP overdrive", premium: "Boss Overdrive Mix", coins: 0, xp: 1600, premiumItem: "music-boss" },
         { level: 62, free: "Spark overdrive trail", premium: "VIP overdrive trail", coins: 0, xp: 0, freeItem: "trail-spark", premiumItem: "trail-vip" },
         { level: 63, free: "3600 coin vault key", premium: "Royal Gold vault color", coins: 3600, xp: 0, premiumItem: "color-gold" },
         { level: 64, free: "Toxic Lime final color", premium: "Ruby final color", coins: 0, xp: 0, freeItem: "color-lime", premiumItem: "color-ruby" },
@@ -7877,7 +7871,7 @@
           resetRecord: "Reset Record",
           saveMusic: "Save Music",
           deleteMusic: "Delete Music",
-          standardMusic: "Standard Music",
+          standardMusic: "Game Soundtrack",
           musicUrl: "Music URL: MP3/OGG/WAV, YouTube Music or Spotify",
           savedMusic: "Saved music list",
           selected: "selected"
@@ -7921,7 +7915,7 @@
           resetRecord: "Сбросить рекорд",
           saveMusic: "Сохранить музыку",
           deleteMusic: "Удалить музыку",
-          standardMusic: "Стандартная музыка",
+          standardMusic: "Game Soundtrack",
           musicUrl: "Ссылка на музыку: MP3/OGG/WAV, YouTube Music или Spotify",
           savedMusic: "Список музыки",
           selected: "выбрано"
@@ -7965,7 +7959,7 @@
           resetRecord: "Скинути рекорд",
           saveMusic: "Зберегти музику",
           deleteMusic: "Видалити музику",
-          standardMusic: "Стандартна музика",
+          standardMusic: "Game Soundtrack",
           musicUrl: "Посилання на музику: MP3/OGG/WAV, YouTube Music або Spotify",
           savedMusic: "Список музики",
           selected: "вибрано"
@@ -8134,12 +8128,21 @@
         }[normalizeGraphicsQuality(gameSettings?.graphicsQuality)] ?? 1;
       }
 
+      function getGraphicsEffectStrength() {
+        return [0.35, 0.5, 0.62, 0.76][getGraphicsQualityRank()] ?? 0.5;
+      }
+
       function getGraphicsEffectLimit(low, normal, high, ultra) {
-        return [low, normal, high, ultra][getGraphicsQualityRank()] ?? normal;
+        const value = [low, normal, high, ultra][getGraphicsQualityRank()] ?? normal;
+        return typeof value === "number" ? value * getGraphicsEffectStrength() : value;
+      }
+
+      function getGraphicsEffectCount(low, normal, high, ultra) {
+        return Math.max(0, Math.round(getGraphicsEffectLimit(low, normal, high, ultra)));
       }
 
       function getGraphicsShadowBlur(value) {
-        return value * getGraphicsEffectLimit(0.25, 1, 1.3, 1.65);
+        return value * getGraphicsEffectLimit(0.45, 0.8, 1, 1.15);
       }
 
       function getGameVolume() {
@@ -8371,6 +8374,30 @@
         });
       }
 
+      function isBuiltInMusicPack(pack) {
+        return Boolean(pack) && (
+          musicPackCatalog.some((item) => item.value === pack) ||
+          allShopItems.some((item) => item.type === "music" && item.value === pack)
+        );
+      }
+
+      function normalizeMusicPack(pack) {
+        const value = String(pack || "");
+        return isBuiltInMusicPack(value) ? value : "";
+      }
+
+      function getBuiltInMusicLabel(pack) {
+        const value = normalizeMusicPack(pack);
+
+        if (!value) {
+          return currentText("standardMusic") || "Game Soundtrack";
+        }
+
+        return musicPackCatalog.find((item) => item.value === value)?.label ||
+          allShopItems.find((item) => item.type === "music" && item.value === value)?.name ||
+          value;
+      }
+
       function ownsMusicPack(pack) {
         if (!pack) {
           return true;
@@ -8498,7 +8525,7 @@
         applyPlayerStyleControls();
         stopBackgroundMusic();
         syncBackgroundMusic();
-        settingsMessage.textContent = selectedMusicPack ? `${musicSelect.options[musicSelect.selectedIndex].text} equipped.` : "Standard music equipped.";
+        settingsMessage.textContent = `${getBuiltInMusicLabel(selectedMusicPack)} equipped.`;
         startSettingsMessage.textContent = settingsMessage.textContent;
       }
 
@@ -11414,15 +11441,15 @@
 
         const pulse = 0.5 + Math.sin(Date.now() / 90) * 0.12;
         ctx.save();
-        ctx.globalAlpha = 0.45 + pulse * 0.25;
+        ctx.globalAlpha = 0.18 + pulse * 0.12;
         ctx.strokeStyle = "#67e8f9";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2.5;
         ctx.shadowColor = "#22d3ee";
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = getGraphicsShadowBlur(12);
         ctx.beginPath();
         ctx.arc(center.x, center.y, center.radius + pulse * 8, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.globalAlpha = 0.12;
+        ctx.globalAlpha = 0.045;
         ctx.fillStyle = "#22d3ee";
         ctx.fill();
         ctx.restore();
@@ -11454,7 +11481,7 @@
 
       function spawnScoreBurst() {
         const origin = getPointEffectPosition();
-        const burstCount = getGraphicsEffectLimit(2, 6, 9, 12);
+        const burstCount = getGraphicsEffectCount(2, 6, 9, 12);
         for (let index = 0; index < burstCount; index += 1) {
           const angle = (Math.PI * 2 * index) / burstCount + Math.random() * 0.4;
           const speed = 1.5 + Math.random() * 2.4;
@@ -11469,7 +11496,7 @@
           });
         }
 
-        scoreBursts = scoreBursts.slice(-getGraphicsEffectLimit(28, 90, 130, 180));
+        scoreBursts = scoreBursts.slice(-getGraphicsEffectCount(28, 90, 130, 180));
       }
 
       function hasCoinFlamesEquipped() {
@@ -11516,20 +11543,20 @@
         }
 
         const origin = getPointEffectPosition();
-        const flameCount = getGraphicsEffectLimit(2, 8, 12, 16);
+        const flameCount = getGraphicsEffectCount(2, 8, 12, 16);
         for (let index = 0; index < flameCount; index += 1) {
           coinFlames.push({
             x: origin.x + (Math.random() - 0.5) * 18,
             y: origin.y + (Math.random() - 0.5) * 18,
             dx: (Math.random() - 0.5) * 2.4,
             dy: -1.8 - Math.random() * 2.2,
-            size: 7 + Math.random() * 9,
-            life: 30 + Math.floor(Math.random() * 14),
-            maxLife: 44
+            size: 5 + Math.random() * 6,
+            life: 22 + Math.floor(Math.random() * 10),
+            maxLife: 32
           });
         }
 
-        coinFlames = coinFlames.slice(-getGraphicsEffectLimit(24, 80, 120, 160));
+        coinFlames = coinFlames.slice(-getGraphicsEffectCount(24, 80, 120, 160));
       }
 
       function drawCoinFlames() {
@@ -11551,7 +11578,7 @@
         coinFlames.forEach((flame) => {
           const alpha = Math.max(0, flame.life / flame.maxLife);
           ctx.save();
-          ctx.globalAlpha = alpha;
+          ctx.globalAlpha = alpha * 0.62;
           ctx.shadowColor = "#f97316";
           ctx.shadowBlur = getGraphicsShadowBlur(18);
           ctx.fillStyle = "#f97316";
@@ -11592,9 +11619,9 @@
         scoreBursts.forEach((spark) => {
           const alpha = Math.max(0, spark.life / spark.maxLife);
           ctx.save();
-          ctx.globalAlpha = alpha;
+          ctx.globalAlpha = alpha * 0.58;
           ctx.shadowColor = "#5eead4";
-          ctx.shadowBlur = getGraphicsShadowBlur(12);
+          ctx.shadowBlur = getGraphicsShadowBlur(8);
           ctx.fillStyle = "#fef08a";
           ctx.beginPath();
           ctx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2);
@@ -12138,7 +12165,7 @@
           <div class="profile-card">Skin <strong>${escapeHtml(user.equipped.skin)}</strong></div>
           <div class="profile-card">Color <strong>${escapeHtml(user.equipped.color)}</strong></div>
           <div class="profile-card">Effect <strong>${escapeHtml(user.equipped.effect || "None")}</strong></div>
-          <div class="profile-card">Music <strong>${escapeHtml(user.equipped.music || "Game Default")}</strong></div>
+          <div class="profile-card">Music <strong>${escapeHtml(getBuiltInMusicLabel(user.equipped.music))}</strong></div>
           <div class="profile-card">Clan <strong>${escapeHtml(user.clanId || "No clan")}</strong></div>
           <div class="profile-card">Pixel Skin <strong>${user.pixelSkin64 ? "Saved" : "Not saved"}</strong></div>
         `;
@@ -13255,13 +13282,13 @@
 
         ctx.save();
         visibleParts.forEach((part, index) => {
-          const alpha = Math.max(0.08, 0.42 - index * 0.045);
+          const alpha = Math.max(0.035, (0.22 - index * 0.032) * getGraphicsEffectStrength());
           const cx = part.x * gridSize + gridSize / 2;
           const cy = part.y * gridSize + gridSize / 2;
-          const pulse = Math.sin(Date.now() / 130 + index) * 1.8;
+          const pulse = Math.sin(Date.now() / 130 + index) * 0.9;
           ctx.globalAlpha = alpha;
           ctx.shadowColor = colors[index % colors.length];
-          ctx.shadowBlur = getGraphicsShadowBlur(trail === "flame" || trail === "crown" ? 18 : 12);
+          ctx.shadowBlur = getGraphicsShadowBlur(trail === "flame" || trail === "crown" ? 11 : 8);
           ctx.fillStyle = colors[index % colors.length];
 
           if (trail === "stars" || trail === "crown") {
@@ -13444,9 +13471,9 @@
         const theme = getTheme(playerStyle.color);
         const portalOpen = rpgCrystals.length === 0;
 
-        ctx.fillStyle = portalOpen ? "rgba(168, 85, 247, 0.8)" : "rgba(71, 85, 105, 0.65)";
+        ctx.fillStyle = portalOpen ? "rgba(168, 85, 247, 0.48)" : "rgba(71, 85, 105, 0.5)";
         ctx.shadowColor = portalOpen ? "#a855f7" : "transparent";
-        ctx.shadowBlur = portalOpen ? 18 : 0;
+        ctx.shadowBlur = portalOpen ? getGraphicsShadowBlur(10) : 0;
         ctx.beginPath();
         ctx.roundRect(rpgPortal.x, rpgPortal.y, rpgPortal.size, rpgPortal.size, 12);
         ctx.fill();
@@ -13489,7 +13516,7 @@
         if (starShield) {
           ctx.fillStyle = "#38bdf8";
           ctx.shadowColor = "#38bdf8";
-          ctx.shadowBlur = 16;
+          ctx.shadowBlur = getGraphicsShadowBlur(9);
           ctx.beginPath();
           ctx.arc(starShield.x + starShield.size / 2, starShield.y + starShield.size / 2, starShield.size / 2, 0, Math.PI * 2);
           ctx.fill();
@@ -13534,7 +13561,7 @@
           ctx.strokeStyle = "#38bdf8";
           ctx.lineWidth = 4;
           ctx.shadowColor = "#38bdf8";
-          ctx.shadowBlur = 18;
+          ctx.shadowBlur = getGraphicsShadowBlur(10);
           ctx.beginPath();
           ctx.arc(starPlayer.x + starPlayer.size / 2, starPlayer.y + starPlayer.size / 2, starPlayer.size * 0.8, 0, Math.PI * 2);
           ctx.stroke();
@@ -17276,7 +17303,7 @@
         ctx.fillStyle = isTagger || hasBomb ? "#ef4444" : theme.body;
         if (powered || hasBomb) {
           ctx.shadowColor = hasBomb ? "#f97316" : "#a78bfa";
-          ctx.shadowBlur = hasBomb ? 22 : 16;
+          ctx.shadowBlur = getGraphicsShadowBlur(hasBomb ? 12 : 9);
         }
         ctx.beginPath();
         ctx.roundRect(player.x, player.y, size, size, 8);
