@@ -7044,15 +7044,85 @@
         align-items: center;
         min-height: 0;
         padding: 0.85rem;
+        position: relative;
+        overflow: hidden;
       }
 
-      body[data-runtime] #startDonateMenu .donate-card > div:first-child {
+      body[data-runtime] #startDonateMenu .donate-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        background: linear-gradient(135deg, var(--donate-accent, var(--mgw-emerald)), transparent 58%);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-emerald {
+        --donate-accent: var(--mgw-emerald);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-gold {
+        --donate-accent: var(--mgw-gold);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-violet {
+        --donate-accent: var(--mgw-violet);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-cyan {
+        --donate-accent: var(--mgw-cyan);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-rose {
+        --donate-accent: var(--mgw-rose);
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card-copy {
         min-width: 0;
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 0.35rem;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-tier {
+        width: fit-content;
+        padding: 0.18rem 0.5rem;
+        border: 1px solid color-mix(in srgb, var(--donate-accent, var(--mgw-emerald)) 55%, transparent);
+        border-radius: 999px;
+        background: rgba(3, 12, 14, 0.58);
+        color: color-mix(in srgb, var(--donate-accent, var(--mgw-emerald)) 72%, white);
+        font-size: 0.68rem;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-card strong {
+        font-size: 1.08rem;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-perk {
+        color: var(--mgw-muted);
+        line-height: 1.25;
+      }
+
+      body[data-runtime] #startDonateMenu .donate-price {
+        position: relative;
+        z-index: 1;
+        align-self: start;
+        padding: 0.35rem 0.55rem;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.24);
+        color: var(--mgw-text);
+        font-weight: 1000;
       }
 
       body[data-runtime] #startDonateMenu .donate-card button {
         grid-column: 1 / -1;
         width: 100%;
+        position: relative;
+        z-index: 1;
+        background: linear-gradient(135deg, color-mix(in srgb, var(--donate-accent, var(--mgw-emerald)) 78%, #101827), var(--mgw-cyan-2));
       }
 
       body[data-runtime] #donateMessage {
@@ -7177,6 +7247,26 @@
         border-radius: 8px;
       }
 
+      body[data-runtime] .skin-studio-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+      }
+
+      body[data-runtime] .skin-studio-controls label,
+      body[data-runtime] .accessory-studio-head {
+        display: grid;
+        gap: 0.35rem;
+        min-width: 0;
+      }
+
+      body[data-runtime] .skin-studio-controls span,
+      body[data-runtime] .accessory-studio-head span {
+        color: var(--mgw-muted);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
       body[data-runtime] .pixel-skin-grid {
         width: min(100%, 560px);
         aspect-ratio: 1;
@@ -7207,6 +7297,145 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 0.65rem;
+      }
+
+      body[data-runtime] .accessory-studio {
+        display: grid;
+        gap: 0.85rem;
+        padding: 0.9rem;
+        border: 1px solid rgba(124, 232, 201, 0.16);
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(6, 18, 22, 0.88), rgba(20, 27, 45, 0.62));
+      }
+
+      body[data-runtime] .accessory-studio.locked {
+        border-color: rgba(197, 169, 52, 0.24);
+      }
+
+      body[data-runtime] .accessory-studio.locked .accessory-grid,
+      body[data-runtime] .accessory-studio.locked .accessory-palette {
+        opacity: 0.58;
+      }
+
+      body[data-runtime] .accessory-studio-head strong {
+        color: var(--mgw-text);
+        font-size: 1.08rem;
+      }
+
+      body[data-runtime] .accessory-palette {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(34px, 1fr));
+        gap: 0.45rem;
+      }
+
+      body[data-runtime] .accessory-palette button {
+        min-height: 2.2rem;
+        aspect-ratio: 1;
+        padding: 0;
+        border-radius: 8px;
+      }
+
+      body[data-runtime] .accessory-palette button.selected,
+      body[data-runtime] .pixel-skin-toolbar button.selected {
+        outline: 2px solid rgba(255, 255, 255, 0.72);
+        outline-offset: 2px;
+      }
+
+      body[data-runtime] .accessory-erase,
+      body[data-runtime] .accessory-cell[style*="transparent"] {
+        background:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.16) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.16) 75%),
+          linear-gradient(45deg, rgba(255, 255, 255, 0.16) 25%, transparent 25% 75%, rgba(255, 255, 255, 0.16) 75%),
+          rgba(3, 12, 14, 0.9) !important;
+        background-position: 0 0, 8px 8px, 0 0 !important;
+        background-size: 16px 16px !important;
+      }
+
+      body[data-runtime] .accessory-grid {
+        width: min(100%, 280px);
+        aspect-ratio: 1;
+        display: grid;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        justify-self: center;
+        overflow: hidden;
+        border: 2px solid rgba(120, 232, 206, 0.24);
+        border-radius: 10px;
+        background: #031010;
+        image-rendering: pixelated;
+      }
+
+      body[data-runtime] .cube-preview {
+        position: relative;
+      }
+
+      body[data-runtime] .cube-accessory-preview {
+        position: absolute;
+        left: 50%;
+        top: 16%;
+        width: 58px;
+        height: 58px;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.4));
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="none"],
+      body[data-runtime] .cube-accessory-preview:not([data-accessory]) {
+        display: none;
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="crown"]::before {
+        content: "";
+        position: absolute;
+        inset: 18px 8px 14px;
+        background: linear-gradient(135deg, #facc15, #c5a934);
+        clip-path: polygon(0 100%, 12% 18%, 34% 78%, 50% 0, 66% 78%, 88% 18%, 100% 100%);
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="halo"]::before {
+        content: "";
+        position: absolute;
+        inset: 18px 6px 22px;
+        border: 5px solid #fde68a;
+        border-radius: 50%;
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="cap"]::before {
+        content: "";
+        position: absolute;
+        inset: 20px 9px 17px;
+        border-radius: 12px 12px 8px 8px;
+        background: linear-gradient(135deg, #38bdf8, #2f86dc);
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="headphones"]::before {
+        content: "";
+        position: absolute;
+        inset: 10px 8px 12px;
+        border: 6px solid #a78bfa;
+        border-bottom: 0;
+        border-radius: 999px 999px 0 0;
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="wings"]::before {
+        content: "";
+        position: absolute;
+        inset: 13px -12px 14px;
+        background: rgba(125, 211, 252, 0.82);
+        clip-path: polygon(0 60%, 18% 0, 44% 52%, 56% 52%, 82% 0, 100% 60%, 56% 42%, 50% 78%, 44% 42%);
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="custom"] {
+        display: grid;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        grid-auto-rows: 1fr;
+        image-rendering: pixelated;
+      }
+
+      body[data-runtime] .cube-accessory-preview[data-accessory="custom"] span {
+        min-width: 0;
+        min-height: 0;
       }
 
       body[data-runtime] main {
@@ -7422,6 +7651,10 @@
         body[data-runtime] .pixel-skin-actions {
           grid-template-columns: 1fr;
         }
+
+        body[data-runtime] .skin-studio-controls {
+          grid-template-columns: 1fr;
+        }
       }
 
       @media (max-width: 430px) {
@@ -7605,8 +7838,8 @@
           <div class="start-showcase donate-showcase">
             <div class="showcase-copy">
               <strong>Support MiniGameWorld</strong>
-              <span>Donations help keep the game online and add new updates.</span>
-              <p>Connect your real donation link in the code, then these buttons will open it.</p>
+              <span>Pick a support pack for Flame Coins, VIP/Premium ideas, and future updates.</span>
+              <p>Payment opens in a new tab. Admin grants rewards after checking the donation.</p>
             </div>
           </div>
           <div class="shop-list" id="donateList"></div>
@@ -7654,11 +7887,26 @@
                 <div class="cube-face cube-front"></div>
                 <div class="cube-face cube-top"></div>
                 <div class="cube-face cube-side"></div>
+                <div class="cube-accessory-preview" id="cubeAccessoryPreview"></div>
               </div>
               <div class="cube-skin-copy">
-                <strong>64x64 Cube Painter</strong>
-                <span>Draw your own cube skin with approved palette pixels only, so saved skins stay fair.</span>
+                <strong>Cube Skin Studio</strong>
+                <span>Pick an editor size, draw with approved pixels, then add accessories. Custom accessories need VIP or Premium.</span>
               </div>
+            </div>
+            <div class="skin-studio-controls">
+              <label>
+                <span>Editor Size</span>
+                <select id="skinStudioSizeSelect" aria-label="Skin editor size">
+                  <option value="16">16 x 16</option>
+                  <option value="32">32 x 32</option>
+                  <option value="64" selected>64 x 64</option>
+                </select>
+              </label>
+              <label>
+                <span>Accessory</span>
+                <select id="skinAccessorySelect" aria-label="Skin accessory"></select>
+              </label>
             </div>
             <div class="pixel-skin-toolbar" id="pixelPalette"></div>
             <div class="pixel-skin-grid" id="pixelSkinGrid" aria-label="64 by 64 pixel skin editor"></div>
@@ -7666,6 +7914,20 @@
               <button type="button" id="savePixelSkinButton">Save Pixel Skin</button>
               <button type="button" id="equipPixelSkinButton">Equip Pixel Skin</button>
               <button type="button" id="clearPixelSkinButton">Clear</button>
+            </div>
+            <div class="accessory-studio" id="accessoryStudio">
+              <div class="accessory-studio-head">
+                <strong>Custom Accessory Painter</strong>
+                <span>VIP/Premium tool. Transparent pixels are allowed, all colors stay approved.</span>
+              </div>
+              <div class="accessory-palette" id="accessoryPalette"></div>
+              <div class="accessory-grid" id="accessoryGrid" aria-label="16 by 16 accessory editor"></div>
+              <div class="pixel-skin-actions accessory-actions">
+                <button type="button" id="saveAccessoryButton">Save Accessory</button>
+                <button type="button" id="equipAccessoryButton">Equip Accessory</button>
+                <button type="button" id="clearAccessoryButton">Clear Accessory</button>
+              </div>
+              <p class="room-note" id="accessoryStudioMessage">Choose Custom Accessory to draw your own VIP/Premium accessory.</p>
             </div>
           </div>
           <p class="room-note" id="skinStudioMessage">Draw pixels, save, then equip Custom 64x64 from Settings.</p>
@@ -8216,6 +8478,16 @@
       const dailyMissionsList = document.getElementById("dailyMissionsList");
       const pixelPalette = document.getElementById("pixelPalette");
       const pixelSkinGrid = document.getElementById("pixelSkinGrid");
+      const skinStudioSizeSelect = document.getElementById("skinStudioSizeSelect");
+      const skinAccessorySelect = document.getElementById("skinAccessorySelect");
+      const cubeAccessoryPreview = document.getElementById("cubeAccessoryPreview");
+      const accessoryStudio = document.getElementById("accessoryStudio");
+      const accessoryPalette = document.getElementById("accessoryPalette");
+      const accessoryGrid = document.getElementById("accessoryGrid");
+      const saveAccessoryButton = document.getElementById("saveAccessoryButton");
+      const equipAccessoryButton = document.getElementById("equipAccessoryButton");
+      const clearAccessoryButton = document.getElementById("clearAccessoryButton");
+      const accessoryStudioMessage = document.getElementById("accessoryStudioMessage");
       const savePixelSkinButton = document.getElementById("savePixelSkinButton");
       const equipPixelSkinButton = document.getElementById("equipPixelSkinButton");
       const clearPixelSkinButton = document.getElementById("clearPixelSkinButton");
@@ -8769,13 +9041,12 @@
         main: "https://boosty.to/sigmaboyko228/posts/c185c4d3-f370-4a43-8fda-5e7580eb8e64"
       };
       const donationPacks = [
-        { id: "supporter", name: "Supporter", price: "$1", perk: "Thank-you badge idea" },
-        { id: "flame-80", name: "80 Flame Coins", price: "$2", perk: "Premium currency. Admin grants after donation." },
-        { id: "flame-220", name: "220 Flame Coins", price: "$5", perk: "Best for premium effects and future paid cosmetics." },
-        { id: "coin-flames", name: "Coin Flames", price: "$2", perk: "Premium effect. Buy it with Flame Coins in Shop." },
-        { id: "vip", name: "VIP Donate", price: "$3", perk: "VIP cosmetic idea" },
-        { id: "premium", name: "Premium Donate", price: "$5", perk: "Premium cosmetics idea" },
-        { id: "legend", name: "World Legend", price: "$10", perk: "Special profile frame idea" }
+        { id: "spark", name: "Spark Support", price: "$1", badge: "Starter", accent: "emerald", perk: "Help server costs and get a supporter note." },
+        { id: "flame-100", name: "100 Flame Coins", price: "$2", badge: "Flames", accent: "gold", perk: "Premium currency grant after admin review." },
+        { id: "flame-300", name: "300 Flame Coins", price: "$5", badge: "Best Value", accent: "violet", perk: "Better for premium effects, trails, and future cosmetics." },
+        { id: "vip", name: "VIP Pass Support", price: "$3", badge: "VIP", accent: "cyan", perk: "VIP access idea for custom accessory tools and cosmetics." },
+        { id: "premium", name: "Premium Boost", price: "$5", badge: "Premium", accent: "rose", perk: "Premium support idea for advanced skins and creator tools." },
+        { id: "legend", name: "World Legend", price: "$10", badge: "Legend", accent: "gold", perk: "Top support tier idea with profile frame and special credit." }
       ];
       const translations = {
         en: {
@@ -8959,11 +9230,30 @@
       ];
       const pixelSkinSize = 64;
       const pixelSkinCellCount = pixelSkinSize * pixelSkinSize;
+      const skinStudioSizes = [16, 32, 64];
+      const accessoryCatalog = [
+        { value: "", name: "No Accessory", premium: false },
+        { value: "crown", name: "Mini Crown", premium: false },
+        { value: "halo", name: "Neon Halo", premium: false },
+        { value: "cap", name: "Arcade Cap", premium: false },
+        { value: "headphones", name: "Bass Headphones", premium: false },
+        { value: "wings", name: "Crystal Wings", premium: false },
+        { value: "custom", name: "Custom Accessory", premium: true }
+      ];
+      const accessorySkinSize = 16;
+      const accessorySkinCellCount = accessorySkinSize * accessorySkinSize;
+      const transparentAccessoryColor = ".";
       let pixelSkinDraft = "";
       let pixelSkinDraftOwner = "";
       let pixelSkinDirty = false;
       let selectedPixelColor = 2;
       let pixelSkinPainting = false;
+      let selectedSkinStudioSize = 64;
+      let accessoryDraft = "";
+      let accessoryDraftOwner = "";
+      let accessoryDirty = false;
+      let selectedAccessoryColor = transparentAccessoryColor;
+      let accessoryPainting = false;
 
       function startGame(gameName, unlockMusic = true) {
         if (unlockMusic !== false && !requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[gameName]?.title || "minigames"}.`)) {
@@ -9046,14 +9336,18 @@
             skin: storedStyle?.skin || "classic",
             color: storedStyle?.color || "teal",
             trail: storedStyle?.trail || "",
-            pixelSkin64: typeof storedStyle?.pixelSkin64 === "string" ? storedStyle.pixelSkin64 : ""
+            pixelSkin64: typeof storedStyle?.pixelSkin64 === "string" ? storedStyle.pixelSkin64 : "",
+            accessory: typeof storedStyle?.accessory === "string" ? storedStyle.accessory : "",
+            customAccessory16: typeof storedStyle?.customAccessory16 === "string" ? storedStyle.customAccessory16 : ""
           };
         } catch {
           return {
             skin: "classic",
             color: "teal",
             trail: "",
-            pixelSkin64: ""
+            pixelSkin64: "",
+            accessory: "",
+            customAccessory16: ""
           };
         }
       }
@@ -9433,7 +9727,9 @@
           skin: selectedSkin,
           color: selectedColor,
           trail: selectedTrail,
-          pixelSkin64: sanitizePixelSkin64(currentUserData?.pixelSkin64 || playerStyle.pixelSkin64 || "")
+          pixelSkin64: sanitizePixelSkin64(currentUserData?.pixelSkin64 || playerStyle.pixelSkin64 || ""),
+          accessory: normalizeAccessory(playerStyle.accessory || currentUserData?.equipped?.accessory || "", currentUserData),
+          customAccessory16: sanitizeAccessory16(currentUserData?.customAccessory16 || playerStyle.customAccessory16 || "")
         };
         savePlayerStyle();
         if (currentAccount?.username) {
@@ -9453,6 +9749,8 @@
           player.color = playerStyle.color;
           player.trail = playerStyle.trail;
           player.pixelSkin64 = playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "";
+          player.accessory = playerStyle.accessory || "";
+          player.customAccessory16 = playerStyle.accessory === "custom" ? playerStyle.customAccessory16 : "";
           onlineLocalDirty = true;
           syncOnlineState();
         }
@@ -10955,6 +11253,7 @@
             skin: user.equipped?.skin || user.skin || playerStyle.skin || "classic",
             color: user.equipped?.color || user.color || playerStyle.color || "teal",
             trail: user.equipped?.trail || "",
+            accessory: normalizeAccessory(user.equipped?.accessory || user.accessory || playerStyle.accessory || "", user),
             effect: user.equipped?.effect || "",
             music: user.equipped?.music || ""
           },
@@ -10963,6 +11262,7 @@
           dailyMissions,
           clanId: sanitizeClanName(user.clanId || ""),
           pixelSkin64: sanitizePixelSkin64(user.pixelSkin64 || ""),
+          customAccessory16: sanitizeAccessory16(user.customAccessory16 || ""),
           dailyReward: user.dailyReward || { lastClaimAt: 0, streak: 0 },
           friends: user.friends || {},
           friendRequests: {
@@ -11008,7 +11308,9 @@
             skin: currentUserData.equipped.skin || playerStyle.skin,
             color: currentUserData.equipped.color || playerStyle.color,
             trail: currentUserData.equipped.trail || playerStyle.trail || "",
-            pixelSkin64: currentUserData.pixelSkin64 || playerStyle.pixelSkin64 || ""
+            pixelSkin64: currentUserData.pixelSkin64 || playerStyle.pixelSkin64 || "",
+            accessory: normalizeAccessory(currentUserData.equipped.accessory || playerStyle.accessory || "", currentUserData),
+            customAccessory16: currentUserData.customAccessory16 || playerStyle.customAccessory16 || ""
           };
           selectedMusicPack = currentUserData.equipped.music || "";
           savePlayerStyle();
@@ -11127,6 +11429,70 @@
         }
 
         return text;
+      }
+
+      function sanitizeAccessory16(value) {
+        const text = String(value || "");
+        if (text.length !== accessorySkinCellCount) {
+          return "";
+        }
+
+        const maxIndex = pixelSkinPalette.length - 1;
+        for (const char of text) {
+          if (char === transparentAccessoryColor) {
+            continue;
+          }
+
+          const valueIndex = Number(char);
+          if (!Number.isInteger(valueIndex) || valueIndex < 0 || valueIndex > maxIndex) {
+            return "";
+          }
+        }
+
+        return text;
+      }
+
+      function makeEmptyAccessory16() {
+        return transparentAccessoryColor.repeat(accessorySkinCellCount);
+      }
+
+      function getActiveAccessory16(user = currentUserData) {
+        return sanitizeAccessory16(user?.customAccessory16 || "") || sanitizeAccessory16(playerStyle.customAccessory16 || "");
+      }
+
+      function getAccessoryDraft(user = currentUserData) {
+        return sanitizeAccessory16(accessoryDraft) || getActiveAccessory16(user) || makeEmptyAccessory16();
+      }
+
+      function syncAccessoryDraft(user = currentUserData, forceReload = false) {
+        const owner = getUserKeyFromAccount() || "guest";
+        const savedAccessory = getActiveAccessory16(user);
+
+        if (forceReload || accessoryDraftOwner !== owner || !accessoryDraft || (!accessoryDirty && savedAccessory)) {
+          accessoryDraft = savedAccessory || makeEmptyAccessory16();
+          accessoryDraftOwner = owner;
+          accessoryDirty = false;
+        }
+
+        return getAccessoryDraft(user);
+      }
+
+      function hasAccessoryStudioAccess(user = currentUserData) {
+        return Boolean(user?.vip || user?.premium || user?.battlePass?.premium);
+      }
+
+      function normalizeAccessory(value, user = currentUserData) {
+        const item = accessoryCatalog.find((entry) => entry.value === value);
+
+        if (!item) {
+          return "";
+        }
+
+        if (item.premium && !hasAccessoryStudioAccess(user)) {
+          return "";
+        }
+
+        return item.value;
       }
 
       function makeDefaultPixelSkin64() {
@@ -13116,9 +13482,18 @@
         pixelSkinDraft = syncPixelSkinDraft(user, forceReload);
         renderPixelPalette();
         updateCubeSkinPreview();
-        pixelSkinGrid.innerHTML = Array.from(pixelSkinDraft, (value, index) => `
-          <button type="button" class="pixel-cell" data-pixel-index="${index}" style="background:${pixelSkinPalette[Number(value)]}"></button>
-        `).join("");
+        pixelSkinGrid.style.gridTemplateColumns = `repeat(${selectedSkinStudioSize}, minmax(0, 1fr))`;
+        pixelSkinGrid.setAttribute("aria-label", `${selectedSkinStudioSize} by ${selectedSkinStudioSize} pixel skin editor`);
+        pixelSkinGrid.innerHTML = Array.from({ length: selectedSkinStudioSize * selectedSkinStudioSize }, (_, index) => {
+          const x = index % selectedSkinStudioSize;
+          const y = Math.floor(index / selectedSkinStudioSize);
+          const sourceX = Math.min(pixelSkinSize - 1, Math.floor(x * pixelSkinSize / selectedSkinStudioSize));
+          const sourceY = Math.min(pixelSkinSize - 1, Math.floor(y * pixelSkinSize / selectedSkinStudioSize));
+          const value = Number(pixelSkinDraft[sourceY * pixelSkinSize + sourceX] || 0);
+          return `
+            <button type="button" class="pixel-cell" data-pixel-x="${x}" data-pixel-y="${y}" style="background:${pixelSkinPalette[value] || pixelSkinPalette[0]}"></button>
+          `;
+        }).join("");
       }
 
       function updateCubeSkinPreview() {
@@ -13136,6 +13511,80 @@
         studio.style.setProperty("--cube-top-b", sample(44, 10));
         studio.style.setProperty("--cube-side-a", sample(50, 24));
         studio.style.setProperty("--cube-side-b", sample(58, 44));
+        updateAccessoryPreview();
+      }
+
+      function renderAccessorySelect(user = currentUserData) {
+        skinAccessorySelect.innerHTML = accessoryCatalog.map((item) => {
+          const locked = item.premium && !hasAccessoryStudioAccess(user);
+          const label = locked ? `${item.name} - VIP/Premium` : item.name;
+          return `<option value="${escapeHtml(item.value)}" ${locked ? "disabled" : ""}>${escapeHtml(label)}</option>`;
+        }).join("");
+        skinAccessorySelect.value = normalizeAccessory(playerStyle.accessory || user?.equipped?.accessory || "", user);
+      }
+
+      function getAccessoryPaletteColor(value) {
+        return value === transparentAccessoryColor ? "transparent" : pixelSkinPalette[Number(value)] || pixelSkinPalette[0];
+      }
+
+      function renderAccessoryPalette() {
+        const paletteButtons = [
+          `<button type="button" class="accessory-erase ${selectedAccessoryColor === transparentAccessoryColor ? "selected" : ""}" data-accessory-color="${transparentAccessoryColor}" aria-label="Erase accessory pixel"></button>`,
+          ...pixelSkinPalette.map((color, index) => `
+            <button type="button" class="${String(index) === String(selectedAccessoryColor) ? "selected" : ""}" data-accessory-color="${index}" style="background:${color}" aria-label="Accessory color ${index}"></button>
+          `)
+        ];
+
+        accessoryPalette.innerHTML = paletteButtons.join("");
+      }
+
+      function renderAccessoryGrid(user = currentUserData, forceReload = false) {
+        accessoryDraft = syncAccessoryDraft(user, forceReload);
+        renderAccessoryPalette();
+        accessoryGrid.innerHTML = Array.from(accessoryDraft, (value, index) => `
+          <button type="button" class="pixel-cell accessory-cell" data-accessory-index="${index}" style="background:${getAccessoryPaletteColor(value)}"></button>
+        `).join("");
+        updateAccessoryPreview();
+      }
+
+      function renderAccessoryControls(user = currentUserData, forceReload = false) {
+        const preferredAccessory = skinAccessorySelect.value;
+        const shouldPreserveAccessory = skinAccessorySelect.options.length > 0;
+        renderAccessorySelect(user);
+        if (shouldPreserveAccessory && accessoryCatalog.some((item) => item.value === preferredAccessory) && normalizeAccessory(preferredAccessory, user) === preferredAccessory) {
+          skinAccessorySelect.value = preferredAccessory;
+        }
+        renderAccessoryGrid(user, forceReload);
+
+        const hasAccess = hasAccessoryStudioAccess(user);
+        const customSelected = skinAccessorySelect.value === "custom";
+        accessoryStudio.classList.toggle("locked", !hasAccess);
+        accessoryStudio.classList.toggle("active", customSelected);
+        saveAccessoryButton.disabled = !hasAccess;
+        clearAccessoryButton.disabled = !hasAccess;
+        equipAccessoryButton.disabled = customSelected && !hasAccess;
+        accessoryStudioMessage.textContent = hasAccess
+          ? "Draw a transparent 16x16 accessory, then save and equip Custom Accessory."
+          : "Custom accessories are VIP/Premium only. Built-in accessories can still be equipped.";
+      }
+
+      function updateAccessoryPreview() {
+        if (!cubeAccessoryPreview) {
+          return;
+        }
+
+        const accessory = skinAccessorySelect?.value || playerStyle.accessory || "";
+        cubeAccessoryPreview.dataset.accessory = accessory || "none";
+        cubeAccessoryPreview.innerHTML = "";
+
+        if (accessory !== "custom") {
+          return;
+        }
+
+        const draft = getAccessoryDraft();
+        cubeAccessoryPreview.innerHTML = Array.from(draft, (value) => `
+          <span style="background:${getAccessoryPaletteColor(value)}"></span>
+        `).join("");
       }
 
       async function getClan(clanId) {
@@ -13225,10 +13674,12 @@
           <div class="profile-card">Achievements <strong>${achievementCount}</strong></div>
           <div class="profile-card">Skin <strong>${escapeHtml(user.equipped.skin)}</strong></div>
           <div class="profile-card">Color <strong>${escapeHtml(user.equipped.color)}</strong></div>
+          <div class="profile-card">Accessory <strong>${escapeHtml(accessoryCatalog.find((item) => item.value === user.equipped.accessory)?.name || "None")}</strong></div>
           <div class="profile-card">Effect <strong>${escapeHtml(user.equipped.effect || "None")}</strong></div>
           <div class="profile-card">Music <strong>${escapeHtml(getBuiltInMusicLabel(user.equipped.music))}</strong></div>
           <div class="profile-card">Clan <strong>${escapeHtml(user.clanId || "No clan")}</strong></div>
           <div class="profile-card">Pixel Skin <strong>${user.pixelSkin64 ? "Saved" : "Not saved"}</strong></div>
+          <div class="profile-card">Custom Accessory <strong>${user.customAccessory16 ? "Saved" : "Not saved"}</strong></div>
         `;
         profileBestScores.innerHTML = Object.entries(user.bestScores || {})
           .map(([game, value]) => `<div class="admin-user-card"><span>${escapeHtml(games[game]?.title || game)}: ${Number(value || 0)}</span></div>`)
@@ -13240,14 +13691,20 @@
       }
 
       async function renderSkinStudioMenu() {
+        skinStudioSizeSelect.value = String(selectedSkinStudioSize);
+
         if (!currentAccount?.username) {
           renderPixelSkinGrid(null, true);
+          skinAccessorySelect.value = playerStyle.accessory || "";
+          renderAccessoryControls(null, true);
           skinStudioMessage.textContent = "Log in to save and equip your 64x64 cube skin.";
           return;
         }
 
         const user = await refreshCurrentUserData();
         renderPixelSkinGrid(user);
+        skinAccessorySelect.value = playerStyle.accessory || user.equipped?.accessory || "";
+        renderAccessoryControls(user);
         skinStudioMessage.textContent = user.pixelSkin64
           ? "Saved cube skin loaded."
           : "Draw pixels, save, then equip Custom 64x64 from Settings.";
@@ -13311,17 +13768,18 @@
 
       function renderDonateMenu() {
         donateList.innerHTML = donationPacks.map((pack) => `
-          <div class="shop-item donate-card">
-            <div>
+          <div class="shop-item donate-card donate-card-${escapeHtml(pack.accent || "emerald")}">
+            <div class="donate-card-copy">
+              <span class="donate-tier">${escapeHtml(pack.badge || "Support")}</span>
               <strong>${escapeHtml(pack.name)}</strong>
-              <span>${escapeHtml(pack.perk)}</span>
+              <span class="donate-perk">${escapeHtml(pack.perk)}</span>
             </div>
             <div class="donate-price">${escapeHtml(pack.price)}</div>
-            <button type="button" data-donate-pack="${escapeHtml(pack.id)}">Donate</button>
+            <button type="button" data-donate-pack="${escapeHtml(pack.id)}">Support</button>
           </div>
         `).join("");
         donateMessage.textContent = donationLinks.main
-          ? "Choose a support pack. Payment opens in a new tab."
+          ? "Choose a support pack. Payment opens in a new tab; rewards are granted after admin review."
           : "Donation link is not connected yet. Add your Ko-fi, Boosty, Patreon, or DonationAlerts link in donationLinks.main.";
       }
 
@@ -13756,15 +14214,25 @@
       }
 
       function handlePixelSkinPaint(event) {
-        const button = event.target.closest("[data-pixel-index]");
+        const button = event.target.closest("[data-pixel-x][data-pixel-y]");
 
         if (!button) {
           return;
         }
 
-        const index = Number(button.dataset.pixelIndex);
+        const pixelX = Number(button.dataset.pixelX);
+        const pixelY = Number(button.dataset.pixelY);
+        const blockSize = Math.max(1, Math.floor(pixelSkinSize / selectedSkinStudioSize));
+        const startX = Math.min(pixelSkinSize - 1, Math.floor(pixelX * pixelSkinSize / selectedSkinStudioSize));
+        const startY = Math.min(pixelSkinSize - 1, Math.floor(pixelY * pixelSkinSize / selectedSkinStudioSize));
         const draft = getPixelSkinDraft().split("");
-        draft[index] = String(selectedPixelColor);
+
+        for (let y = startY; y < Math.min(pixelSkinSize, startY + blockSize); y += 1) {
+          for (let x = startX; x < Math.min(pixelSkinSize, startX + blockSize); x += 1) {
+            draft[y * pixelSkinSize + x] = String(selectedPixelColor);
+          }
+        }
+
         pixelSkinDraft = draft.join("");
         pixelSkinDirty = true;
         button.style.background = pixelSkinPalette[selectedPixelColor];
@@ -13786,6 +14254,82 @@
 
       function stopPixelSkinPaint() {
         pixelSkinPainting = false;
+      }
+
+      function updateSkinStudioSize() {
+        const nextSize = Number(skinStudioSizeSelect.value);
+        selectedSkinStudioSize = skinStudioSizes.includes(nextSize) ? nextSize : 64;
+        skinStudioSizeSelect.value = String(selectedSkinStudioSize);
+        renderPixelSkinGrid(currentUserData);
+        setSkinStudioMessage(`${selectedSkinStudioSize} x ${selectedSkinStudioSize} editor size selected. Saves still stay fair 64x64.`);
+      }
+
+      function handleAccessorySelectChange() {
+        const nextAccessory = normalizeAccessory(skinAccessorySelect.value, currentUserData);
+
+        if (skinAccessorySelect.value && !nextAccessory) {
+          skinAccessorySelect.value = playerStyle.accessory || "";
+          accessoryStudioMessage.textContent = "VIP or Premium is required for this accessory.";
+          updateAccessoryPreview();
+          return;
+        }
+
+        skinAccessorySelect.value = nextAccessory;
+        renderAccessoryControls(currentUserData);
+        accessoryStudioMessage.textContent = nextAccessory === "custom"
+          ? "Custom Accessory selected. Draw, save, then equip it."
+          : "Built-in accessory selected. Click Equip Accessory to use it.";
+      }
+
+      function handleAccessoryPaletteClick(event) {
+        const button = event.target.closest("[data-accessory-color]");
+
+        if (!button) {
+          return;
+        }
+
+        selectedAccessoryColor = button.dataset.accessoryColor;
+        renderAccessoryPalette();
+      }
+
+      function handleAccessoryPaint(event) {
+        const button = event.target.closest("[data-accessory-index]");
+
+        if (!button) {
+          return;
+        }
+
+        if (!hasAccessoryStudioAccess(currentUserData)) {
+          accessoryStudioMessage.textContent = "Custom accessory drawing needs VIP or Premium.";
+          return;
+        }
+
+        const index = Number(button.dataset.accessoryIndex);
+        const draft = getAccessoryDraft().split("");
+        draft[index] = selectedAccessoryColor === transparentAccessoryColor
+          ? transparentAccessoryColor
+          : String(Number(selectedAccessoryColor));
+        accessoryDraft = draft.join("");
+        accessoryDirty = true;
+        button.style.background = getAccessoryPaletteColor(draft[index]);
+        updateAccessoryPreview();
+      }
+
+      function startAccessoryPaint(event) {
+        accessoryPainting = true;
+        handleAccessoryPaint(event);
+      }
+
+      function continueAccessoryPaint(event) {
+        if (!accessoryPainting) {
+          return;
+        }
+
+        handleAccessoryPaint(event);
+      }
+
+      function stopAccessoryPaint() {
+        accessoryPainting = false;
       }
 
       async function savePixelSkin() {
@@ -13857,6 +14401,102 @@
         pixelSkinDirty = true;
         renderPixelSkinGrid(currentUserData);
         setSkinStudioMessage("Pixel editor reset. Click Save Pixel Skin to store it.");
+      }
+
+      async function saveAccessory() {
+        if (!currentAccount?.username) {
+          setSkinStudioMessage("Log in first.");
+          return;
+        }
+
+        const user = await refreshCurrentUserData();
+        if (!hasAccessoryStudioAccess(user)) {
+          setSkinStudioMessage("VIP or Premium is required to create custom accessories.");
+          return;
+        }
+
+        const accessory = sanitizeAccessory16(getAccessoryDraft(user));
+        if (!accessory) {
+          setSkinStudioMessage("Accessory must be exactly 16x16 with approved colors or transparent pixels.");
+          return;
+        }
+
+        await patchCurrentUser({
+          customAccessory16: accessory,
+          "ownedItems/accessory-custom": true
+        });
+        playerStyle = {
+          ...playerStyle,
+          customAccessory16: accessory
+        };
+        savePlayerStyle();
+        accessoryDraft = accessory;
+        accessoryDraftOwner = getUserKeyFromAccount() || "guest";
+        accessoryDirty = false;
+        setSkinStudioMessage("Custom accessory saved.");
+        await renderProfileMenu();
+        await renderSkinStudioMenu();
+      }
+
+      async function equipAccessory() {
+        if (!currentAccount?.username) {
+          setSkinStudioMessage("Log in first.");
+          return;
+        }
+
+        const user = await refreshCurrentUserData();
+        const selectedAccessory = skinAccessorySelect.value;
+        const accessory = normalizeAccessory(selectedAccessory, user);
+
+        if (selectedAccessory && !accessory) {
+          setSkinStudioMessage("VIP or Premium is required for this accessory.");
+          return;
+        }
+
+        const customAccessory = sanitizeAccessory16(getAccessoryDraft(user));
+        if (accessory === "custom" && !customAccessory) {
+          setSkinStudioMessage("Save your custom accessory first.");
+          return;
+        }
+
+        playerStyle = {
+          ...playerStyle,
+          accessory,
+          customAccessory16: accessory === "custom" ? customAccessory : sanitizeAccessory16(user.customAccessory16 || playerStyle.customAccessory16 || "")
+        };
+        savePlayerStyle();
+        await patchCurrentUser({
+          "equipped/accessory": accessory,
+          accessory,
+          ...(accessory === "custom"
+            ? {
+                customAccessory16: playerStyle.customAccessory16,
+                "ownedItems/accessory-custom": true
+              }
+            : {})
+        });
+
+        const player = onlineState?.playersState?.[onlinePlayerSlot];
+        if (player) {
+          player.accessory = playerStyle.accessory || "";
+          player.customAccessory16 = playerStyle.accessory === "custom" ? playerStyle.customAccessory16 : "";
+          onlineLocalDirty = true;
+          syncOnlineState();
+        }
+
+        draw();
+        updateAccessoryPreview();
+        setSkinStudioMessage(accessory ? `${accessoryCatalog.find((item) => item.value === accessory)?.name || "Accessory"} equipped.` : "Accessory removed.");
+        await renderProfileMenu();
+        await renderSkinStudioMenu();
+      }
+
+      function clearAccessory() {
+        accessoryDraft = makeEmptyAccessory16();
+        accessoryDraftOwner = getUserKeyFromAccount() || "guest";
+        accessoryDirty = true;
+        renderAccessoryGrid(currentUserData);
+        setSkinStudioMessage("Accessory editor cleared. Save to store it.");
       }
 
       async function createClanFromProfile() {
@@ -14367,7 +15007,7 @@
         const theme = getTheme(playerStyle.color);
         drawSnakeTrail(snake, playerStyle.trail, theme);
         snake.forEach((part, index) => {
-          drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0, playerStyle.pixelSkin64);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, playerStyle.skin, index === 0, playerStyle.pixelSkin64, playerStyle.accessory, playerStyle.customAccessory16);
         });
       }
 
@@ -14431,6 +15071,7 @@
         ctx.beginPath();
         ctx.roundRect(catcher.x + 14, catcher.y - 12, catcher.width - 28, 14, 7);
         ctx.fill();
+        drawAccessoryAt(catcher.x + catcher.width / 2 - 14, catcher.y - 30, 28, playerStyle.accessory, playerStyle.customAccessory16);
       }
 
       function drawDodger() {
@@ -14469,6 +15110,7 @@
         ctx.beginPath();
         ctx.arc(dodger.x + dodger.size / 2, dodger.y + dodger.size / 2, 7, 0, Math.PI * 2);
         ctx.fill();
+        drawAccessoryAt(dodger.x, dodger.y, dodger.size, playerStyle.accessory, playerStyle.customAccessory16);
       }
 
       function drawSoloPong() {
@@ -14544,6 +15186,7 @@
         ctx.beginPath();
         ctx.roundRect(coinPlayer.x, coinPlayer.y, coinPlayer.size, coinPlayer.size, 8);
         ctx.fill();
+        drawAccessoryAt(coinPlayer.x, coinPlayer.y, coinPlayer.size, playerStyle.accessory, playerStyle.customAccessory16);
       }
 
       function drawLaserDodge() {
@@ -14574,6 +15217,7 @@
         ctx.beginPath();
         ctx.roundRect(laserPlayer.x, laserPlayer.y, laserPlayer.size, laserPlayer.size, 8);
         ctx.fill();
+        drawAccessoryAt(laserPlayer.x, laserPlayer.y, laserPlayer.size, playerStyle.accessory, playerStyle.customAccessory16);
       }
 
       function drawSigmaRpg() {
@@ -14611,6 +15255,7 @@
         ctx.beginPath();
         ctx.arc(rpgPlayer.x + rpgPlayer.size / 2, rpgPlayer.y + rpgPlayer.size / 2, 7, 0, Math.PI * 2);
         ctx.fill();
+        drawAccessoryAt(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, playerStyle.accessory, playerStyle.customAccessory16);
 
         ctx.fillStyle = "rgba(248, 250, 252, 0.86)";
         ctx.font = "800 15px Arial";
@@ -14665,6 +15310,7 @@
         ctx.beginPath();
         ctx.arc(starPlayer.x + starPlayer.size / 2, starPlayer.y + starPlayer.size / 2, 7, 0, Math.PI * 2);
         ctx.fill();
+        drawAccessoryAt(starPlayer.x, starPlayer.y, starPlayer.size, playerStyle.accessory, playerStyle.customAccessory16);
 
         if (starShieldTicks > 0) {
           ctx.strokeStyle = "#38bdf8";
@@ -14682,7 +15328,7 @@
         ctx.fillText(`Meteors ${starMeteors.length}`, 16, canvas.height - 16);
       }
 
-      function drawSnakeTile(part, color, skin, isHead, pixelSkin64 = "") {
+      function drawSnakeTile(part, color, skin, isHead, pixelSkin64 = "", accessory = "", customAccessory16 = "") {
         const radiusBySkin = {
           classic: isHead ? 7 : 5,
           round: 9,
@@ -14704,6 +15350,9 @@
 
         if (skin === "custom64") {
           drawCustomPixelSnakeTile(part, isHead, pixelSkin64);
+          if (isHead) {
+            drawAccessoryOnTile(part, accessory, customAccessory16);
+          }
           ctx.restore();
           return;
         }
@@ -14817,6 +15466,10 @@
           strokeTile(part.x, part.y, radiusBySkin.cosmic);
         }
 
+        if (isHead) {
+          drawAccessoryOnTile(part, accessory, customAccessory16);
+        }
+
         ctx.restore();
       }
 
@@ -14845,6 +15498,112 @@
         ctx.strokeStyle = isHead ? "rgba(248, 250, 252, 0.85)" : "rgba(248, 250, 252, 0.22)";
         ctx.lineWidth = isHead ? 2 : 1;
         ctx.strokeRect(left, top, tileSize, tileSize);
+      }
+
+      function drawAccessoryOnTile(part, accessory = "", customAccessory16 = "") {
+        const left = part.x * gridSize + 2;
+        const top = part.y * gridSize + 2;
+        const size = gridSize - 4;
+        drawAccessoryAt(left, top, size, accessory, customAccessory16);
+      }
+
+      function drawAccessoryAt(left, top, size, accessory = "", customAccessory16 = "") {
+        const chosen = accessory === "custom"
+          ? (sanitizeAccessory16(customAccessory16) ? "custom" : "")
+          : (accessoryCatalog.some((item) => item.value === accessory) ? accessory : "");
+
+        if (!chosen) {
+          return;
+        }
+
+        const centerX = left + size / 2;
+        const topY = top - size * 0.24;
+
+        ctx.save();
+        ctx.shadowColor = chosen === "custom" ? "#5eead4" : "#facc15";
+        ctx.shadowBlur = getGraphicsShadowBlur(8);
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+
+        if (chosen === "crown") {
+          ctx.fillStyle = "#facc15";
+          ctx.strokeStyle = "#854d0e";
+          ctx.lineWidth = Math.max(1.5, size * 0.08);
+          ctx.beginPath();
+          ctx.moveTo(left + size * 0.18, topY + size * 0.24);
+          ctx.lineTo(left + size * 0.3, topY);
+          ctx.lineTo(centerX, topY + size * 0.22);
+          ctx.lineTo(left + size * 0.7, topY);
+          ctx.lineTo(left + size * 0.82, topY + size * 0.24);
+          ctx.lineTo(left + size * 0.78, topY + size * 0.44);
+          ctx.lineTo(left + size * 0.22, topY + size * 0.44);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else if (chosen === "halo") {
+          ctx.strokeStyle = "#fde68a";
+          ctx.lineWidth = Math.max(2, size * 0.12);
+          ctx.beginPath();
+          ctx.ellipse(centerX, topY + size * 0.16, size * 0.34, size * 0.13, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (chosen === "cap") {
+          ctx.fillStyle = "#38bdf8";
+          ctx.strokeStyle = "#0f172a";
+          ctx.lineWidth = Math.max(1.5, size * 0.07);
+          ctx.beginPath();
+          ctx.roundRect(left + size * 0.2, topY + size * 0.12, size * 0.6, size * 0.26, size * 0.08);
+          ctx.fill();
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(left + size * 0.68, topY + size * 0.35, size * 0.22, size * 0.08, 0.16, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else if (chosen === "headphones") {
+          ctx.strokeStyle = "#a78bfa";
+          ctx.lineWidth = Math.max(2, size * 0.12);
+          ctx.beginPath();
+          ctx.arc(centerX, top + size * 0.28, size * 0.44, Math.PI * 1.08, Math.PI * 1.92);
+          ctx.stroke();
+          ctx.fillStyle = "#8b5cf6";
+          ctx.beginPath();
+          ctx.roundRect(left + size * 0.06, top + size * 0.22, size * 0.18, size * 0.36, size * 0.08);
+          ctx.roundRect(left + size * 0.76, top + size * 0.22, size * 0.18, size * 0.36, size * 0.08);
+          ctx.fill();
+        } else if (chosen === "wings") {
+          ctx.fillStyle = "rgba(125, 211, 252, 0.8)";
+          ctx.strokeStyle = "rgba(224, 242, 254, 0.9)";
+          ctx.lineWidth = Math.max(1.2, size * 0.05);
+          ctx.beginPath();
+          ctx.moveTo(left + size * 0.1, top + size * 0.52);
+          ctx.quadraticCurveTo(left - size * 0.32, top + size * 0.1, left + size * 0.22, top + size * 0.08);
+          ctx.quadraticCurveTo(left + size * 0.1, top + size * 0.34, left + size * 0.1, top + size * 0.52);
+          ctx.moveTo(left + size * 0.9, top + size * 0.52);
+          ctx.quadraticCurveTo(left + size * 1.32, top + size * 0.1, left + size * 0.78, top + size * 0.08);
+          ctx.quadraticCurveTo(left + size * 0.9, top + size * 0.34, left + size * 0.9, top + size * 0.52);
+          ctx.fill();
+          ctx.stroke();
+        } else if (chosen === "custom") {
+          drawCustomAccessoryAt(left + size * 0.17, topY - size * 0.02, size * 0.66, customAccessory16);
+        }
+
+        ctx.restore();
+      }
+
+      function drawCustomAccessoryAt(left, top, size, customAccessory16 = "") {
+        const accessory = sanitizeAccessory16(customAccessory16) || makeEmptyAccessory16();
+        const cellSize = size / accessorySkinSize;
+
+        for (let y = 0; y < accessorySkinSize; y += 1) {
+          for (let x = 0; x < accessorySkinSize; x += 1) {
+            const value = accessory[y * accessorySkinSize + x];
+            if (value === transparentAccessoryColor) {
+              continue;
+            }
+
+            ctx.fillStyle = pixelSkinPalette[Number(value)] || pixelSkinPalette[0];
+            ctx.fillRect(left + x * cellSize, top + y * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
+          }
+        }
       }
 
       function roundTile(x, y, radius) {
@@ -16599,8 +17358,10 @@
               skin: playerStyle.skin,
               color: playerStyle.color,
               trail: "",
+              accessory: "",
               music: ""
             },
+            customAccessory16: "",
             achievements: {},
             quests: {},
             dailyReward: { lastClaimAt: 0, streak: 0 },
@@ -16756,6 +17517,10 @@
         const pixelSkin64 = skin === "custom64"
           ? getActivePixelSkin64(currentUserData)
           : "";
+        const accessory = normalizeAccessory(playerStyle.accessory || "", currentUserData);
+        const customAccessory16 = accessory === "custom"
+          ? getActiveAccessory16(currentUserData)
+          : "";
 
         if (gameName === "online-tanks") {
           return {
@@ -16763,6 +17528,8 @@
             skin,
             color,
             pixelSkin64,
+            accessory,
+            customAccessory16,
             x: slot === "p1" ? 140 : 380,
             y: slot === "p1" ? 280 : 280,
             dir: slot === "p1" ? { x: 1, y: 0 } : { x: -1, y: 0 },
@@ -16778,6 +17545,8 @@
             skin,
             color,
             pixelSkin64,
+            accessory,
+            customAccessory16,
             x: slot === "p1" ? 136 : 328,
             y: canvas.height - 44,
             score: 0,
@@ -16791,6 +17560,8 @@
             skin,
             color,
             pixelSkin64,
+            accessory,
+            customAccessory16,
             x: slot === "p1" ? 34 : canvas.width - 50,
             y: canvas.height / 2 - 42,
             width: 16,
@@ -16830,6 +17601,8 @@
             skin,
             color,
             pixelSkin64,
+            accessory,
+            customAccessory16,
             x: start.x,
             y: start.y,
             size: 28,
@@ -16844,6 +17617,8 @@
           skin,
           color,
           pixelSkin64,
+          accessory,
+          customAccessory16,
           snake: slot === "p1"
             ? [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }]
             : [{ x: 20, y: 10 }, { x: 21, y: 10 }, { x: 22, y: 10 }],
@@ -17163,6 +17938,10 @@
           state.playersState[slot].color = playerStyle.color;
           state.playersState[slot].pixelSkin64 = playerStyle.skin === "custom64"
             ? getActivePixelSkin64(currentUserData)
+            : "";
+          state.playersState[slot].accessory = normalizeAccessory(playerStyle.accessory || "", currentUserData);
+          state.playersState[slot].customAccessory16 = state.playersState[slot].accessory === "custom"
+            ? getActiveAccessory16(currentUserData)
             : "";
         }
 
@@ -18287,7 +19066,7 @@
         const skin = player.skin || "classic";
 
         player.snake.forEach((part, index) => {
-          drawSnakeTile(part, index === 0 ? theme.head : theme.body, skin, index === 0, player.pixelSkin64);
+          drawSnakeTile(part, index === 0 ? theme.head : theme.body, skin, index === 0, player.pixelSkin64, player.accessory, player.customAccessory16);
         });
       }
 
@@ -18321,6 +19100,7 @@
         ctx.beginPath();
         ctx.roundRect(player.x + 14, player.y - 12, 68, 14, 7);
         ctx.fill();
+        drawAccessoryAt(player.x + 34, player.y - 30, 28, player.accessory, player.customAccessory16);
       }
 
       function drawOnlineTanks() {
@@ -18440,6 +19220,7 @@
         ctx.beginPath();
         ctx.arc(player.x + size / 2, player.y + size / 2, 6, 0, Math.PI * 2);
         ctx.fill();
+        drawAccessoryAt(player.x, player.y, size, player.accessory, player.customAccessory16);
       }
 
       function drawSoccerField() {
@@ -18556,6 +19337,7 @@
           ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
           ctx.fill();
         });
+        drawAccessoryAt(drawX - 16, drawY - 22, 32, player.accessory, player.customAccessory16);
       }
 
       async function createRoom() {
@@ -18870,9 +19652,18 @@
       pixelSkinGrid.addEventListener("pointerdown", startPixelSkinPaint);
       pixelSkinGrid.addEventListener("pointerover", continuePixelSkinPaint);
       window.addEventListener("pointerup", stopPixelSkinPaint);
+      skinStudioSizeSelect.addEventListener("change", updateSkinStudioSize);
+      skinAccessorySelect.addEventListener("change", handleAccessorySelectChange);
+      accessoryPalette.addEventListener("click", handleAccessoryPaletteClick);
+      accessoryGrid.addEventListener("pointerdown", startAccessoryPaint);
+      accessoryGrid.addEventListener("pointerover", continueAccessoryPaint);
+      window.addEventListener("pointerup", stopAccessoryPaint);
       savePixelSkinButton.addEventListener("click", savePixelSkin);
       equipPixelSkinButton.addEventListener("click", equipPixelSkin);
       clearPixelSkinButton.addEventListener("click", clearPixelSkin);
+      saveAccessoryButton.addEventListener("click", saveAccessory);
+      equipAccessoryButton.addEventListener("click", equipAccessory);
+      clearAccessoryButton.addEventListener("click", clearAccessory);
       createClanButton.addEventListener("click", createClanFromProfile);
       joinClanButton.addEventListener("click", joinClanFromProfile);
       leaveClanButton.addEventListener("click", leaveClanFromProfile);
