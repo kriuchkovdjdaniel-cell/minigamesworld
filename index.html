@@ -243,6 +243,26 @@
         display: none;
       }
 
+      #onlineScoreboard {
+        flex-wrap: wrap;
+        width: 100%;
+        min-width: 0;
+        gap: 0.4rem;
+      }
+
+      #onlineScoreboard .stat {
+        flex: 1 1 5rem;
+        min-width: 0;
+        max-width: 100%;
+        border-top: 3px solid var(--player-accent);
+      }
+
+      #onlineScoreboard strong {
+        display: block;
+        font-size: 0.85rem;
+        overflow-wrap: anywhere;
+      }
+
       .stat {
         min-width: 5rem;
         padding: 0.65rem 0.75rem;
@@ -8737,6 +8757,50 @@
           grid-template-columns: 2rem minmax(0, 1fr);
         }
       }
+      /* Full-window hub with bounded tracks and independently scrolling content. */
+      body[data-runtime] #startScreen { position: fixed; inset: 0; width: 100%; height: 100dvh; padding: 0; overflow: hidden; }
+      body[data-runtime] #startScreen #startPanel {
+        width: 100%; height: 100dvh; max-width: none; max-height: none; min-height: 0; margin: 0;
+        grid-template-columns: 230px minmax(0, 1fr);
+        grid-template-rows: 74px minmax(0, 1fr);
+        grid-template-areas: "brand topbar" "nav content";
+      }
+      body[data-runtime] #startPanel > h2 {
+        font: 800 20px/1.2 Arial, sans-serif !important;
+        min-width: 0; width: 100%; padding: 0 10px 0 44px;
+        animation: none; text-shadow: none; white-space: normal; overflow-wrap: anywhere;
+      }
+      body[data-runtime] #startPanel > h2::before { width: 26px; height: 30px; left: 10px; box-shadow: none; }
+      body[data-runtime] #startPanel > h2::after { display: none; }
+      body[data-runtime] #startPanel .mgw-topbar { min-width: 0; grid-template-columns: minmax(100px, 1fr) auto minmax(150px, 230px) 40px; gap: 12px; }
+      body[data-runtime] #startGamesMenu.open { min-width: 0; min-height: 0; width: 100%; max-width: none; grid-template-rows: auto auto auto auto auto; align-content: start; }
+      body[data-runtime] #startGamesMenu > * { min-width: 0; max-width: 100%; }
+      body[data-runtime] #startGamesMenu > h3:first-of-type + .game-card-grid { grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr)); }
+      body[data-runtime] #startGamesMenu > h3:nth-of-type(2) { display: block; grid-column: 1; grid-row: 4; }
+      body[data-runtime] #startGamesMenu > h3:nth-of-type(2) + .game-card-grid { display: grid; grid-column: 1; grid-row: 5; grid-template-columns: repeat(auto-fit, minmax(min(145px, 100%), 1fr)); }
+      body[data-runtime] #startGamesMenu .start-showcase { grid-template-columns: minmax(0, 1fr); min-height: 320px; padding: 60px 24px 24px; }
+      body[data-runtime] #startGamesMenu .showcase-copy { min-width: 0; width: 100%; grid-column: 1; }
+      body[data-runtime] #startGamesMenu .showcase-copy strong { font-size: 42px; line-height: 1.1; overflow-wrap: anywhere; }
+      body[data-runtime] #startGamesMenu .showcase-copy span { letter-spacing: 0; }
+      body[data-runtime] #startGamesMenu .game-card-grid button { min-width: 0; width: 100%; border-radius: 8px; box-shadow: none; }
+      body[data-runtime] #startGamesMenu .game-card-title { overflow-wrap: anywhere; }
+      body[data-runtime] .start-actions { min-height: 0; overflow-y: auto; }
+      body[data-runtime] .start-actions > button { box-shadow: none; }
+      #hubFullscreenButton, #gameFullscreenButton { width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0; border-radius: 6px; font: 26px/1 Arial, sans-serif; }
+      body.page-hidden * { animation-play-state: paused !important; }
+      body[data-graphics="low"] * { animation: none !important; transition: none !important; }
+      .canvas-wrap { background: #060c11; box-shadow: 0 12px 0 #020608, 0 24px 35px #0006; }
+      @media (max-width: 1120px) {
+        body[data-runtime] #startPanel .mgw-topbar { grid-template-columns: minmax(80px, 1fr) auto 40px; }
+        body[data-runtime] #startGamesMenu > #gamesRoomFinderPanel { grid-column: 1; grid-row: 6; }
+        body[data-runtime] #startGamesMenu > .mgw-dashboard-side { grid-column: 1; grid-row: 7; }
+      }
+      @media (max-width: 760px) {
+        body[data-runtime] #startScreen #startPanel { grid-template-columns: minmax(0, 1fr); grid-template-rows: 48px 62px minmax(0, 1fr); grid-template-areas: "brand" "topbar" "content"; }
+        body[data-runtime] #startPanel > h2 { font-size: 20px !important; padding-left: 44px; }
+        body[data-runtime] #startGamesMenu { padding-bottom: 90px; }
+        body[data-runtime] #startGamesMenu .showcase-copy strong { font-size: 32px; }
+      }
     </style>
   </head>
   <body>
@@ -8761,6 +8825,7 @@
               <i><b id="mgwTopXp"></b></i>
             </span>
           </div>
+          <button type="button" id="hubFullscreenButton" title="Fullscreen" aria-label="Fullscreen">&#x26F6;</button>
         </div>
         <div class="start-splash">MiniGameWorld Hub</div>
         <div class="runtime-chip" id="runtimeBadge">Web Preview</div>
@@ -8788,10 +8853,12 @@
         <div class="start-submenu" id="startInstallGateMenu" aria-label="Install MiniGameWorld app">
           <h3>MiniGameWorld App</h3>
           <div class="install-required-panel">
-            <span class="hub-kicker">Desktop App Required</span>
+            <span class="hub-kicker">Computer App Required</span>
             <strong>Install the app to play minigames</strong>
             <p id="installGateReason">The website lets you manage your account, shop, music, clans, missions, and leaderboards. Gameplay opens in the MiniGameWorld desktop app.</p>
-            <button type="button" id="installGateButton">Install App</button>
+            <button type="button" id="openWebAppButton">Open Installed App</button>
+            <button type="button" id="installGateButton">Install Web App</button>
+            <a href="https://github.com/kriuchkovdjdaniel-cell/minigamesworld/releases/latest" target="_blank" rel="noopener">Download Windows app</a>
           </div>
         </div>
         <div class="start-submenu" id="startGamesMenu" aria-label="Main menu games">
@@ -9242,10 +9309,7 @@
           <div class="stat">Score <span id="score">0</span></div>
           <div class="stat">Best <span id="best">0</span></div>
         </div>
-        <div class="scoreboard" id="onlineScoreboard" aria-label="Online scoreboard" hidden>
-          <div class="stat"><strong id="playerOneName">P1</strong><span id="playerOneScore">0</span></div>
-          <div class="stat"><strong id="playerTwoName">P2</strong><span id="playerTwoScore">0</span></div>
-        </div>
+        <div class="scoreboard" id="onlineScoreboard" aria-label="Online scoreboard" hidden></div>
       </header>
 
       <section class="game" aria-label="Snake game">
@@ -9687,10 +9751,6 @@
       const bestEl = document.getElementById("best");
       const localScoreboard = document.getElementById("localScoreboard");
       const onlineScoreboard = document.getElementById("onlineScoreboard");
-      const playerOneNameEl = document.getElementById("playerOneName");
-      const playerOneScoreEl = document.getElementById("playerOneScore");
-      const playerTwoNameEl = document.getElementById("playerTwoName");
-      const playerTwoScoreEl = document.getElementById("playerTwoScore");
       const accountStatus = document.getElementById("accountStatus");
       const adminToggleButton = document.getElementById("adminToggleButton");
       const phoneModeButton = document.getElementById("phoneModeButton");
@@ -9842,7 +9902,7 @@
         "online-snake": {
           title: "Online Snake",
           bestKey: "online-snake-best",
-          help: "Player 1 is Aqua Core. Player 2 is Amber."
+          help: "Collect food and compete with up to four friends."
         },
         "online-catcher": {
           title: "Online Apple Drop",
@@ -9973,6 +10033,12 @@
       let onlineState = null;
       let onlineRoomUnsubscribe = null;
       let onlinePushBusy = false;
+      let onlinePushPromise = null;
+      let lastOnlineAppearanceKey = "";
+      let onlineDisconnect = null;
+      const ONLINE_MAX_PLAYERS = 5;
+      const ONLINE_PLAYER_SLOTS = ["p1", "p2", "p3", "p4", "p5"];
+      const ONLINE_PLAYER_COLORS = ["teal", "orange", "purple", "pink", "gold"];
       let lastOnlinePush = 0;
       let lastOnlineHeartbeat = 0;
       let lastOnlineSnakeMove = 0;
@@ -9981,6 +10047,13 @@
       let onlineApplesDirty = false;
       let onlinePongDirty = false;
       let onlineSharedDirty = false;
+      let boardSceneCache = null;
+      let knownWebAppInstalled = false;
+      let appLaunchPending = false;
+      let appUiReady = false;
+      let pendingAppLaunch = "";
+      let lastAppLaunch = { value: "", at: 0 };
+      const pixelSpriteCache = new Map();
       const firebaseDatabaseUrl = "https://fir-a3f0a-default-rtdb.firebaseio.com";
       const playerStorageKey = "snake-online-player-id";
       const ownedRoomsStorageKey = "snake-owned-room-codes";
@@ -14348,15 +14421,27 @@
         );
       }
 
+      function isPhoneDevice() {
+        return navigator.userAgentData?.mobile === true || /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ||
+          (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+      }
+
+      function isInstalledWebApp() {
+        return window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: minimal-ui)").matches || navigator.standalone === true;
+      }
+
       function canPlayGames() {
-        return isDesktopRuntime();
+        return !isPhoneDevice() && (isDesktopRuntime() || isInstalledWebApp());
       }
 
       function syncRuntimeUi() {
         const runtime = canPlayGames() ? "app" : "web";
         document.body.dataset.runtime = runtime;
-        runtimeBadge.textContent = runtime === "app" ? "Desktop App" : "Web Preview";
+        document.body.dataset.device = isPhoneDevice() ? "phone" : "computer";
+        runtimeBadge.textContent = runtime === "app" ? "App" : "Website";
         startInstallButton.hidden = runtime === "app";
+        installGateButton.disabled = isPhoneDevice();
+        document.getElementById("openWebAppButton").disabled = isPhoneDevice();
       }
 
       function setHubSection(section) {
@@ -14391,13 +14476,13 @@
 
       function showInstallRequired(reason = "Install the MiniGameWorld desktop app to play minigames.") {
         syncRuntimeUi();
-        installGateReason.textContent = reason;
-        startStatus.textContent = "MiniGameWorld App required for gameplay.";
+        installGateReason.textContent = isPhoneDevice() ? "Gameplay is available on computers only. You can still use your profile, shop and social features on your phone." : "Open your installed MiniGameWorld app to play. If it is not installed, install the web app first.";
+        startStatus.textContent = isPhoneDevice() ? "Computer required for gameplay." : "MiniGameWorld app required for gameplay.";
         startScreen.classList.remove("closed");
         startScreen.classList.add("loaded", "submenu-open");
         startScreen.setAttribute("aria-hidden", "false");
         showStartSection("install");
-        showTopNotification("Install MiniGameWorld App to play.");
+        showTopNotification(isPhoneDevice() ? "Gameplay requires a computer." : "Open or install MiniGameWorld to play.");
       }
 
       function requireDesktopGameplay(reason) {
@@ -14406,7 +14491,78 @@
         }
 
         showInstallRequired(reason);
+        if (!isPhoneDevice()) openInstalledWebApp(false).catch(() => {});
         return false;
+      }
+
+      function getAppLaunchUrl() {
+        const url = new URL("web+minigameworld://play");
+        url.searchParams.set("game", selectedStartMode === "online" ? selectedOnlineGame : selectedStartGame);
+        return url.href;
+      }
+
+      async function openInstalledWebApp(manual = true) {
+        if (isPhoneDevice() || appLaunchPending) return;
+        appLaunchPending = true;
+        const launch = getAppLaunchUrl();
+        try {
+          const registration = await navigator.serviceWorker?.getRegistration();
+          const opened = registration?.active && await new Promise((resolve) => {
+            const channel = new MessageChannel();
+            const timeout = setTimeout(() => { channel.port1.close(); resolve(false); }, 1200);
+            channel.port1.onmessage = (event) => { clearTimeout(timeout); channel.port1.close(); resolve(event.data?.opened === true); };
+            registration.active.postMessage({ type: "MGW_OPEN_APP", launch }, [channel.port2]);
+          });
+          if (opened) {
+            installGateReason.textContent = "Opened your MiniGameWorld app.";
+          } else if (knownWebAppInstalled || manual) {
+            window.location.href = launch;
+            installGateReason.textContent = "Approve opening MiniGameWorld in your browser. If no app opens, install the web app first.";
+          } else {
+            installGateReason.textContent = "You need to install the MiniGameWorld web app to play. Already installed? Select Open Installed App.";
+          }
+        } catch {
+          installGateReason.textContent = "Your browser could not open the app. Open MiniGameWorld from your computer's app list, or install the web app first.";
+        } finally {
+          appLaunchPending = false;
+        }
+      }
+
+      function handleAppLaunch(value) {
+        if (!canPlayGames() || onlineRoomCode) return;
+        if (!appUiReady) {
+          pendingAppLaunch = value;
+          return;
+        }
+        try {
+          const url = new URL(value);
+          if (url.protocol !== "web+minigameworld:") return;
+          const game = url.searchParams.get("game");
+          if (!Object.hasOwn(games, game)) return;
+          if (lastAppLaunch.value === value && Date.now() - lastAppLaunch.at < 2000) return;
+          lastAppLaunch = { value, at: Date.now() };
+          if (isSinglePlayerGame(game)) {
+            selectedStartGame = game;
+            selectedStartMode = "solo";
+            closeStartScreen();
+            startGame(game);
+          } else {
+            selectedOnlineGame = game;
+            selectedStartMode = "online";
+            showMainMenu();
+            showStartSection("onlineRoom");
+            updateOnlineGameSelection();
+          }
+        } catch { /* Ignore malformed launch URLs. */ }
+      }
+
+      async function toggleGameFullscreen() {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch {
+          showTopNotification("Fullscreen is unavailable in this browser.");
+        }
       }
 
       function showMainMenu() {
@@ -14523,6 +14679,12 @@
 
       function showLoadedStartMenu() {
         showMainMenu();
+        appUiReady = true;
+        if (pendingAppLaunch) {
+          const launch = pendingAppLaunch;
+          pendingAppLaunch = "";
+          handleAppLaunch(launch);
+        }
       }
 
       function playFromStartMenu() {
@@ -16297,7 +16459,7 @@
         try {
           const rooms = await getAllRooms();
           const roomEntries = Object.entries(rooms || {})
-            .filter(([, room]) => room?.isPublic !== false && Number(room?.players || 0) < 2)
+            .filter(([, room]) => room?.createdBy && room?.game && room?.isPublic !== false && getOnlinePlayerEntries(room).length > 0 && getOnlinePlayerEntries(room).length < ONLINE_MAX_PLAYERS)
             .sort(([, a], [, b]) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
           if (!roomEntries.length) {
@@ -16311,7 +16473,7 @@
             <div class="admin-room-card">
               <div class="admin-user-top">
                 <span class="admin-room-code">${escapeHtml(code)}</span>
-                <span class="admin-badge">${Number(room.players || 0)} players</span>
+                <span class="admin-badge">${getOnlinePlayerEntries(room).length}/${ONLINE_MAX_PLAYERS} players</span>
               </div>
               <div class="admin-user-meta">${escapeHtml(room.gameName || room.game || "Online game")} | ${escapeHtml(room.createdByUsername || "Player")}</div>
               <div class="admin-user-actions">
@@ -16459,11 +16621,124 @@
         } else {
           drawOnlineGame();
         }
+        drawSceneObjects(true);
         drawStartShield();
         drawCoinFlames();
       }
 
       function drawBoard() {
+        const key = [canvas.width, canvas.height, currentGame, getBoardColor(), getGraphicsQualityRank(), gridSize].join(":");
+        if (boardSceneCache?.key !== key) {
+          const surface = document.createElement("canvas");
+          surface.width = canvas.width;
+          surface.height = canvas.height;
+          const scene = surface.getContext("2d");
+          paintBoard(scene);
+          paintSceneArchitecture(scene);
+          boardSceneCache = { key, surface };
+        }
+        ctx.drawImage(boardSceneCache.surface, 0, 0);
+        drawSceneObjects(false);
+      }
+
+      function paintSceneArchitecture(scene) {
+        const colors = {
+          snake: "#347f69", catcher: "#60887b", dodger: "#6c609e", "solo-pong": "#447b9a",
+          "coin-rush": "#8c8052", "laser-dodge": "#9a516a", "sigma-rpg": "#6f70aa", "star-collector": "#4d6496",
+          "online-soccer": "#398562", "online-bomb-tag": "#91664f", "online-maze": "#767da1"
+        };
+        const accent = colors[currentGame] || colors[currentGame.replace("online-", "")] || "#497d88";
+        const w = canvas.width;
+        const h = canvas.height;
+        scene.save();
+        // Fixed architectural depth keeps the collision plane unchanged.
+        scene.fillStyle = "#020608";
+        scene.fillRect(0, h - 8, w, 8);
+        scene.fillRect(w - 8, 0, 8, h);
+        scene.fillStyle = accent;
+        scene.globalAlpha = 0.38;
+        scene.fillRect(0, 0, w, 8);
+        scene.fillRect(0, 0, 8, h);
+        const step = getGraphicsQualityRank() === 0 ? 96 : 64;
+        for (let y = 24; y < h; y += step) {
+          for (let x = 24; x < w; x += step) {
+            scene.globalAlpha = ((x + y) / step) % 2 ? 0.06 : 0.1;
+            scene.fillStyle = accent;
+            scene.beginPath();
+            scene.moveTo(x, y);
+            scene.lineTo(x + 22, y - 9);
+            scene.lineTo(x + 44, y);
+            scene.lineTo(x + 22, y + 9);
+            scene.closePath();
+            scene.fill();
+          }
+        }
+        scene.globalAlpha = 0.7;
+        [12, w - 26].forEach((x) => [12, h - 34].forEach((y) => {
+          scene.fillStyle = "#04090e";
+          scene.fillRect(x + 4, y + 8, 16, 18);
+          scene.fillStyle = accent;
+          scene.fillRect(x, y, 16, 18);
+          scene.fillStyle = "#bdcfdb";
+          scene.fillRect(x, y, 16, 3);
+        }));
+        scene.restore();
+      }
+
+      function getSceneObjects() {
+        const tiles = (parts) => (parts || []).map((p) => ({ x: p.x * gridSize + 2, y: p.y * gridSize + 2, size: gridSize - 4 }));
+        if (currentGame.startsWith("online-")) {
+          return getOnlinePlayerEntries().flatMap(([, player]) => {
+            if (player.snake) return tiles(player.snake);
+            if (currentGame === "online-tanks") return [{ ...player, x: player.x - 18, y: player.y - 18, size: 36 }];
+            if (currentGame === "online-catcher") return [{ ...player, width: 96, height: 18 }];
+            return [player];
+          });
+        }
+        switch (currentGame) {
+          case "snake": return tiles(snake);
+          case "catcher": return [catcher];
+          case "dodger": return [dodger];
+          case "solo-pong": return [...(soloPong?.bricks || []).filter((b) => b.alive), { x: soloPong?.paddleX, y: soloPong?.paddleY, width: soloPong?.paddleWidth, height: soloPong?.paddleHeight }];
+          case "coin-rush": return [coinPlayer, coinEnemy];
+          case "laser-dodge": return [laserPlayer];
+          case "sigma-rpg": return [rpgPlayer, ...(rpgEnemies || []), rpgPortal];
+          case "star-collector": return [starPlayer];
+          default: return [];
+        }
+      }
+
+      function drawSceneObjects(highlights) {
+        ctx.save();
+        ctx.shadowBlur = 0;
+        getSceneObjects().forEach((object) => {
+          if (!object || !Number.isFinite(object.x) || !Number.isFinite(object.y)) return;
+          const width = object.width || object.size || 28;
+          const height = object.height || object.size || 28;
+          if (highlights) {
+            ctx.fillStyle = "rgba(255,255,255,0.24)";
+            ctx.fillRect(object.x + 3, object.y + 2, Math.max(2, width - 6), 2);
+            ctx.fillStyle = "rgba(0,0,0,0.2)";
+            ctx.fillRect(object.x + width - 4, object.y + 4, 2, Math.max(2, height - 8));
+          } else {
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.fillRect(object.x + 6, object.y + 9, width, height);
+            ctx.fillStyle = "#17272e";
+            ctx.beginPath();
+            ctx.moveTo(object.x, object.y + height);
+            ctx.lineTo(object.x + 4, object.y + height + 5);
+            ctx.lineTo(object.x + width + 4, object.y + height + 5);
+            ctx.lineTo(object.x + width + 4, object.y + 5);
+            ctx.lineTo(object.x + width, object.y);
+            ctx.lineTo(object.x + width, object.y + height);
+            ctx.closePath();
+            ctx.fill();
+          }
+        });
+        ctx.restore();
+      }
+
+      function paintBoard(ctx) {
         const qualityRank = getGraphicsQualityRank();
         const glowAlpha = getGraphicsEffectLimit(0.045, 0.13, 0.17, 0.22);
         const gridAlpha = getGraphicsEffectLimit(0.045, 0.105, 0.13, 0.16);
@@ -16537,7 +16812,7 @@
         };
         const colors = trailColors[trail] || [theme.top, theme.body];
         const trailStep = getGraphicsQualityRank() === 0 ? 3 : 1;
-        const visibleParts = parts.slice(1).filter((_, index) => index % trailStep === 0);
+        const visibleParts = parts.slice(1, 25).filter((_, index) => index % trailStep === 0);
 
         ctx.save();
         visibleParts.forEach((part, index) => {
@@ -16984,27 +17259,29 @@
       }
 
       function drawCustomPixelSnakeTile(part, isHead, pixelSkin64 = "", customPalette = pixelSkinPalette) {
-        const skin = sanitizePixelSkin64(pixelSkin64)
-          || getActivePixelSkin64(currentUserData)
-          || makeDefaultPixelSkin64();
+        const skin = pixelSkin64 || getActivePixelSkin64(currentUserData) || makeDefaultPixelSkin64();
         const palette = normalizeCustomPalette(customPalette);
         const left = part.x * gridSize + 2;
         const top = part.y * gridSize + 2;
         const tileSize = gridSize - 4;
-        const sampleSize = 8;
-        const cellSize = tileSize / sampleSize;
-
-        ctx.shadowColor = isHead ? "#5eead4" : "rgba(94, 234, 212, 0.35)";
-        ctx.shadowBlur = getGraphicsShadowBlur(isHead ? 16 : 8);
-        for (let y = 0; y < sampleSize; y += 1) {
-          for (let x = 0; x < sampleSize; x += 1) {
-            const sourceX = x * 8;
-            const sourceY = y * 8;
-            const value = Number(skin[sourceY * pixelSkinSize + sourceX] || 0);
-            ctx.fillStyle = palette[value] || palette[0];
-            ctx.fillRect(left + x * cellSize, top + y * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
+        const key = skin + palette.join(",");
+        let sprite = pixelSpriteCache.get(key);
+        if (!sprite) {
+          const validSkin = sanitizePixelSkin64(skin) || makeDefaultPixelSkin64();
+          sprite = document.createElement("canvas");
+          sprite.width = sprite.height = pixelSkinSize;
+          const pixels = sprite.getContext("2d");
+          for (let y = 0; y < pixelSkinSize; y += 1) {
+            for (let x = 0; x < pixelSkinSize; x += 1) {
+              pixels.fillStyle = palette[Number(validSkin[y * pixelSkinSize + x])] || palette[0];
+              pixels.fillRect(x, y, 1, 1);
+            }
           }
+          if (pixelSpriteCache.size >= 24) pixelSpriteCache.delete(pixelSpriteCache.keys().next().value);
+          pixelSpriteCache.set(key, sprite);
         }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(sprite, left, top, tileSize, tileSize);
         ctx.shadowBlur = 0;
         ctx.strokeStyle = isHead ? "rgba(248, 250, 252, 0.85)" : "rgba(248, 250, 252, 0.22)";
         ctx.lineWidth = isHead ? 2 : 1;
@@ -17466,6 +17743,33 @@
 
       async function deleteRoom(code) {
         return firebaseRemove(`rooms/${code}`);
+      }
+
+      async function registerRoomDisconnect(code, slot) {
+        if (onlineDisconnect) await onlineDisconnect.cancel();
+        onlineDisconnect = firebaseDb.ref(`rooms/${code}`).onDisconnect();
+        if (slot === "p1") await onlineDisconnect.remove();
+        else await onlineDisconnect.update({ [`members/${slot}`]: null, [`playersState/${slot}`]: null });
+      }
+
+      function addPlayerToRoom(room, memberId, makePlayer) {
+        if (!room) return room;
+        if (!room.createdBy || !room.game) return;
+        if (room.createdBy === memberId) return;
+        const entries = getOnlinePlayerEntries(room);
+        if (entries.some(([, player]) => player.memberId === memberId)) return room;
+        const slot = ONLINE_PLAYER_SLOTS.find((candidate) => !entries.some(([activeSlot]) => activeSlot === candidate));
+        if (!slot || entries.length >= ONLINE_MAX_PLAYERS) return;
+        const members = Object.fromEntries(entries.map(([activeSlot, player]) => [activeSlot, player.memberId || activeSlot]));
+        return {
+          ...room,
+          players: entries.length + 1,
+          maxPlayers: ONLINE_MAX_PLAYERS,
+          status: "playing",
+          members: { ...members, [slot]: memberId },
+          playersState: { ...room.playersState, [slot]: { ...makePlayer(slot, room.game || "online-snake"), memberId } },
+          updatedAt: Date.now()
+        };
       }
 
       function getPlayerId() {
@@ -18069,7 +18373,7 @@
             firebaseRead("musicSubmissions")
           ]);
           const roomEntries = Object.entries(rooms || {});
-          const activeRoomEntries = roomEntries.filter(([, room]) => Number(room?.players || 0) > 0);
+          const activeRoomEntries = roomEntries.filter(([, room]) => getOnlinePlayerEntries(room).length > 0);
           const userEntries = Object.entries(users || {});
 
           adminUsersCache = users || {};
@@ -18154,16 +18458,15 @@
         roomEntries
           .sort(([a], [b]) => a.localeCompare(b))
           .forEach(([code, room]) => {
-            const p1 = room?.playersState?.p1?.username || "P1";
-            const p2 = room?.playersState?.p2?.username || "P2";
+            const names = getOnlinePlayerEntries(room).map(([slot, player]) => player.username || slot.toUpperCase()).join(", ");
             const card = document.createElement("div");
             card.className = "admin-room-card";
             card.innerHTML = `
               <div class="admin-user-top">
                 <span class="admin-room-code">${escapeHtml(code)}</span>
-                <span class="admin-badge">${Number(room?.players || 0)} players</span>
+                <span class="admin-badge">${getOnlinePlayerEntries(room).length}/${ONLINE_MAX_PLAYERS} players</span>
               </div>
-              <div class="admin-user-meta">${escapeHtml(room?.gameName || room?.game || "Online game")} | ${escapeHtml(p1)} vs ${escapeHtml(p2)}</div>
+              <div class="admin-user-meta">${escapeHtml(room?.gameName || room?.game || "Online game")} | ${escapeHtml(names)}</div>
               <div class="admin-user-actions">
                 <button type="button" data-room-action="use-code" data-room-code="${escapeHtml(code)}">Use Code</button>
                 <button type="button" data-room-action="spectate-room" data-room-code="${escapeHtml(code)}">Spectate</button>
@@ -19029,7 +19332,45 @@
         return code;
       }
 
+      function getOnlinePlayerEntries(state = onlineState) {
+        return ONLINE_PLAYER_SLOTS.filter((slot) => state?.playersState?.[slot] && (!state.members || state.members[slot]))
+          .map((slot) => [slot, state.playersState[slot]]);
+      }
+
+      function getOnlineTeam(slot) {
+        return ONLINE_PLAYER_SLOTS.indexOf(slot) % 2 === 0 ? "left" : "right";
+      }
+
+      function onlineUsesHostScores(gameName = currentGame) {
+        return gameName === "online-catcher" || gameName === "online-pong" || isOnlineArcadeGame(gameName);
+      }
+
+      function getOnlineSpawn(slot, gameName) {
+        const index = Math.max(0, ONLINE_PLAYER_SLOTS.indexOf(slot));
+        if (gameName === "online-maze") {
+          return { x: 28 + index * 38, y: canvas.height - 42 };
+        }
+        if (gameName === "online-soccer") {
+          return { x: getOnlineTeam(slot) === "left" ? 90 : canvas.width - 118, y: 80 + Math.floor(index / 2) * (canvas.height - 160) / 2 };
+        }
+        const angle = Math.PI + index * Math.PI * 2 / ONLINE_MAX_PLAYERS;
+        return {
+          x: canvas.width / 2 - 14 + Math.cos(angle) * canvas.width * 0.32,
+          y: canvas.height / 2 - 14 + Math.sin(angle) * canvas.height * 0.32
+        };
+      }
+
+      function resetOnlinePosition(slot) {
+        const player = onlineState.playersState[slot];
+        const spawn = getOnlineSpawn(slot, currentGame);
+        player.x = spawn.x;
+        player.y = spawn.y;
+        player.respawn = { ...spawn, id: (player.respawn?.id || 0) + 1 };
+        if (slot === onlinePlayerSlot) player.respawnApplied = player.respawn.id;
+      }
+
       function makeOnlinePlayer(slot, gameName) {
+        const index = Math.max(0, ONLINE_PLAYER_SLOTS.indexOf(slot));
         const username = currentAccount?.username || slot.toUpperCase();
         const skin = playerStyle.skin;
         const color = playerStyle.color;
@@ -19051,8 +19392,7 @@
             customPalette,
             accessory,
             customAccessory16,
-            x: slot === "p1" ? 140 : 380,
-            y: slot === "p1" ? 280 : 280,
+            ...getOnlineSpawn(slot, gameName),
             dir: slot === "p1" ? { x: 1, y: 0 } : { x: -1, y: 0 },
             score: 0,
             alive: true,
@@ -19069,7 +19409,7 @@
             customPalette,
             accessory,
             customAccessory16,
-            x: slot === "p1" ? 136 : 328,
+            x: index * (canvas.width - 96) / (ONLINE_MAX_PLAYERS - 1),
             y: canvas.height - 44,
             score: 0,
             alive: true
@@ -19085,8 +19425,8 @@
             customPalette,
             accessory,
             customAccessory16,
-            x: slot === "p1" ? 34 : canvas.width - 50,
-            y: canvas.height / 2 - 42,
+            x: getOnlineTeam(slot) === "left" ? 34 : canvas.width - 50,
+            y: 30 + Math.floor(index / 2) * (canvas.height - 100) / 3,
             width: 16,
             height: 84,
             score: 0,
@@ -19095,29 +19435,7 @@
         }
 
         if (isOnlineArcadeGame(gameName)) {
-          const starts = {
-            "online-tag": {
-              p1: { x: 150, y: canvas.height / 2 },
-              p2: { x: canvas.width - 170, y: canvas.height / 2 }
-            },
-            "online-soccer": {
-              p1: { x: 100, y: canvas.height / 2 },
-              p2: { x: canvas.width - 120, y: canvas.height / 2 }
-            },
-            "online-maze": {
-              p1: { x: 34, y: canvas.height - 52 },
-              p2: { x: 70, y: canvas.height - 52 }
-            },
-            "online-battle": {
-              p1: { x: 120, y: canvas.height / 2 },
-              p2: { x: canvas.width - 140, y: canvas.height / 2 }
-            },
-            "online-bomb-tag": {
-              p1: { x: 120, y: canvas.height / 2 },
-              p2: { x: canvas.width - 140, y: canvas.height / 2 }
-            }
-          };
-          const start = starts[gameName]?.[slot] || { x: slot === "p1" ? 120 : canvas.width - 140, y: canvas.height / 2 };
+          const start = getOnlineSpawn(slot, gameName);
 
           return {
             username,
@@ -19144,10 +19462,8 @@
           customPalette,
           accessory,
           customAccessory16,
-          snake: slot === "p1"
-            ? [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }]
-            : [{ x: 20, y: 10 }, { x: 21, y: 10 }, { x: 22, y: 10 }],
-          dir: slot === "p1" ? { x: 1, y: 0 } : { x: -1, y: 0 },
+          snake: Array.from({ length: 3 }, (_, part) => ({ x: 5 - part, y: 2 + index * Math.floor((tileCount - 3) / ONLINE_MAX_PLAYERS) })),
+          dir: { x: 1, y: 0 },
           score: 0,
           alive: true
         };
@@ -19283,6 +19599,10 @@
         clearInterval(timer);
         clearInterval(waitingTimer);
         unsubscribeFromRoom();
+        if (onlineDisconnect) {
+          onlineDisconnect.cancel().catch(() => {});
+          onlineDisconnect = null;
+        }
         onlineRoomCode = "";
         onlinePlayerSlot = "";
         onlineSpectating = false;
@@ -19331,6 +19651,7 @@
         onlineDirection = onlineState.playersState[slot]?.dir || { x: 1, y: 0 };
         onlinePushBusy = false;
         lastOnlinePush = 0;
+        lastOnlineAppearanceKey = "";
         lastOnlineHeartbeat = 0;
         lastOnlineSnakeMove = 0;
         onlineLocalDirty = true;
@@ -19343,16 +19664,16 @@
         onlineMove = { x: 0, y: 0 };
         lastTankShot = 0;
         statusEl.textContent =
-          `${slot === "p1" ? "Player 1" : "Player 2"} in ${gameTitle.textContent}. Room ${code}.`;
+          `${slot.toUpperCase()} in ${gameTitle.textContent}. Room ${code}. Up to ${ONLINE_MAX_PLAYERS} players.`;
         unlockAchievement("playOnline", "Played online").catch(() => {});
         addQuestProgress("online1", 1).catch(() => {});
-        await saveRoom(code, onlineState);
+        // Joining already committed the player. Never overwrite a room from a stale snapshot.
         subscribeToRoom(code, (latestRoom) => {
           if (!onlineRoomCode || code !== onlineRoomCode) {
             return;
           }
 
-          if (!latestRoom) {
+          if (!latestRoom?.createdBy) {
             closeOnlineRoomLocally("Online room closed.");
             return;
           }
@@ -19441,21 +19762,11 @@
           }
         };
 
-        if (!state.playersState.p1) {
-          state.playersState.p1 = makeOnlinePlayer("p1", gameName);
-        }
-
-        if (slot === "p2" && !state.playersState.p2) {
-          state.playersState.p2 = makeOnlinePlayer("p2", gameName);
-        }
-
-        if (state.playersState.p1) {
-          state.playersState.p1.username = state.playersState.p1.username || "P1";
-        }
-
-        if (state.playersState.p2) {
-          state.playersState.p2.username = state.playersState.p2.username || "P2";
-        }
+        getOnlinePlayerEntries(state).forEach(([playerSlot, player]) => {
+          state.playersState[playerSlot] = { ...player, username: player.username || playerSlot.toUpperCase() };
+        });
+        state.players = getOnlinePlayerEntries(state).length;
+        state.maxPlayers = ONLINE_MAX_PLAYERS;
 
         if (state.playersState[slot] && currentAccount?.username) {
           state.playersState[slot].username = currentAccount.username;
@@ -19538,10 +19849,7 @@
       }
 
       function getOnlineSnakeBlockedCells(state = onlineState) {
-        const playersState = state?.playersState || {};
-        const p1Snake = playersState.p1?.snake || [];
-        const p2Snake = playersState.p2?.snake || [];
-        return [...p1Snake, ...p2Snake];
+        return getOnlinePlayerEntries(state).flatMap(([, player]) => player.snake || []);
       }
 
       function ensureOnlineSnakeFoods() {
@@ -19587,7 +19895,12 @@
           }
 
           onlineState = prepareOnlineState(room, currentGame, onlinePlayerSlot);
-          const resetPlayer = makeOnlinePlayer(onlinePlayerSlot, currentGame);
+          const previousPlayer = onlineState.playersState[onlinePlayerSlot];
+          const resetPlayer = { ...makeOnlinePlayer(onlinePlayerSlot, currentGame), memberId: playerId, adminPoints: previousPlayer?.adminPoints || 0 };
+          if (previousPlayer?.respawn) {
+            resetPlayer.respawn = { x: resetPlayer.x, y: resetPlayer.y, id: previousPlayer.respawn.id + 1 };
+            resetPlayer.respawnApplied = resetPlayer.respawn.id;
+          }
           onlineState.playersState[onlinePlayerSlot] = resetPlayer;
           if (currentGame === "online-pong") {
             onlineState.ball = makeOnlinePongBall(onlinePlayerSlot === "p1" ? 1 : -1);
@@ -19605,10 +19918,7 @@
           if (currentGame === "online-battle") {
             onlineState.orb = makeOnlineArenaItem();
             onlineState.poweredSlot = "";
-            onlineState.playersState.p1.powered = false;
-            if (onlineState.playersState.p2) {
-              onlineState.playersState.p2.powered = false;
-            }
+            getOnlinePlayerEntries().forEach(([, member]) => { member.powered = false; });
           }
           if (currentGame === "online-bomb-tag") {
             onlineState.bomb = makeOnlineBombState("p1");
@@ -19622,8 +19932,8 @@
           lastOnlineSnakeMove = 0;
           lastOnlineHeartbeat = 0;
           onlineLocalDirty = true;
-          onlinePongDirty = currentGame === "online-pong";
-          onlineSharedDirty = isOnlineArcadeGame(currentGame);
+          onlinePongDirty = onlinePlayerSlot === "p1" && currentGame === "online-pong";
+          onlineSharedDirty = onlinePlayerSlot === "p1" && isOnlineArcadeGame(currentGame);
           tankMove = 0;
           pongMove = 0;
           onlineMove = { x: 0, y: 0 };
@@ -19635,15 +19945,20 @@
             [`playersState/${onlinePlayerSlot}`]: resetPlayer,
             updatedAt: Date.now()
           };
-          if (currentGame === "online-pong") {
+          if (currentGame === "online-pong" && onlinePlayerSlot === "p1") {
             restartPatch.ball = onlineState.ball;
+            getOnlinePlayerEntries().forEach(([slot, member]) => {
+              member.score = 0;
+              if (slot !== onlinePlayerSlot) restartPatch[`playersState/${slot}/score`] = 0;
+            });
           }
-          if (isOnlineArcadeGame(currentGame)) {
+          if (isOnlineArcadeGame(currentGame) && onlinePlayerSlot === "p1") {
             restartPatch.ball = onlineState.ball || null;
             restartPatch.tagger = onlineState.tagger || null;
             restartPatch.goal = onlineState.goal || null;
             restartPatch.orb = onlineState.orb || null;
             restartPatch.poweredSlot = onlineState.poweredSlot || null;
+            if (currentGame === "online-bomb-tag") restartPatch.bomb = onlineState.bomb;
           }
           await patchRoom(onlineRoomCode, restartPatch);
           updateOnlineScoreboard();
@@ -19679,7 +19994,7 @@
         pauseMenu.classList.remove("open");
         pauseMenu.setAttribute("aria-hidden", "true");
         showWaitingOverlay(code, gameName);
-        statusEl.textContent = `Room ${code}. Waiting for player 2.`;
+        statusEl.textContent = `Room ${code}. Waiting for another player (1/${ONLINE_MAX_PLAYERS}).`;
         drawBoard();
         onlineState = prepareOnlineState(room, gameName, "p1");
         updateOnlineScoreboard();
@@ -19698,7 +20013,7 @@
           onlineState = prepareOnlineState(latestRoom, gameName, "p1");
           updateOnlineScoreboard();
 
-          if (latestRoom.players >= 2 && latestRoom.playersState?.p2) {
+          if (getOnlinePlayerEntries(latestRoom).length >= 2) {
             startingRoom = true;
             waitingToPlay = false;
             updateShootButton();
@@ -19742,15 +20057,23 @@
 
         try {
           if (wasCreator) {
+            await onlinePushPromise;
             await deleteRoom(roomToLeave);
           } else {
-            await patchRoom(roomToLeave, {
-              players: 1,
-              joinedBy: null,
-              joinedAt: null,
-              "playersState/p2": null,
-              updatedAt: Date.now()
-            });
+            await onlinePushPromise;
+            await firebaseDb.ref(`rooms/${roomToLeave}`).transaction((room) => {
+              if (!room) return room;
+              delete room.playersState?.[slotToLeave];
+              delete room.members?.[slotToLeave];
+              room.players = getOnlinePlayerEntries(room).length;
+              room.status = room.players > 1 ? "playing" : "waiting";
+              room.updatedAt = Date.now();
+              return room;
+            }, undefined, false);
+          }
+          if (onlineDisconnect) {
+            await onlineDisconnect.cancel();
+            onlineDisconnect = null;
           }
         } catch {
           statusEl.textContent = "Left locally. Could not update room server.";
@@ -19769,8 +20092,12 @@
       }
 
       function tickOnlineGame() {
-        if (paused || gameOver || !onlineRoomCode) {
+        if (gameOver || !onlineRoomCode) {
           return;
+        }
+        if (paused || document.hidden) {
+          onlineMove = { x: 0, y: 0 };
+          tankMove = pongMove = catcherMove = 0;
         }
 
         if (onlineSpectating) {
@@ -19792,13 +20119,15 @@
           updateOnlineCatcher();
         }
 
-        updateOnlineScoreboard();
-        drawOnlineGame();
+        if (!document.hidden) {
+          updateOnlineScoreboard();
+          drawOnlineGame();
+        }
         syncOnlineState();
       }
 
       function syncOnlineState() {
-        if (document.hidden || onlineSpectating || !onlineRoomCode || !onlineState) {
+        if (onlineSpectating || !onlineRoomCode || !onlineState) {
           return;
         }
 
@@ -19824,26 +20153,22 @@
             Object.prototype.hasOwnProperty.call(patch, "tagger") ||
             Object.prototype.hasOwnProperty.call(patch, "goal") ||
             Object.prototype.hasOwnProperty.call(patch, "orb") ||
-            Object.prototype.hasOwnProperty.call(patch, "poweredSlot");
+            Object.prototype.hasOwnProperty.call(patch, "poweredSlot") ||
+            Object.prototype.hasOwnProperty.call(patch, "bomb");
 
-          patchRoom(onlineRoomCode, patch)
+          // Clear before sending so changes made during the request remain dirty.
+          onlineLocalDirty = onlineFoodsDirty = onlineApplesDirty = onlinePongDirty = onlineSharedDirty = false;
+          onlinePushPromise = patchRoom(onlineRoomCode, patch)
             .then(() => {
-              if (pushedFoods) {
-                onlineFoodsDirty = false;
-              }
-              if (pushedApples) {
-                onlineApplesDirty = false;
-              }
-              if (pushedPong) {
-                onlinePongDirty = false;
-              }
-              if (pushedShared) {
-                onlineSharedDirty = false;
-              }
-              onlineLocalDirty = false;
               lastOnlineHeartbeat = Date.now();
             })
             .catch(() => {
+              lastOnlineAppearanceKey = "";
+              onlineLocalDirty = true;
+              onlineFoodsDirty ||= pushedFoods;
+              onlineApplesDirty ||= pushedApples;
+              onlinePongDirty ||= pushedPong;
+              onlineSharedDirty ||= pushedShared;
               statusEl.textContent = "Online sync failed. Check Firebase rules or connection.";
             })
             .finally(() => {
@@ -19860,13 +20185,17 @@
         const player = onlineState.playersState[onlinePlayerSlot];
 
         if (player) {
+          const appearanceFields = ["username", "skin", "color", "pixelSkin64", "customPalette", "accessory", "customAccessory16", "memberId"];
+          const appearanceKey = JSON.stringify(appearanceFields.map((key) => player[key]));
           Object.entries(player).forEach(([key, value]) => {
-            if (key === "adminPoints") {
+            if (appearanceFields.includes(key) && appearanceKey === lastOnlineAppearanceKey) return;
+            if (["adminPoints", "renderX", "renderY", "respawn"].includes(key) || (onlineUsesHostScores() && ["score", "powered"].includes(key))) {
               return;
             }
 
             patch[`playersState/${onlinePlayerSlot}/${key}`] = value;
           });
+          lastOnlineAppearanceKey = appearanceKey;
         }
 
         if (currentGame === "online-snake") {
@@ -19878,23 +20207,17 @@
         }
 
         if (currentGame === "online-catcher") {
-          if (onlineApplesDirty) {
+          if (onlineApplesDirty && onlinePlayerSlot === "p1") {
             patch.apples = onlineState.apples || null;
             patch.apple = null;
           }
         }
 
-        if (currentGame === "online-pong" && onlinePongDirty) {
+        if (currentGame === "online-pong" && onlinePongDirty && onlinePlayerSlot === "p1") {
           patch.ball = onlineState.ball || null;
-          if (onlineState.playersState.p1) {
-            patch["playersState/p1/score"] = onlineState.playersState.p1.score || 0;
-          }
-          if (onlineState.playersState.p2) {
-            patch["playersState/p2/score"] = onlineState.playersState.p2.score || 0;
-          }
         }
 
-        if (isOnlineArcadeGame(currentGame) && onlineSharedDirty) {
+        if (isOnlineArcadeGame(currentGame) && onlineSharedDirty && onlinePlayerSlot === "p1") {
           if (currentGame === "online-soccer") {
             patch.ball = onlineState.ball || null;
           }
@@ -19911,14 +20234,14 @@
           if (currentGame === "online-bomb-tag") {
             patch.bomb = onlineState.bomb || null;
           }
-          if (onlineState.playersState.p1) {
-            patch["playersState/p1/score"] = onlineState.playersState.p1.score || 0;
-            patch["playersState/p1/powered"] = Boolean(onlineState.playersState.p1.powered);
-          }
-          if (onlineState.playersState.p2) {
-            patch["playersState/p2/score"] = onlineState.playersState.p2.score || 0;
-            patch["playersState/p2/powered"] = Boolean(onlineState.playersState.p2.powered);
-          }
+        }
+
+        if (onlinePlayerSlot === "p1" && onlineUsesHostScores()) {
+          getOnlinePlayerEntries().forEach(([slot, member]) => {
+            patch[`playersState/${slot}/score`] = member.score || 0;
+            patch[`playersState/${slot}/powered`] = Boolean(member.powered);
+            if (member.respawn) patch[`playersState/${slot}/respawn`] = member.respawn;
+          });
         }
 
         return patch;
@@ -19926,30 +20249,57 @@
 
       function mergeOnlineState(room) {
         const remoteState = prepareOnlineState(room, currentGame, onlinePlayerSlot);
-        const otherSlot = onlinePlayerSlot === "p1" ? "p2" : "p1";
         const localPlayer = onlineState.playersState[onlinePlayerSlot];
-        const remotePlayer = remoteState.playersState[onlinePlayerSlot];
+        const remotePlayer = getOnlinePlayerEntries(remoteState).find(([slot]) => slot === onlinePlayerSlot)?.[1];
+
+        if (!remotePlayer || (remotePlayer.memberId && remotePlayer.memberId !== playerId)) {
+          closeOnlineRoomLocally("You left this room. Join again to play.");
+          return;
+        }
 
         if (localPlayer && remotePlayer) {
           localPlayer.adminPoints = remotePlayer.adminPoints || 0;
           localPlayer.username = remotePlayer.username || localPlayer.username;
-          if ((currentGame === "online-pong" && !onlinePongDirty) || (isOnlineArcadeGame(currentGame) && !onlineSharedDirty)) {
+          if (onlineUsesHostScores() && onlinePlayerSlot !== "p1") {
             localPlayer.score = remotePlayer.score || 0;
             localPlayer.powered = Boolean(remotePlayer.powered);
           }
           score = getPlayerTotalScore(localPlayer);
           scoreEl.textContent = score;
+          if (remotePlayer.respawn && localPlayer.respawnApplied !== remotePlayer.respawn.id) {
+            localPlayer.x = remotePlayer.respawn.x;
+            localPlayer.y = remotePlayer.respawn.y;
+            localPlayer.respawn = remotePlayer.respawn;
+            localPlayer.respawnApplied = remotePlayer.respawn.id;
+            onlineLocalDirty = true;
+          }
         }
 
-        if (remoteState.playersState[otherSlot]) {
+        ONLINE_PLAYER_SLOTS.filter((slot) => slot !== onlinePlayerSlot).forEach((otherSlot) => {
           const previousOther = onlineState.playersState[otherSlot];
+          if (!getOnlinePlayerEntries(remoteState).some(([slot]) => slot === otherSlot)) {
+            delete onlineState.playersState[otherSlot];
+            return;
+          }
           onlineState.playersState[otherSlot] = remoteState.playersState[otherSlot];
+          const other = onlineState.playersState[otherSlot];
+          if (onlinePlayerSlot === "p1" && previousOther && previousOther.memberId === other.memberId && (onlineSharedDirty || onlinePongDirty || onlineApplesDirty)) {
+            other.score = previousOther.score;
+            other.powered = previousOther.powered;
+            if (previousOther.respawn) other.respawn = previousOther.respawn;
+          }
+          if (other.respawn && other.respawnApplied !== other.respawn.id) {
+            other.x = other.respawn.x;
+            other.y = other.respawn.y;
+          }
 
           if (currentGame === "online-tanks" && previousOther) {
             onlineState.playersState[otherSlot].renderX = previousOther.renderX ?? previousOther.x;
             onlineState.playersState[otherSlot].renderY = previousOther.renderY ?? previousOther.y;
           }
-        }
+        });
+        onlineState.players = getOnlinePlayerEntries(remoteState).length;
+        onlineState.members = remoteState.members;
 
         if (currentGame === "online-snake" && remoteState.foods && !onlineFoodsDirty) {
           if (!Array.isArray(room.foods) || room.foods.length < 4) {
@@ -19959,18 +20309,18 @@
           ensureOnlineSnakeFoods();
         }
 
-        if (currentGame === "online-catcher" && remoteState.apples && !onlineApplesDirty) {
+        if (currentGame === "online-catcher" && onlinePlayerSlot !== "p1" && remoteState.apples && !onlineApplesDirty) {
           if (!Array.isArray(room.apples) || room.apples.length < 4) {
             onlineApplesDirty = true;
           }
           onlineState.apples = remoteState.apples;
         }
 
-        if (currentGame === "online-pong" && remoteState.ball && !onlinePongDirty) {
+        if (currentGame === "online-pong" && onlinePlayerSlot !== "p1" && remoteState.ball && !onlinePongDirty) {
           onlineState.ball = remoteState.ball;
         }
 
-        if (isOnlineArcadeGame(currentGame) && !onlineSharedDirty) {
+        if (isOnlineArcadeGame(currentGame) && onlinePlayerSlot !== "p1" && !onlineSharedDirty) {
           onlineState.ball = remoteState.ball || onlineState.ball;
           onlineState.tagger = remoteState.tagger || onlineState.tagger;
           onlineState.goal = remoteState.goal || onlineState.goal;
@@ -20063,19 +20413,15 @@
           onlineApplesDirty = true;
         }
 
-        const caughtAppleIndex = onlineState.apples.findIndex(
-          (appleItem) =>
-            appleItem.y + appleItem.size >= player.y &&
-            appleItem.y <= player.y + 18 &&
-            appleItem.x + appleItem.size >= player.x &&
-            appleItem.x <= player.x + 96
-        );
-
-        if (caughtAppleIndex >= 0) {
-          player.score += 1;
-          onlineState.apples[caughtAppleIndex] = makeOnlineApple();
-          onlineApplesDirty = true;
-          onlineLocalDirty = true;
+        if (onlinePlayerSlot === "p1") {
+          onlineState.apples = onlineState.apples.map((apple) => {
+            const catcher = getOnlinePlayerEntries().find(([, member]) => member.alive &&
+              apple.y + apple.size >= member.y && apple.y <= member.y + 18 &&
+              apple.x + apple.size >= member.x && apple.x <= member.x + 96)?.[1];
+            if (!catcher) return apple;
+            catcher.score = (catcher.score || 0) + 1;
+            return makeOnlineApple();
+          });
         }
 
         score = getPlayerTotalScore(player);
@@ -20085,16 +20431,26 @@
 
       function updateOnlinePong() {
         const player = onlineState.playersState[onlinePlayerSlot];
-        const p1 = onlineState.playersState.p1;
-        const p2 = onlineState.playersState.p2;
-
-        if (!player || !p1 || !p2) {
+        const entries = getOnlinePlayerEntries();
+        if (!player) {
           return;
         }
 
+        const teammates = entries.filter(([slot]) => getOnlineTeam(slot) === getOnlineTeam(onlinePlayerSlot));
+        const lane = teammates.findIndex(([slot]) => slot === onlinePlayerSlot);
+        const laneHeight = (canvas.height - 20) / teammates.length;
+        player.height = Math.min(84, laneHeight - 16);
+        const laneTop = 10 + lane * laneHeight;
+        player.y = Math.max(laneTop, Math.min(laneTop + laneHeight - player.height, player.y));
         if (pongMove !== 0) {
-          player.y = Math.max(10, Math.min(canvas.height - player.height - 10, player.y + pongMove * 7.5));
+          player.y = Math.max(laneTop, Math.min(laneTop + laneHeight - player.height, player.y + pongMove * 7.5));
           onlineLocalDirty = true;
+        }
+
+        const winner = entries.find(([, member]) => (member.score || 0) >= 5);
+        if (winner) {
+          statusEl.textContent = `${getOnlineTeam(winner[0]) === "left" ? "Left" : "Right"} team wins. Restart for a rematch.`;
+          return;
         }
 
         if (onlinePlayerSlot !== "p1") {
@@ -20118,34 +20474,26 @@
           ball.y + ball.size / 2 >= paddle.y &&
           ball.y - ball.size / 2 <= paddle.y + paddle.height;
 
-        if (ball.dx < 0 && hitsPaddle(p1)) {
-          ball.dx = Math.abs(ball.dx) + 0.15;
-          ball.dy += ((ball.y - (p1.y + p1.height / 2)) / (p1.height / 2)) * 1.6;
-          ball.x = p1.x + p1.width + ball.size / 2;
-        }
-
-        if (ball.dx > 0 && hitsPaddle(p2)) {
-          ball.dx = -Math.abs(ball.dx) - 0.15;
-          ball.dy += ((ball.y - (p2.y + p2.height / 2)) / (p2.height / 2)) * 1.6;
-          ball.x = p2.x - ball.size / 2;
+        const hit = entries.find(([slot, paddle]) => (ball.dx < 0 ? getOnlineTeam(slot) === "left" : getOnlineTeam(slot) === "right") && hitsPaddle(paddle));
+        if (hit) {
+          const [slot, paddle] = hit;
+          const left = getOnlineTeam(slot) === "left";
+          ball.dx = Math.min(11, Math.abs(ball.dx) + 0.15) * (left ? 1 : -1);
+          ball.dy = Math.max(-8, Math.min(8, ball.dy + ((ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2)) * 1.6));
+          ball.x = left ? paddle.x + paddle.width + ball.size / 2 : paddle.x - ball.size / 2;
         }
 
         if (ball.x < -ball.size) {
-          p2.score = (p2.score || 0) + 1;
+          awardOnlineTeam("right");
           onlineState.ball = makeOnlinePongBall(-1);
         } else if (ball.x > canvas.width + ball.size) {
-          p1.score = (p1.score || 0) + 1;
+          awardOnlineTeam("left");
           onlineState.ball = makeOnlinePongBall(1);
         } else {
           onlineState.ball = ball;
         }
 
         onlinePongDirty = true;
-        if ((p1.score || 0) >= 5 || (p2.score || 0) >= 5) {
-          const winner = (p1.score || 0) >= 5 ? (p1.username || "P1") : (p2.username || "P2");
-          statusEl.textContent = `${winner} wins. Press Restart for rematch.`;
-          onlineState.ball = makeOnlinePongBall((p1.score || 0) >= 5 ? -1 : 1);
-        }
         score = getPlayerTotalScore(player);
         scoreEl.textContent = score;
         updateOnlineScoreboard();
@@ -20153,10 +20501,8 @@
 
       function updateOnlineArcade() {
         const player = onlineState.playersState[onlinePlayerSlot];
-        const p1 = onlineState.playersState.p1;
-        const p2 = onlineState.playersState.p2;
 
-        if (!player || !p1 || !p2) {
+        if (!player) {
           return;
         }
 
@@ -20167,13 +20513,11 @@
         }
 
         if (onlinePlayerSlot === "p1") {
-          updateOnlineTagGame(p1, p2);
-          updateOnlineSoccerGame(p1, p2);
-          updateOnlineMazeGame(p1, p2);
-          updateOnlineBattleGame(p1, p2);
-          updateOnlineBombTagGame(p1, p2);
-        } else if (currentGame === "online-maze") {
-          updateOnlineMazePlayer(player);
+          updateOnlineTagGame();
+          updateOnlineSoccerGame();
+          updateOnlineMazeGame();
+          updateOnlineBattleGame();
+          updateOnlineBombTagGame();
         }
 
         score = getPlayerTotalScore(player);
@@ -20199,33 +20543,38 @@
         player.y = nextY;
       }
 
-      function updateOnlineTagGame(p1, p2) {
+      function updateOnlineTagGame() {
         if (currentGame !== "online-tag") {
           return;
         }
 
-        const taggerSlot = onlineState.tagger || "p1";
-        const tagger = taggerSlot === "p1" ? p1 : p2;
-        const runner = taggerSlot === "p1" ? p2 : p1;
-
-        if (playersTouch(tagger, runner)) {
+        const entries = getOnlinePlayerEntries();
+        if (entries.length < 2) return;
+        const taggerSlot = onlineState.playersState[onlineState.tagger] ? onlineState.tagger : entries[0][0];
+        onlineState.tagger = taggerSlot;
+        const tagger = onlineState.playersState[taggerSlot];
+        const runner = entries.find(([slot, member]) => slot !== taggerSlot && playersTouch(tagger, member));
+        if (runner) {
           tagger.score = (tagger.score || 0) + 1;
-          onlineState.tagger = taggerSlot === "p1" ? "p2" : "p1";
-          p1.x = 150;
-          p1.y = canvas.height / 2;
-          p2.x = canvas.width - 170;
-          p2.y = canvas.height / 2;
+          onlineState.tagger = runner[0];
+          entries.forEach(([slot]) => resetOnlinePosition(slot));
           onlineSharedDirty = true;
         }
       }
 
-      function updateOnlineSoccerGame(p1, p2) {
+      function awardOnlineTeam(team) {
+        getOnlinePlayerEntries().forEach(([slot, player]) => {
+          if (getOnlineTeam(slot) === team) player.score = (player.score || 0) + 1;
+        });
+      }
+
+      function updateOnlineSoccerGame() {
         if (currentGame !== "online-soccer") {
           return;
         }
 
         const ball = onlineState.ball || makeOnlineSoccerBall();
-        [p1, p2].forEach((player) => {
+        getOnlinePlayerEntries().forEach(([, player]) => {
           if (circleRectTouch(ball, player)) {
             const center = getPlayerCenter(player);
             const angle = Math.atan2(ball.y - center.y, ball.x - center.x);
@@ -20245,10 +20594,10 @@
         }
 
         if (ball.x < 0) {
-          p2.score = (p2.score || 0) + 1;
+          awardOnlineTeam("right");
           onlineState.ball = makeOnlineSoccerBall();
         } else if (ball.x > canvas.width) {
-          p1.score = (p1.score || 0) + 1;
+          awardOnlineTeam("left");
           onlineState.ball = makeOnlineSoccerBall();
         } else {
           onlineState.ball = ball;
@@ -20257,16 +20606,15 @@
         onlineSharedDirty = true;
       }
 
-      function updateOnlineMazeGame(p1, p2) {
+      function updateOnlineMazeGame() {
         if (currentGame !== "online-maze") {
           return;
         }
 
-        updateOnlineMazePlayer(p1);
-        updateOnlineMazePlayer(p2);
+        getOnlinePlayerEntries().forEach(([slot, player]) => updateOnlineMazePlayer(player, slot));
       }
 
-      function updateOnlineMazePlayer(player) {
+      function updateOnlineMazePlayer(player, slot) {
         if (!onlineState.goal) {
           onlineState.goal = makeOnlineMazeGoal();
         }
@@ -20274,68 +20622,67 @@
         if (rectsTouch(player.x, player.y, player.size || 28, player.size || 28, onlineState.goal.x, onlineState.goal.y, onlineState.goal.size, onlineState.goal.size)) {
           player.score = (player.score || 0) + 1;
           onlineState.goal = makeOnlineMazeGoal();
-          player.x = player === onlineState.playersState.p1 ? 34 : 70;
-          player.y = canvas.height - 52;
+          resetOnlinePosition(slot);
           onlineSharedDirty = true;
           onlineLocalDirty = true;
         }
       }
 
-      function updateOnlineBattleGame(p1, p2) {
+      function updateOnlineBattleGame() {
         if (currentGame !== "online-battle") {
           return;
         }
 
         onlineState.orb = onlineState.orb || makeOnlineArenaItem();
-        [p1, p2].forEach((player, index) => {
-          const slot = index === 0 ? "p1" : "p2";
+        const entries = getOnlinePlayerEntries();
+        entries.forEach(([slot, player]) => {
           if (rectsTouch(player.x, player.y, player.size || 28, player.size || 28, onlineState.orb.x, onlineState.orb.y, onlineState.orb.size, onlineState.orb.size)) {
             onlineState.poweredSlot = slot;
-            p1.powered = slot === "p1";
-            p2.powered = slot === "p2";
+            entries.forEach(([otherSlot, member]) => { member.powered = otherSlot === slot; });
             onlineState.orb = makeOnlineArenaItem();
             onlineSharedDirty = true;
           }
         });
 
-        if (playersTouch(p1, p2) && onlineState.poweredSlot) {
-          const powered = onlineState.poweredSlot === "p1" ? p1 : p2;
+        const powered = onlineState.playersState[onlineState.poweredSlot];
+        if (powered && entries.some(([slot, member]) => slot !== onlineState.poweredSlot && playersTouch(powered, member))) {
           powered.score = (powered.score || 0) + 1;
           onlineState.poweredSlot = "";
-          p1.powered = false;
-          p2.powered = false;
-          p1.x = 120;
-          p1.y = canvas.height / 2;
-          p2.x = canvas.width - 140;
-          p2.y = canvas.height / 2;
+          entries.forEach(([slot, member]) => { member.powered = false; resetOnlinePosition(slot); });
           onlineSharedDirty = true;
         }
       }
 
-      function updateOnlineBombTagGame(p1, p2) {
+      function updateOnlineBombTagGame() {
         if (currentGame !== "online-bomb-tag") {
           return;
         }
 
         onlineState.bomb = onlineState.bomb || makeOnlineBombState("p1");
+        const entries = getOnlinePlayerEntries();
+        if (entries.length < 2) return;
+        if (!onlineState.playersState[onlineState.bomb.holder]) {
+          onlineState.bomb = makeOnlineBombState(entries[0][0]);
+          onlineSharedDirty = true;
+        }
         onlineState.bomb.ticks = Math.max(0, Number(onlineState.bomb.ticks || 0) - 1);
         onlineState.bomb.cooldown = Math.max(0, Number(onlineState.bomb.cooldown || 0) - 1);
 
-        if (playersTouch(p1, p2) && onlineState.bomb.cooldown <= 0) {
-          onlineState.bomb.holder = onlineState.bomb.holder === "p1" ? "p2" : "p1";
+        const holder = onlineState.playersState[onlineState.bomb.holder];
+        const target = entries.find(([slot, member]) => slot !== onlineState.bomb.holder && playersTouch(holder, member));
+        if (target && onlineState.bomb.cooldown <= 0) {
+          onlineState.bomb.holder = target[0];
           onlineState.bomb.cooldown = 42;
           onlineSharedDirty = true;
         }
 
         if (onlineState.bomb.ticks <= 0) {
-          const loserSlot = onlineState.bomb.holder === "p2" ? "p2" : "p1";
-          const winner = loserSlot === "p1" ? p2 : p1;
-          winner.score = (winner.score || 0) + 1;
-          p1.x = 120;
-          p1.y = canvas.height / 2;
-          p2.x = canvas.width - 140;
-          p2.y = canvas.height / 2;
-          onlineState.bomb = makeOnlineBombState(loserSlot === "p1" ? "p2" : "p1");
+          const loserSlot = onlineState.bomb.holder;
+          const survivors = entries.filter(([slot]) => slot !== loserSlot);
+          survivors.forEach(([, member]) => { member.score = (member.score || 0) + 1; });
+          entries.forEach(([slot]) => resetOnlinePosition(slot));
+          const nextHolder = survivors[Math.floor(Math.random() * survivors.length)][0];
+          onlineState.bomb = makeOnlineBombState(nextHolder);
           onlineSharedDirty = true;
         }
 
@@ -20368,9 +20715,7 @@
       }
 
       function getMazeLevel() {
-        const p1Score = onlineState?.playersState?.p1?.score || 0;
-        const p2Score = onlineState?.playersState?.p2?.score || 0;
-        return Math.min(6, Math.floor((p1Score + p2Score) / 2));
+        return Math.min(6, Math.floor(getOnlinePlayerEntries().reduce((total, [, player]) => total + (player.score || 0), 0) / 2));
       }
 
       function getMazeWalls() {
@@ -20432,8 +20777,7 @@
 
       function updateOnlineTanks() {
         const player = onlineState.playersState[onlinePlayerSlot];
-        const opponentSlot = onlinePlayerSlot === "p1" ? "p2" : "p1";
-        const opponent = onlineState.playersState[opponentSlot];
+        const opponents = getOnlinePlayerEntries().filter(([slot]) => slot !== onlinePlayerSlot);
 
         if (!player) {
           return;
@@ -20457,9 +20801,9 @@
           onlineLocalDirty = true;
         }
 
-        if (opponent) {
+        if (opponents.length) {
           player.bullets = player.bullets.filter((bullet) => {
-            const hit = Math.abs(bullet.x - opponent.x) < 22 && Math.abs(bullet.y - opponent.y) < 22;
+            const hit = opponents.some(([, opponent]) => Math.abs(bullet.x - opponent.x) < 22 && Math.abs(bullet.y - opponent.y) < 22);
 
             if (hit) {
               player.score = (player.score || 0) + 1;
@@ -20488,14 +20832,28 @@
       }
 
       function updateOnlineScoreboard() {
-        const playerOne = onlineState?.playersState?.p1;
-        const playerTwo = onlineState?.playersState?.p2;
-
-        playerOneNameEl.textContent = playerOne?.username || "P1";
-        playerTwoNameEl.textContent = playerTwo?.username || "P2";
-        playerOneScoreEl.textContent = getPlayerTotalScore(playerOne);
-        playerTwoScoreEl.textContent = getPlayerTotalScore(playerTwo);
-        updatePointsTargetOptions();
+        const entries = getOnlinePlayerEntries();
+        const rosterKey = JSON.stringify(entries.map(([slot, player]) => [slot, player.username, player.color]));
+        if (onlineScoreboard.dataset.roster !== rosterKey) {
+          onlineScoreboard.dataset.roster = rosterKey;
+          onlineScoreboard.replaceChildren(...entries.map(([slot, player]) => {
+            const stat = document.createElement("div");
+            stat.className = "stat";
+            stat.style.setProperty("--player-accent", getTheme(player.color || ONLINE_PLAYER_COLORS[ONLINE_PLAYER_SLOTS.indexOf(slot)]).head);
+            const name = document.createElement("strong");
+            name.textContent = `${slot.toUpperCase()} ${player.username || "Player"}`;
+            const points = document.createElement("span");
+            points.dataset.playerScore = slot;
+            stat.append(name, points);
+            return stat;
+          }));
+          updatePointsTargetOptions();
+        }
+        entries.forEach(([slot, player]) => {
+          const points = onlineScoreboard.querySelector(`[data-player-score="${slot}"]`);
+          const value = String(getPlayerTotalScore(player));
+          if (points.textContent !== value) points.textContent = value;
+        });
       }
 
       function getPlayerTotalScore(player) {
@@ -20511,7 +20869,7 @@
         pointsTargetSelect.innerHTML = "";
 
         if (onlineState?.playersState && currentGame.startsWith("online-")) {
-          ["p1", "p2"].forEach((slot) => {
+          ONLINE_PLAYER_SLOTS.forEach((slot) => {
             const player = onlineState.playersState[slot];
 
             if (!player) {
@@ -20568,6 +20926,7 @@
         } else {
           drawOnlineCatcher();
         }
+        drawSceneObjects(true);
       }
 
       function drawOnlineSnake() {
@@ -20579,8 +20938,7 @@
           });
         }
 
-        drawOnlineSnakePlayer(onlineState.playersState.p1, "teal");
-        drawOnlineSnakePlayer(onlineState.playersState.p2, "orange");
+        drawOnlinePlayers(drawOnlineSnakePlayer);
       }
 
       function drawOnlineSnakePlayer(player, fallbackColor) {
@@ -20606,8 +20964,7 @@
           });
         }
 
-        drawOnlineCatcherPlayer(onlineState.playersState.p1, "teal");
-        drawOnlineCatcherPlayer(onlineState.playersState.p2, "orange");
+        drawOnlinePlayers(drawOnlineCatcherPlayer);
       }
 
       function drawOnlineCatcherPlayer(player, fallbackColor) {
@@ -20630,8 +20987,7 @@
       }
 
       function drawOnlineTanks() {
-        drawTankPlayer(onlineState.playersState.p1, "teal", "p1");
-        drawTankPlayer(onlineState.playersState.p2, "orange", "p2");
+        drawOnlinePlayers(drawTankPlayer);
       }
 
       function drawOnlinePong() {
@@ -20643,8 +20999,7 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        drawPongPlayer(onlineState.playersState.p1, "teal");
-        drawPongPlayer(onlineState.playersState.p2, "orange");
+        drawOnlinePlayers(drawPongPlayer);
 
         const ball = onlineState.ball;
         if (ball) {
@@ -20700,8 +21055,25 @@
           drawBombTimer();
         }
 
-        drawArcadePlayer(onlineState.playersState.p1, "teal", "p1");
-        drawArcadePlayer(onlineState.playersState.p2, "orange", "p2");
+        drawOnlinePlayers(drawArcadePlayer);
+      }
+
+      function drawOnlinePlayers(drawPlayer) {
+        getOnlinePlayerEntries().forEach(([slot, player]) => {
+          drawPlayer(player, ONLINE_PLAYER_COLORS[ONLINE_PLAYER_SLOTS.indexOf(slot)], slot);
+          const head = player.snake?.[0];
+          const x = head ? head.x * gridSize + gridSize / 2 : player.x + (player.size || player.width || 28) / 2;
+          const y = head ? head.y * gridSize : player.y;
+          ctx.save();
+          ctx.font = "bold 11px Arial";
+          ctx.textAlign = "center";
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#07120f";
+          ctx.fillStyle = "#f8fafc";
+          ctx.strokeText(slot.toUpperCase(), x, Math.max(12, y - 6));
+          ctx.fillText(slot.toUpperCase(), x, Math.max(12, y - 6));
+          ctx.restore();
+        });
       }
 
       function drawArcadePlayer(player, fallbackColor, slot) {
@@ -20888,6 +21260,8 @@
           const code = await generateRoomCode();
           const room = {
             players: 1,
+            maxPlayers: ONLINE_MAX_PLAYERS,
+            members: { p1: playerId },
             game: selectedOnlineGame,
             gameName: onlineGameNames[selectedOnlineGame],
             createdBy: playerId,
@@ -20898,7 +21272,7 @@
             createdAt: Date.now(),
             chat: [],
             playersState: {
-              p1: makeOnlinePlayer("p1", selectedOnlineGame)
+              p1: { ...makeOnlinePlayer("p1", selectedOnlineGame), memberId: playerId }
             },
             foods: null,
             apples: selectedOnlineGame === "online-catcher" ? makeOnlineApples() : null,
@@ -20919,13 +21293,14 @@
           }
 
           await saveRoom(code, room);
+          await registerRoomDisconnect(code, "p1");
           createdRoomCode = code;
           saveOwnedRoomCode(code);
           roomCodeInput.value = code;
           startRoomCodeInput.value = code;
           gamesRoomCodeInput.value = code;
           roomCodeEl.textContent = `Room code: ${code}`;
-          roomNoteEl.textContent = `${room.gameName} selected. Share this code with player 2.`;
+          roomNoteEl.textContent = `${room.gameName} selected. Share this code with up to four friends.`;
           waitForSecondPlayer(code, selectedOnlineGame, room);
         } catch {
           roomCodeEl.textContent = "";
@@ -20983,28 +21358,27 @@
             return;
           }
 
-          if (room.players >= 2) {
+          if (getOnlinePlayerEntries(room).length >= ONLINE_MAX_PLAYERS) {
             roomCodeEl.textContent = `Room code: ${code}`;
-            roomNoteEl.textContent = "This room is already full.";
+            roomNoteEl.textContent = `This room is full (${ONLINE_MAX_PLAYERS}/${ONLINE_MAX_PLAYERS}).`;
             return;
           }
 
-          const joinedRoom = {
-            ...room,
-            players: 2,
-            status: "playing",
-            playersState: {
-              ...(room.playersState || {}),
-              p2: makeOnlinePlayer("p2", room.game || "online-snake")
-            },
-            joinedBy: playerId,
-            joinedAt: Date.now()
-          };
-
-          await saveRoom(code, joinedRoom);
+          const roomRef = firebaseDb.ref(`rooms/${code}`);
+          await roomRef.once("value");
+          const result = await roomRef.transaction(
+            (latest) => addPlayerToRoom(latest, playerId, makeOnlinePlayer), undefined, false
+          );
+          const joinedRoom = result.snapshot.val();
+          const slot = getOnlinePlayerEntries(joinedRoom).find(([, player]) => player.memberId === playerId)?.[0];
+          if (!result.committed || !slot) {
+            roomNoteEl.textContent = joinedRoom ? `This room is full (${ONLINE_MAX_PLAYERS}/${ONLINE_MAX_PLAYERS}).` : "Room closed. Try another room.";
+            return;
+          }
+          await registerRoomDisconnect(code, slot);
           roomCodeEl.textContent = `Joined room: ${code}`;
           roomNoteEl.textContent = `Joined ${room.gameName || "online game"}. Online match setup is ready.`;
-          await beginOnlineRoom(code, room.game || "online-snake", "p2", joinedRoom);
+          await beginOnlineRoom(code, joinedRoom.game || "online-snake", slot, joinedRoom);
         } catch {
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not join room. Check Firebase database rules.";
@@ -21052,6 +21426,21 @@
       function setupInstallAppButton() {
         syncRuntimeUi();
 
+        navigator.getInstalledRelatedApps?.().then((apps) => {
+          knownWebAppInstalled = apps.some((app) => app.platform === "webapp" && new URL(app.url, location.href).href === new URL("manifest.json", location.href).href);
+        }).catch(() => {});
+        navigator.serviceWorker?.addEventListener("message", (event) => {
+          if (event.data?.type === "MGW_RUNTIME_QUERY") event.ports[0]?.postMessage({ isApp: canPlayGames() });
+          if (event.data?.type === "MGW_LAUNCH") handleAppLaunch(event.data.launch);
+        });
+        window.launchQueue?.setConsumer((params) => {
+          if (params.targetURL) handleAppLaunch(new URL(params.targetURL).searchParams.get("launch"));
+        });
+        window.addEventListener("load", () => {
+          const launch = new URL(location.href).searchParams.get("launch");
+          if (launch) handleAppLaunch(launch);
+        }, { once: true });
+
         window.addEventListener("beforeinstallprompt", (event) => {
           event.preventDefault();
           deferredInstallPrompt = event;
@@ -21060,19 +21449,44 @@
 
         window.addEventListener("appinstalled", () => {
           deferredInstallPrompt = null;
+          knownWebAppInstalled = true;
           syncRuntimeUi();
           startStatus.textContent = "MiniGameWorld installed.";
         });
       }
 
       async function installMiniGameWorldApp() {
-        window.open("https://github.com/kriuchkovdjdaniel-cell/minigamesworld/releases/latest", "_blank", "noopener");
-        startStatus.textContent = "Download the MiniGameWorld desktop app from GitHub Releases.";
-        showInstallRequired("Download and open the MiniGameWorld desktop app to play. The website stays open for profile, shop, music, clans, missions, and leaderboards.");
+        showInstallRequired();
+        if (isPhoneDevice()) return;
+        if (deferredInstallPrompt) {
+          const prompt = deferredInstallPrompt;
+          deferredInstallPrompt = null;
+          await prompt.prompt();
+          const choice = await prompt.userChoice;
+          installGateReason.textContent = choice.outcome === "accepted" ? "Installation started. Open MiniGameWorld from your computer's app list." : "Installation cancelled. You can install the app later.";
+        } else {
+          installGateReason.textContent = "In Chrome or Edge on your computer, open the browser menu and choose Install MiniGameWorld (or Install this site as an app). You can also download the Windows app below.";
+        }
       }
 
       registerServiceWorker();
       setupInstallAppButton();
+      document.getElementById("openWebAppButton").addEventListener("click", () => openInstalledWebApp(true));
+      document.getElementById("hubFullscreenButton").addEventListener("click", toggleGameFullscreen);
+      const gameFullscreenButton = document.createElement("button");
+      gameFullscreenButton.id = "gameFullscreenButton";
+      gameFullscreenButton.type = "button";
+      gameFullscreenButton.textContent = "\u26f6";
+      gameFullscreenButton.title = "Fullscreen";
+      gameFullscreenButton.setAttribute("aria-label", "Fullscreen");
+      gameFullscreenButton.addEventListener("click", toggleGameFullscreen);
+      pauseButton.parentElement.appendChild(gameFullscreenButton);
+      document.addEventListener("visibilitychange", () => {
+        document.body.classList.toggle("page-hidden", document.hidden);
+        if (document.hidden && !onlineRoomCode && !paused && !waitingToPlay && !gameOver) {
+          togglePause();
+        }
+      });
       document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
       document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
       document.addEventListener("pointerdown", startLoadingMusic);

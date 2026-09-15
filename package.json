@@ -4,6 +4,8 @@
   "private": true,
   "description": "Windows desktop installer wrapper for MiniGameWorld.",
   "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test scripts/online.test.mjs",
     "prepare:tauri": "node scripts/prepare-tauri.mjs",
     "build": "node scripts/prepare-vercel.mjs",
     "tauri": "tauri",
