@@ -2960,13 +2960,13 @@
           min-height: 0;
           height: 100%;
           display: grid;
-          grid-template-columns: minmax(0, min(62dvh, 46vw)) minmax(11rem, 27vw);
+          grid-template-columns: minmax(0, 1fr);
           grid-template-rows: minmax(0, 1fr) auto auto auto;
           grid-template-areas:
-            "board pad"
-            "status pad"
-            "controls pad"
-            "chat pad";
+            "board"
+            "status"
+            "controls"
+            "chat";
           align-content: center;
           justify-content: center;
           gap: 0.5rem;
@@ -3296,13 +3296,13 @@
         min-height: 0;
         height: 100%;
         display: grid;
-        grid-template-columns: minmax(0, min(62vh, 46vw)) minmax(11rem, 27vw);
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: minmax(0, 1fr) auto auto auto;
         grid-template-areas:
-          "board pad"
-          "status pad"
-          "controls pad"
-          "chat pad";
+          "board"
+          "status"
+          "controls"
+          "chat";
         align-content: center;
         justify-content: center;
         gap: 0.5rem;
@@ -8761,9 +8761,44 @@
       body[data-runtime] #startScreen { position: fixed; inset: 0; width: 100%; height: 100dvh; padding: 0; overflow: hidden; }
       body[data-runtime] #startScreen #startPanel {
         width: 100%; height: 100dvh; max-width: none; max-height: none; min-height: 0; margin: 0;
+        padding: 0; overflow: hidden; border: 0; border-radius: 0;
         grid-template-columns: 230px minmax(0, 1fr);
         grid-template-rows: 74px minmax(0, 1fr);
         grid-template-areas: "brand topbar" "nav content";
+      }
+      body[data-runtime] #startPanel > .start-submenu.open {
+        grid-area: content;
+        position: relative; inset: auto;
+        width: 100%; height: 100%; min-width: 0; min-height: 0;
+        max-width: none; max-height: none; margin: 0;
+        align-self: stretch; justify-self: stretch;
+        padding: 18px; overflow-x: hidden; overflow-y: auto;
+        overscroll-behavior: contain; scrollbar-gutter: stable;
+        border: 0; border-radius: 0; box-shadow: none;
+        background: rgba(4, 7, 22, 0.48);
+        animation: none; transform: none;
+      }
+      body[data-runtime] #startPanel > .start-submenu > * {
+        min-width: 0; max-width: 100%;
+      }
+      body[data-runtime] #startPanel > .start-submenu:not(#startGamesMenu) :is(.shop-list, .admin-users, .admin-rooms) {
+        width: 100%; max-height: none; overflow: visible;
+      }
+      body[data-runtime] #startPanel :is(#shopList, #premiumList, #dailyMissionsList, #clanMissionsList, #questsList, #achievementsList) {
+        grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+      }
+      body[data-runtime] #startPanel #profileStats {
+        grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+      }
+      body[data-runtime] #startPanel #startSettingsMenu .start-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      body[data-runtime] #startPanel #battlePassList {
+        width: 100%; max-height: none; overflow-x: auto;
+      }
+      body[data-runtime] #startAdminPanelMount > .admin-panel {
+        width: 100%; max-width: none; max-height: none; margin: 0; padding: 0;
+        overflow: visible; border: 0; border-radius: 0; box-shadow: none; background: none;
       }
       body[data-runtime] #startPanel > h2 {
         font: 800 20px/1.2 Arial, sans-serif !important;
@@ -8798,7 +8833,11 @@
       @media (max-width: 760px) {
         body[data-runtime] #startScreen #startPanel { grid-template-columns: minmax(0, 1fr); grid-template-rows: 48px 62px minmax(0, 1fr); grid-template-areas: "brand" "topbar" "content"; }
         body[data-runtime] #startPanel > h2 { font-size: 20px !important; padding-left: 44px; }
-        body[data-runtime] #startGamesMenu { padding-bottom: 90px; }
+        body[data-runtime] #startPanel > .start-submenu.open {
+          padding: 14px 14px calc(90px + env(safe-area-inset-bottom));
+          scrollbar-gutter: auto;
+        }
+        body[data-runtime] #startPanel #startSettingsMenu .start-grid { grid-template-columns: minmax(0, 1fr); }
         body[data-runtime] #startGamesMenu .showcase-copy strong { font-size: 32px; }
       }
     </style>
@@ -9335,12 +9374,6 @@
           <button type="button" id="restart">Restart</button>
           <button type="button" id="shootButton">Shoot</button>
           <button type="button" id="pause">Menu</button>
-        </div>
-        <div class="pad" aria-label="Touch controls">
-          <button type="button" class="up" data-direction="up" aria-label="Move up">Up</button>
-          <button type="button" class="left" data-direction="left" aria-label="Move left">Left</button>
-          <button type="button" class="down" data-direction="down" aria-label="Move down">Down</button>
-          <button type="button" class="right" data-direction="right" aria-label="Move right">Right</button>
         </div>
       </section>
     </main>
@@ -10010,6 +10043,14 @@
       let starShieldTicks = 0;
       let coinFlames = [];
       let scoreBursts = [];
+      let impactEffects = [];
+      let gameFrameRequest = null;
+      let lastGameFrameTime = null;
+      let effectTime = 0;
+      let effectSceneKey = "";
+      let lastShieldEffectTime = -Infinity;
+      let onlineEffectSnapshot = new Map();
+      const reducedGameMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let catcherMove = 0;
       let tankMove = 0;
       let pongMove = 0;
@@ -10932,10 +10973,6 @@
         setText(onlineButton, "online");
         setText(restartButton, "restart");
         setText(shootButton, "shoot");
-        document.querySelector('[data-direction="up"]').textContent = currentText("up");
-        document.querySelector('[data-direction="down"]').textContent = currentText("down");
-        document.querySelector('[data-direction="left"]').textContent = currentText("left");
-        document.querySelector('[data-direction="right"]').textContent = currentText("right");
         startCustomMusicUrlInput.placeholder = currentText("musicUrl");
         customMusicUrlInput.placeholder = currentText("musicUrl");
         setText(startSaveCustomMusicButton, "saveMusic");
@@ -13112,6 +13149,7 @@
 
       function resetGame() {
         const restartAfterDeath = gameOver;
+        resetGameEffects();
 
         if (currentGame.startsWith("online-")) {
           if (waitingToPlay) {
@@ -13124,8 +13162,6 @@
 
         score = 0;
         gameOver = false;
-        coinFlames = [];
-        scoreBursts = [];
         comboCount = 0;
         lastPointTime = 0;
         waitingToPlay = !restartAfterDeath;
@@ -13788,7 +13824,7 @@
         if (hitBrick) {
           hitBrick.alive = false;
           nextBall.dy *= -1;
-          addPoint();
+          addPoint({ x: hitBrick.x + hitBrick.width / 2, y: hitBrick.y + hitBrick.height / 2 });
 
           if (Math.random() < 0.12) {
             soloPong.powerups.push(makeSoloPongPowerup(hitBrick));
@@ -13804,6 +13840,7 @@
         if (hitPaddle && nextBall.dy > 0) {
           nextBall.dy = -Math.abs(nextBall.dy) - 0.12;
           nextBall.dx += ((nextBall.x - (soloPong.paddleX + soloPong.paddleWidth / 2)) / (soloPong.paddleWidth / 2)) * 1.1;
+          spawnImpactEffect({ x: nextBall.x, y: soloPong.paddleY }, "#7dd3fc", "", 22);
         }
 
         return nextBall.y > canvas.height + soloPong.ballSize ? null : nextBall;
@@ -13971,7 +14008,7 @@
         rpgCrystals = rpgCrystals.filter((crystal) => {
           const collected = rectsTouch(rpgPlayer.x, rpgPlayer.y, rpgPlayer.size, rpgPlayer.size, crystal.x, crystal.y, crystal.size, crystal.size);
           if (collected) {
-            addPoint();
+            addPoint({ x: crystal.x + crystal.size / 2, y: crystal.y + crystal.size / 2 });
           }
           return !collected;
         });
@@ -14040,6 +14077,7 @@
 
         if (starShield && rectsTouch(starPlayer.x, starPlayer.y, starPlayer.size, starPlayer.size, starShield.x, starShield.y, starShield.size, starShield.size)) {
           starShieldTicks = 260;
+          spawnImpactEffect(getShieldCenter(), "#7dd3fc", "", 42);
           starShield = null;
           statusEl.textContent = "Star shield ready.";
         }
@@ -14050,6 +14088,7 @@
 
         if (hitMeteor) {
           if (starShieldTicks > 0 || blockShieldHit("Shield blocked meteor.")) {
+            if (starShieldTicks > 0) spawnImpactEffect(getShieldCenter(), "#7dd3fc", "", 48);
             starShieldTicks = 0;
             starMeteors = starMeteors.map((meteor) => meteor === hitMeteor ? makeStarMeteor() : meteor);
             draw();
@@ -14090,7 +14129,12 @@
         }
 
         statusEl.textContent = message;
-        spawnScoreBurst();
+        if (effectTime - lastShieldEffectTime >= 240) {
+          lastShieldEffectTime = effectTime;
+          const center = getShieldCenter();
+          spawnScoreBurst(center, "#7dd3fc");
+          spawnImpactEffect(center, "#7dd3fc", "", 46);
+        }
         return true;
       }
 
@@ -14127,7 +14171,7 @@
           return;
         }
 
-        const pulse = 0.5 + Math.sin(Date.now() / 90) * 0.12;
+        const pulse = reducedGameMotion.matches ? 0.5 : 0.5 + Math.sin(effectTime / 180) * 0.12;
         ctx.save();
         ctx.globalAlpha = 0.18 + pulse * 0.12;
         ctx.strokeStyle = "#67e8f9";
@@ -14143,12 +14187,13 @@
         ctx.restore();
       }
 
-      function addPoint() {
+      function addPoint(origin = getPointEffectPosition()) {
         score += 1;
         scoreEl.textContent = score;
         updateCombo();
-        spawnScoreBurst();
-        spawnCoinFlame();
+        spawnScoreBurst(origin);
+        spawnCoinFlame(origin);
+        spawnImpactEffect(origin, comboCount >= 3 ? "#c4b5fd" : "#6ee7b7", comboCount >= 3 ? `x${comboCount}` : "+1");
         playSound("point");
         if (score > best) {
           best = score;
@@ -14167,24 +14212,26 @@
         }
       }
 
-      function spawnScoreBurst() {
-        const origin = getPointEffectPosition();
-        const burstCount = getGraphicsEffectCount(2, 6, 9, 12);
+      function spawnScoreBurst(origin = getPointEffectPosition(), color = "#a7f3d0") {
+        if (!isValidEffectOrigin(origin) || reducedGameMotion.matches) return;
+        const burstCount = getGraphicsEffectCount(6, 16, 22, 28);
         for (let index = 0; index < burstCount; index += 1) {
           const angle = (Math.PI * 2 * index) / burstCount + Math.random() * 0.4;
-          const speed = 1.5 + Math.random() * 2.4;
+          const speed = 100 + Math.random() * 120;
+          const life = 420 + Math.random() * 220;
           scoreBursts.push({
             x: origin.x,
             y: origin.y,
             dx: Math.cos(angle) * speed,
             dy: Math.sin(angle) * speed,
-            size: 3 + Math.random() * 3,
-            life: 18 + Math.floor(Math.random() * 10),
-            maxLife: 28
+            size: 2 + Math.random() * 2,
+            color,
+            life,
+            maxLife: life
           });
         }
 
-        scoreBursts = scoreBursts.slice(-getGraphicsEffectCount(28, 90, 130, 180));
+        trimGameEffects();
       }
 
       function hasCoinFlamesEquipped() {
@@ -14219,50 +14266,35 @@
           return { x: starTarget.x + starTarget.size / 2, y: starTarget.y + starTarget.size / 2 };
         }
 
-        return {
-          x: canvas.width / 2 + (Math.random() - 0.5) * 120,
-          y: canvas.height / 2 + (Math.random() - 0.5) * 120
-        };
+        if (currentGame === "solo-pong" && soloPong) {
+          return { x: soloPong.ballX, y: soloPong.ballY };
+        }
+        return getShieldCenter() || { x: canvas.width / 2, y: canvas.height / 2 };
       }
 
-      function spawnCoinFlame() {
-        if (!hasCoinFlamesEquipped()) {
+      function spawnCoinFlame(origin = getPointEffectPosition()) {
+        if (!hasCoinFlamesEquipped() || !isValidEffectOrigin(origin) || reducedGameMotion.matches) {
           return;
         }
 
-        const origin = getPointEffectPosition();
         const flameCount = getGraphicsEffectCount(2, 8, 12, 16);
         for (let index = 0; index < flameCount; index += 1) {
+          const life = 520 + Math.random() * 180;
           coinFlames.push({
             x: origin.x + (Math.random() - 0.5) * 18,
             y: origin.y + (Math.random() - 0.5) * 18,
-            dx: (Math.random() - 0.5) * 2.4,
-            dy: -1.8 - Math.random() * 2.2,
+            dx: (Math.random() - 0.5) * 100,
+            dy: -80 - Math.random() * 70,
             size: 5 + Math.random() * 6,
-            life: 22 + Math.floor(Math.random() * 10),
-            maxLife: 32
+            life,
+            maxLife: life
           });
         }
 
-        coinFlames = coinFlames.slice(-getGraphicsEffectCount(24, 80, 120, 160));
+        trimGameEffects();
       }
 
       function drawCoinFlames() {
-        if (!coinFlames.length) {
-          drawScoreBursts();
-          return;
-        }
-
-        coinFlames = coinFlames
-          .map((flame) => ({
-            ...flame,
-            x: flame.x + flame.dx,
-            y: flame.y + flame.dy,
-            dy: flame.dy + 0.08,
-            life: flame.life - 1
-          }))
-          .filter((flame) => flame.life > 0);
-
         coinFlames.forEach((flame) => {
           const alpha = Math.max(0, flame.life / flame.maxLife);
           ctx.save();
@@ -14284,42 +14316,119 @@
           ctx.fillText("$", flame.x, flame.y + 1);
           ctx.restore();
         });
-
-        drawScoreBursts();
       }
 
       function drawScoreBursts() {
-        if (!scoreBursts.length) {
-          return;
-        }
-
-        scoreBursts = scoreBursts
-          .map((spark) => ({
-            ...spark,
-            x: spark.x + spark.dx,
-            y: spark.y + spark.dy,
-            dx: spark.dx * 0.94,
-            dy: spark.dy * 0.94,
-            life: spark.life - 1
-          }))
-          .filter((spark) => spark.life > 0);
-
         scoreBursts.forEach((spark) => {
           const alpha = Math.max(0, spark.life / spark.maxLife);
           ctx.save();
-          ctx.globalAlpha = alpha * 0.58;
-          ctx.shadowColor = "#5eead4";
-          ctx.shadowBlur = getGraphicsShadowBlur(8);
-          ctx.fillStyle = "#fef08a";
-          ctx.beginPath();
-          ctx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2);
-          ctx.fill();
+          ctx.globalAlpha = alpha * 0.8;
+          ctx.fillStyle = spark.color;
+          const size = spark.size * (0.45 + 0.55 * alpha);
+          ctx.fillRect(spark.x - size / 2, spark.y - size / 2, size, size);
           ctx.restore();
         });
       }
 
+      function isValidEffectOrigin(origin) {
+        return Boolean(origin && Number.isFinite(origin.x) && Number.isFinite(origin.y));
+      }
+
+      function spawnImpactEffect(origin, color = "#6ee7b7", text = "", radius = 34) {
+        if (!isValidEffectOrigin(origin)) return;
+        const life = reducedGameMotion.matches ? 240 : 620;
+        const recent = text && impactEffects.find((effect) => effect.text && effect.maxLife - effect.life < 80 && Math.hypot(effect.x - origin.x, effect.y - origin.y) < 16);
+        if (recent) {
+          Object.assign(recent, { color, text, life, maxLife: life });
+          return;
+        }
+        impactEffects.push({ x: origin.x, y: origin.y, color, text, radius, life, maxLife: life });
+        trimGameEffects();
+      }
+
+      function trimGameEffects() {
+        const trim = (items, limit) => {
+          if (items.length > limit) items.splice(0, items.length - limit);
+        };
+        trim(scoreBursts, reducedGameMotion.matches ? 0 : getGraphicsEffectCount(36, 128, 180, 220));
+        trim(coinFlames, reducedGameMotion.matches ? 0 : getGraphicsEffectCount(24, 80, 120, 160));
+        trim(impactEffects, getGraphicsEffectCount(8, 20, 26, 32));
+      }
+
+      function advanceGameEffects(deltaMs) {
+        // In-place compaction avoids allocating particle objects on every frame.
+        const elapsed = Number.isFinite(deltaMs) ? Math.max(0, Math.min(deltaMs, 100)) : 0;
+        effectTime += elapsed;
+        trimGameEffects();
+        [scoreBursts, coinFlames, impactEffects].forEach((items, kind) => {
+          let remaining = 0;
+          for (const item of items) {
+            const dt = Math.min(item.life, elapsed) / 1000;
+            item.life -= elapsed;
+            if (item.life <= 0 || !isValidEffectOrigin(item)) continue;
+            if (kind === 0) {
+              const damping = Math.exp(-4 * dt);
+              item.x += item.dx * (1 - damping) / 4;
+              item.y += item.dy * (1 - damping) / 4;
+              item.dx *= damping;
+              item.dy *= damping;
+            } else if (kind === 1) {
+              item.x += item.dx * dt;
+              item.y += item.dy * dt + 25 * dt * dt;
+              item.dy += 50 * dt;
+            }
+            items[remaining++] = item;
+          }
+          items.length = remaining;
+        });
+      }
+
+      function drawImpactEffects() {
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold 15px Arial";
+        impactEffects.forEach((effect) => {
+          const progress = 1 - effect.life / effect.maxLife;
+          const eased = 1 - (1 - progress) * (1 - progress);
+          ctx.globalAlpha = (1 - progress) * 0.7;
+          ctx.strokeStyle = effect.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(effect.x, effect.y, reducedGameMotion.matches ? 14 : 8 + effect.radius * eased, 0, Math.PI * 2);
+          ctx.stroke();
+          if (!effect.text) return;
+          const margin = ctx.measureText(effect.text).width / 2 + 5;
+          const x = Math.max(margin, Math.min(canvas.width - margin, effect.x));
+          const y = Math.max(14, Math.min(canvas.height - 14, effect.y - 18 - (reducedGameMotion.matches ? 0 : eased * 24)));
+          ctx.globalAlpha = Math.min(1, (1 - progress) * 2);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "#07151c";
+          ctx.strokeText(effect.text, x, y);
+          ctx.fillStyle = effect.color;
+          ctx.fillText(effect.text, x, y);
+        });
+        ctx.restore();
+      }
+
+      function resetGameEffects() {
+        if (gameFrameRequest !== null) cancelAnimationFrame(gameFrameRequest);
+        gameFrameRequest = null;
+        lastGameFrameTime = null;
+        effectTime = 0;
+        coinFlames.length = scoreBursts.length = impactEffects.length = 0;
+        lastShieldEffectTime = -Infinity;
+        onlineEffectSnapshot.clear();
+        effectSceneKey = [currentGame, onlineRoomCode, canvas.width, canvas.height].join(":");
+      }
+
       function endGame() {
         gameOver = true;
+        const origin = currentGame === "snake" && snake[0]
+          ? { x: snake[0].x * gridSize + gridSize / 2, y: snake[0].y * gridSize + gridSize / 2 }
+          : getShieldCenter() || getPointEffectPosition();
+        spawnScoreBurst(origin, "#fda4af");
+        spawnImpactEffect(origin, "#fda4af", "", 58);
         playSound("gameover");
         waitingToPlay = false;
         hidePlayOverlay();
@@ -14566,6 +14675,7 @@
       }
 
       function showMainMenu() {
+        resetGameEffects();
         stopLoadingMusic();
         syncRuntimeUi();
         startScreen.classList.remove("closed");
@@ -16601,6 +16711,47 @@
       }
 
       function draw() {
+        const sceneKey = [currentGame, onlineRoomCode, canvas.width, canvas.height].join(":");
+        if (sceneKey !== effectSceneKey) resetGameEffects();
+        if (document.hidden || !startScreen.classList.contains("closed")) return;
+        if (gameFrameRequest === null) gameFrameRequest = requestAnimationFrame(renderGameFrame);
+      }
+
+      function renderGameFrame(timestamp) {
+        gameFrameRequest = null;
+        if (document.hidden || !startScreen.classList.contains("closed")) {
+          lastGameFrameTime = null;
+          return;
+        }
+        const elapsed = lastGameFrameTime === null ? 0 : timestamp - lastGameFrameTime;
+        const frameInterval = getGraphicsQualityRank() < 2 || reducedGameMotion.matches ? 1000 / 30 : 1000 / 60;
+        if (lastGameFrameTime !== null && elapsed < frameInterval - 1) {
+          gameFrameRequest = requestAnimationFrame(renderGameFrame);
+          return;
+        }
+        lastGameFrameTime = timestamp;
+        const animate = !paused && !waitingToPlay;
+        if (animate) advanceGameEffects(elapsed);
+        else trimGameEffects();
+        // One frame owns all canvas state, including online rendering and effects.
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+        ctx.shadowBlur = 0;
+        paintGame();
+        ctx.restore();
+        if (animate && (scoreBursts.length || coinFlames.length || impactEffects.length || (!gameOver && hasStartShield()))) {
+          gameFrameRequest = requestAnimationFrame(renderGameFrame);
+        } else {
+          lastGameFrameTime = null;
+        }
+      }
+
+      function paintGame() {
+        if (currentGame.startsWith("online-")) {
+          observeOnlineEffects();
+        }
         drawBoard();
         if (currentGame === "snake") {
           drawSnake();
@@ -16619,11 +16770,13 @@
         } else if (currentGame === "star-collector") {
           drawStarCollector();
         } else {
-          drawOnlineGame();
+          paintOnlineGame();
         }
         drawSceneObjects(true);
         drawStartShield();
+        drawScoreBursts();
         drawCoinFlames();
+        drawImpactEffects();
       }
 
       function drawBoard() {
@@ -16819,7 +16972,7 @@
           const alpha = Math.max(0.035, (0.22 - index * 0.032) * getGraphicsEffectStrength());
           const cx = part.x * gridSize + gridSize / 2;
           const cy = part.y * gridSize + gridSize / 2;
-          const pulse = Math.sin(Date.now() / 130 + index) * 0.9;
+          const pulse = reducedGameMotion.matches ? 0 : Math.sin(effectTime / 200 + index) * 0.9;
           ctx.globalAlpha = alpha;
           ctx.shadowColor = colors[index % colors.length];
           ctx.shadowBlur = getGraphicsShadowBlur(trail === "flame" || trail === "crown" ? 11 : 8);
@@ -17511,148 +17664,10 @@
           element instanceof HTMLSelectElement;
       }
 
-      document.querySelectorAll("[data-direction]").forEach((button) => {
-        const directions = {
-          up: { x: 0, y: -1 },
-          down: { x: 0, y: 1 },
-          left: { x: -1, y: 0 },
-          right: { x: 1, y: 0 }
-        };
-
-        button.addEventListener("click", () => {
-          if (currentGame === "catcher" || currentGame === "online-catcher") {
-            return;
-          }
-          changeDirection(directions[button.dataset.direction]);
-          if (currentGame === "online-tanks") {
-            tankMove = 0;
-          }
-          if (currentGame === "online-pong") {
-            pongMove = 0;
-          }
-          if (isOnlineArcadeGame(currentGame)) {
-            onlineMove = { x: 0, y: 0 };
-          }
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
-            dodgeMove = { x: 0, y: 0 };
-          }
-        });
-
-        button.addEventListener("pointerdown", (event) => {
-          if (currentGame === "online-tanks") {
-            event.preventDefault();
-            const direction = directions[button.dataset.direction];
-            const player = onlineState?.playersState?.[onlinePlayerSlot];
-
-            if (player) {
-              player.dir = direction;
-              tankMove = 1;
-              button.setPointerCapture(event.pointerId);
-            }
-
-            return;
-          }
-
-          if (currentGame === "online-pong") {
-            const direction = directions[button.dataset.direction];
-            if (direction.y !== 0) {
-              event.preventDefault();
-              pongMove = direction.y;
-              onlineLocalDirty = true;
-              button.setPointerCapture(event.pointerId);
-            }
-
-            return;
-          }
-
-          if (isOnlineArcadeGame(currentGame)) {
-            event.preventDefault();
-            onlineMove = directions[button.dataset.direction];
-            onlineLocalDirty = true;
-            button.setPointerCapture(event.pointerId);
-            return;
-          }
-
-          if (currentGame === "dodger" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
-            event.preventDefault();
-            dodgeMove = directions[button.dataset.direction];
-            button.setPointerCapture(event.pointerId);
-            return;
-          }
-
-          if (currentGame === "solo-pong") {
-            const direction = directions[button.dataset.direction];
-            if (direction.x !== 0) {
-              event.preventDefault();
-              dodgeMove = { x: direction.x, y: 0 };
-              button.setPointerCapture(event.pointerId);
-            }
-            return;
-          }
-
-          if (currentGame !== "catcher" && currentGame !== "online-catcher") {
-            return;
-          }
-
-          const direction = directions[button.dataset.direction];
-          if (direction.x !== 0) {
-            event.preventDefault();
-            catcherMove = direction.x;
-            button.setPointerCapture(event.pointerId);
-          }
-        });
-
-        button.addEventListener("pointerup", () => {
-          if (currentGame === "online-tanks") {
-            tankMove = 0;
-          }
-
-          if (currentGame === "online-pong") {
-            pongMove = 0;
-            onlineLocalDirty = true;
-          }
-
-          if (isOnlineArcadeGame(currentGame)) {
-            onlineMove = { x: 0, y: 0 };
-            onlineLocalDirty = true;
-          }
-
-          if (currentGame === "catcher" || currentGame === "online-catcher") {
-            catcherMove = 0;
-          }
-
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
-            dodgeMove = { x: 0, y: 0 };
-          }
-        });
-
-        button.addEventListener("pointercancel", () => {
-          if (currentGame === "online-tanks") {
-            tankMove = 0;
-          }
-
-          if (currentGame === "online-pong") {
-            pongMove = 0;
-            onlineLocalDirty = true;
-          }
-
-          if (isOnlineArcadeGame(currentGame)) {
-            onlineMove = { x: 0, y: 0 };
-            onlineLocalDirty = true;
-          }
-
-          if (currentGame === "catcher" || currentGame === "online-catcher") {
-            catcherMove = 0;
-          }
-
-          if (currentGame === "dodger" || currentGame === "solo-pong" || currentGame === "coin-rush" || currentGame === "laser-dodge" || currentGame === "sigma-rpg" || currentGame === "star-collector") {
-            dodgeMove = { x: 0, y: 0 };
-          }
-        });
-      });
-
       function togglePause() {
         paused = !paused;
+        lastGameFrameTime = null;
+        draw();
         pauseButton.textContent = "Menu";
         pauseMenu.classList.toggle("open", paused);
         pauseMenu.setAttribute("aria-hidden", String(!paused));
@@ -20909,8 +20924,47 @@
       }
 
       function drawOnlineGame() {
-        drawBoard();
+        draw();
+      }
 
+      function getOnlineEffectOrigin(player) {
+        const head = player.snake?.[0];
+        if (head) return { x: head.x * gridSize + gridSize / 2, y: head.y * gridSize + gridSize / 2 };
+        if (currentGame === "online-tanks") return { x: player.x, y: player.y };
+        return {
+          x: player.x + (player.width || (currentGame === "online-catcher" ? 96 : player.size || 28)) / 2,
+          y: player.y + (player.height || (currentGame === "online-catcher" ? 18 : player.size || 28)) / 2
+        };
+      }
+
+      function observeOnlineEffects() {
+        const nextSnapshot = new Map();
+        getOnlinePlayerEntries().forEach(([slot, player]) => {
+          const previous = onlineEffectSnapshot.get(slot);
+          const origin = getOnlineEffectOrigin(player);
+          const snapshot = { member: player.memberId || player.username, score: Number(player.score) || 0, respawn: player.respawn?.id || 0, alive: player.alive !== false, origin };
+          if (previous && previous.member === snapshot.member && !paused && !waitingToPlay) {
+            const gained = snapshot.score - previous.score;
+            if (gained > 0) {
+              spawnScoreBurst(origin);
+              spawnImpactEffect(origin, "#6ee7b7", `+${gained}`);
+              if (slot === onlinePlayerSlot) spawnCoinFlame(origin);
+            }
+            if (snapshot.respawn > previous.respawn) {
+              spawnImpactEffect(previous.origin, "#fda4af", "", 48);
+              spawnImpactEffect(origin, "#7dd3fc", "", 30);
+            }
+            if (previous.alive && !snapshot.alive) {
+              spawnScoreBurst(origin, "#fda4af");
+              spawnImpactEffect(origin, "#fda4af", "", 58);
+            }
+          }
+          nextSnapshot.set(slot, snapshot);
+        });
+        onlineEffectSnapshot = nextSnapshot;
+      }
+
+      function paintOnlineGame() {
         if (!onlineState) {
           return;
         }
@@ -20926,11 +20980,9 @@
         } else {
           drawOnlineCatcher();
         }
-        drawSceneObjects(true);
       }
 
       function drawOnlineSnake() {
-        ensureOnlineSnakeFoods();
         if (onlineState.foods) {
           ctx.fillStyle = "#f97316";
           onlineState.foods.forEach((foodItem) => {
@@ -21483,6 +21535,8 @@
       pauseButton.parentElement.appendChild(gameFullscreenButton);
       document.addEventListener("visibilitychange", () => {
         document.body.classList.toggle("page-hidden", document.hidden);
+        if (document.hidden) resetGameEffects();
+        else draw();
         if (document.hidden && !onlineRoomCode && !paused && !waitingToPlay && !gameOver) {
           togglePause();
         }
