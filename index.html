@@ -8883,6 +8883,73 @@
         body[data-runtime] #startPanel #startSettingsMenu .start-grid { grid-template-columns: minmax(0, 1fr); }
         body[data-runtime] #startGamesMenu .showcase-copy strong { font-size: 32px; }
       }
+      /* Friends stay above the dashboard without changing its two-column content layout. */
+      body[data-runtime] #startGamesMenu.open { grid-template-rows: repeat(6, auto); }
+      body[data-runtime] #startGamesMenu > #hubFriends { grid-column: 1 / -1; grid-row: 1; }
+      body[data-runtime] #startGamesMenu > .start-showcase { grid-row: 2; }
+      body[data-runtime] #startGamesMenu > h3:first-of-type { grid-row: 3; }
+      body[data-runtime] #startGamesMenu > h3:first-of-type + .game-card-grid { grid-row: 4; }
+      body[data-runtime] #startGamesMenu > h3:nth-of-type(2) { grid-row: 5; }
+      body[data-runtime] #startGamesMenu > h3:nth-of-type(2) + .game-card-grid { grid-row: 6; }
+      body[data-runtime] #startGamesMenu > #gamesRoomFinderPanel { grid-row: 2; }
+      body[data-runtime] #startGamesMenu > .mgw-dashboard-side { grid-row: 3 / span 2; }
+      #hubFriends { min-width: 0; padding: 0 0 16px; border-bottom: 1px solid #273344; }
+      #hubFriends .friends-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+      #hubFriends :is(.friends-heading button, .hub-friend), #friendProfileClose {
+        background: transparent; box-shadow: none; text-shadow: none; transform: none;
+        border: 0; border-radius: 6px; color: #e9edf5; letter-spacing: 0; text-transform: none;
+      }
+      #hubFriends button::before, #hubFriends button::after, #friendProfileClose::before, #friendProfileClose::after { display: none; }
+      #hubFriends .friends-heading button { min-height: 40px; padding: 6px 8px; }
+      #hubFriendsTitle { font: 600 18px/1.3 Arial, sans-serif; }
+      #hubFriends .friends-scroll-controls { display: flex; gap: 4px; }
+      #hubFriends .friends-scroll-controls button { width: 40px; font: 24px/1 Arial, sans-serif; }
+      #hubFriends .friends-heading button:disabled { opacity: 0.3; }
+      #hubFriendsStrip { display: flex; gap: 12px; min-width: 0; overflow-x: auto; padding: 4px 4px 12px; scrollbar-width: thin; scrollbar-color: #4b666f transparent; overscroll-behavior-x: contain; }
+      #hubFriends .hub-friend { flex: 0 0 104px; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 104px; min-height: 140px; padding: 4px; font: 13px/1.3 Arial, sans-serif; }
+      #hubFriends .hub-friend:hover { background: #ffffff08; }
+      #hubFriends button:focus-visible, .profile-picture-actions button:focus-visible { outline: 2px solid #91d1c5; outline-offset: 2px; }
+      .friend-avatar-wrap { position: relative; display: block; flex: 0 0 auto; }
+      .profile-avatar { display: grid; place-items: center; width: 88px; height: 88px; flex: 0 0 auto; overflow: hidden; border-radius: 50%; border: 1px solid #51576a; background: #263a45; color: #edf5f7; font: 600 28px/1 Arial, sans-serif; letter-spacing: 0; }
+      .profile-avatar[data-tone="1"] { background: #34334b; }
+      .profile-avatar[data-tone="2"] { background: #294137; }
+      .profile-avatar[data-tone="3"] { background: #4b3443; }
+      .profile-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+      .friend-online-dot { position: absolute; right: 2px; bottom: 2px; width: 17px; height: 17px; border: 3px solid #0a101b; border-radius: 50%; background: #69727e; }
+      .friend-online-dot.online { background: #40be89; }
+      .friend-name, .friend-activity { width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .friend-activity { color: #a3aabd; font-size: 12px; }
+      #hubFriends .add-friend-avatar { background: #252a34; color: #d2d7e0; font-size: 38px; font-weight: 400; }
+      #hubFriendsEmpty { align-self: center; margin: 0; color: #a3aabd; font: 14px/1.5 Arial, sans-serif; }
+      body[data-runtime] .mgw-avatar.profile-avatar { width: 44px; height: 44px; background: #263a45; box-shadow: none; font-size: 18px; }
+      body[data-runtime] button.mgw-top-profile { text-transform: none; letter-spacing: 0; box-shadow: none; text-shadow: none; transform: none; text-align: left; }
+      body[data-runtime] button.mgw-top-profile::before, body[data-runtime] button.mgw-top-profile::after { display: none; }
+      #profileIdentity { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 8px 0 24px; border-bottom: 1px solid #273344; margin-bottom: 20px; }
+      #profilePicturePreview { width: 128px; height: 128px; font-size: 38px; }
+      .profile-picture-details { flex: 1 1 220px; min-width: 0; display: grid; gap: 12px; text-align: left; }
+      #profileIdentityName { font: 700 24px/1.3 Arial, sans-serif; overflow-wrap: anywhere; }
+      .profile-picture-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      .profile-picture-actions button { min-height: 42px; border-radius: 6px; font-size: 14px; }
+      #profilePictureStatus { margin: 0; color: #bdc9d4; font-size: 14px; }
+      .social-friend-identity { display: flex; gap: 12px; align-items: center; min-width: 0; }
+      .social-friend-identity .profile-avatar { width: 48px; height: 48px; font-size: 18px; }
+      #friendProfileDialog { width: min(380px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow: auto; padding: 24px; border: 1px solid #415260; border-radius: 8px; background: #101821; color: #e9edf5; }
+      #friendProfileDialog::backdrop { background: #0009; }
+      #friendProfileClose { display: block; margin: -12px -12px 0 auto; width: 40px; height: 40px; padding: 0; font-size: 26px; }
+      #friendProfileAvatar { width: 112px; height: 112px; margin: 0 auto 16px; }
+      #friendProfileName { margin: 0; text-align: center; font: 700 24px/1.3 Arial, sans-serif; overflow-wrap: anywhere; }
+      #friendProfileActivity { text-align: center; margin: 12px 0 24px; color: #b6c5ce; }
+      #friendProfileDialog > button:last-child { width: 100%; min-height: 44px; border-radius: 6px; }
+      @media (max-width: 1120px) {
+        body[data-runtime] #startGamesMenu > #gamesRoomFinderPanel { grid-row: 7; }
+        body[data-runtime] #startGamesMenu > .mgw-dashboard-side { grid-row: 8; }
+      }
+      @media (max-width: 760px) {
+        #hubFriendsStrip { gap: 8px; }
+        #hubFriends .hub-friend { flex-basis: 90px; width: 90px; min-height: 124px; }
+        #hubFriends .profile-avatar { width: 72px; height: 72px; }
+        #hubFriendsTitle { font-size: 16px; }
+      }
     </style>
   </head>
   <body>
@@ -8899,14 +8966,14 @@
             <strong id="mgwTopCoins">1,250</strong>
             <button type="button" id="mgwAddCoinsButton" aria-label="Add coins">+</button>
           </div>
-          <div class="mgw-top-profile" aria-label="Player profile summary">
-            <span class="mgw-avatar" aria-hidden="true"></span>
+          <button type="button" class="mgw-top-profile" id="openProfilePictureButton" aria-label="Open your profile">
+            <span class="mgw-avatar profile-avatar" id="headerProfilePicture" aria-hidden="true">?</span>
             <span>
               <strong id="mgwTopUsername">Player</strong>
               <small>Level <span id="mgwTopLevel">12</span></small>
               <i><b id="mgwTopXp"></b></i>
             </span>
-          </div>
+          </button>
           <button type="button" id="hubFullscreenButton" title="Fullscreen" aria-label="Fullscreen">&#x26F6;</button>
         </div>
         <div class="start-splash">MiniGameWorld Hub</div>
@@ -8945,6 +9012,16 @@
         </div>
         <div class="start-submenu" id="startGamesMenu" aria-label="Main menu games">
           <button type="button" id="startBackFromGames">Back</button>
+          <section id="hubFriends" aria-label="Friends">
+            <div class="friends-heading">
+              <button type="button" id="hubFriendsTitle">Friends (0) &#8250;</button>
+              <div class="friends-scroll-controls">
+                <button type="button" id="hubFriendsPrevious" aria-label="Previous friends" title="Previous friends" aria-controls="hubFriendsStrip">&#8592;</button>
+                <button type="button" id="hubFriendsNext" aria-label="Next friends" title="Next friends" aria-controls="hubFriendsStrip">&#8594;</button>
+              </div>
+            </div>
+            <div id="hubFriendsStrip" role="group" aria-label="Your friends"></div>
+          </section>
           <div class="start-showcase" id="startGameShowcase" aria-live="polite">
             <div class="showcase-thumb" id="startShowcaseThumb" data-mode="solo">
               <span class="showcase-icon" id="startShowcaseIcon">SN</span>
@@ -9039,6 +9116,20 @@
         <div class="start-submenu" id="startProfileMenu" aria-label="Profile">
           <button type="button" id="startBackFromProfile">Back</button>
           <h3>Profile</h3>
+          <div id="profileIdentity">
+            <span class="profile-avatar" id="profilePicturePreview" role="img" aria-label="Profile picture"></span>
+            <div class="profile-picture-details">
+              <strong id="profileIdentityName">Guest</strong>
+              <input type="file" id="profilePictureInput" accept="image/png,image/jpeg,image/webp" hidden>
+              <div class="profile-picture-actions">
+                <button type="button" id="chooseProfilePicture">Choose Picture</button>
+                <button type="button" id="saveProfilePicture" disabled>Save Picture</button>
+                <button type="button" id="resetProfilePicture" disabled>Remove Picture</button>
+                <button type="button" id="cancelProfilePicture" hidden>Cancel</button>
+              </div>
+              <p id="profilePictureStatus" role="status" aria-live="polite"></p>
+            </div>
+          </div>
           <div class="profile-grid" id="profileStats"></div>
           <div class="admin-users" id="profileBestScores"></div>
           <h3>Daily Missions</h3>
@@ -9344,6 +9435,13 @@
     </div>
 
     <section id="friendRoomInvites" aria-label="Room join requests" aria-live="polite"></section>
+    <dialog id="friendProfileDialog" aria-labelledby="friendProfileName">
+      <button type="button" id="friendProfileClose" aria-label="Close friend profile" title="Close">&#215;</button>
+      <span class="profile-avatar" id="friendProfileAvatar" role="img" aria-label="Friend's profile picture"></span>
+      <h2 id="friendProfileName"></h2>
+      <p id="friendProfileActivity"></p>
+      <button type="button" id="friendProfileJoin" data-friend-action="join-room">Join Room</button>
+    </dialog>
 
     <main>
       <div class="account-bar">
@@ -9765,6 +9863,20 @@
       const gamesPublicRoomsList = document.getElementById("gamesPublicRoomsList");
       const gamesRoomNote = document.getElementById("gamesRoomNote");
       const profileStats = document.getElementById("profileStats");
+      const headerProfilePicture = document.getElementById("headerProfilePicture");
+      const profilePicturePreview = document.getElementById("profilePicturePreview");
+      const profilePictureInput = document.getElementById("profilePictureInput");
+      const profilePictureStatus = document.getElementById("profilePictureStatus");
+      const chooseProfilePicture = document.getElementById("chooseProfilePicture");
+      const saveProfilePictureButton = document.getElementById("saveProfilePicture");
+      const resetProfilePictureButton = document.getElementById("resetProfilePicture");
+      const cancelProfilePictureButton = document.getElementById("cancelProfilePicture");
+      const hubFriendsStrip = document.getElementById("hubFriendsStrip");
+      const hubFriendsTitle = document.getElementById("hubFriendsTitle");
+      const hubFriendsPrevious = document.getElementById("hubFriendsPrevious");
+      const hubFriendsNext = document.getElementById("hubFriendsNext");
+      const friendProfileDialog = document.getElementById("friendProfileDialog");
+      const friendProfileJoin = document.getElementById("friendProfileJoin");
       const profileBestScores = document.getElementById("profileBestScores");
       const dailyMissionsList = document.getElementById("dailyMissionsList");
       const pixelPalette = document.getElementById("pixelPalette");
@@ -10125,6 +10237,18 @@
       let friendInviteExpiryTimer = null;
       let friendInviteSignature = "";
       let friendListRenderVersion = 0;
+      const PROFILE_PICTURE_MAX_LENGTH = 65536;
+      const PROFILE_PRESENCE_TTL = 120000;
+      const friendProfiles = new Map();
+      const friendProfileSubscriptions = new Map();
+      let friendProfilesAccountKey = "";
+      let profilePresence = null;
+      let profilePictureDraft = null;
+      let profilePictureBusy = false;
+      let profilePictureEditVersion = 0;
+      let friendProfileKey = "";
+      let friendsRenderTimer = null;
+      let hubFriendsSignature = "";
       let onlinePlayerSlot = "";
       let onlineSpectating = false;
       let onlineDirection = { x: 1, y: 0 };
@@ -10632,6 +10756,7 @@
         bestEl.textContent = best;
         syncCurrentBestScore();
         resetGame();
+        publishProfilePresence();
       }
 
       function isSinglePlayerGame(gameName) {
@@ -12781,6 +12906,8 @@
         mgwTopLevel.textContent = String(currentUserData.level || 1);
         mgwTopCoins.textContent = Number(currentUserData.coins || 0).toLocaleString();
         mgwTopXp.style.width = `${Math.max(4, Math.min(100, Number(currentUserData.xp || 0) % 1000 / 10))}%`;
+        renderOwnProfilePicture();
+        syncFriendProfileSubscriptions();
         return currentUserData;
       }
 
@@ -14573,6 +14700,7 @@
       function closeStartScreen() {
         startScreen.classList.add("closed");
         startScreen.setAttribute("aria-hidden", "true");
+        publishProfilePresence();
       }
 
       function isDesktopRuntime() {
@@ -14794,6 +14922,8 @@
           applyGameSettingsControls();
         }
         if (section === "games") {
+          syncFriendProfileSubscriptions();
+          renderHubFriends();
           updateStartGameShowcase();
           renderPublicRooms();
           applyDashboardSearch();
@@ -14834,6 +14964,7 @@
             ? `Logged in as ${currentAccount.username}.`
             : "";
         }
+        publishProfilePresence();
       }
 
       function applyDashboardSearch() {
@@ -15486,7 +15617,261 @@
         }).join("");
       }
 
+      function normalizeProfilePicture(value) {
+        return typeof value === "string" && value.length <= PROFILE_PICTURE_MAX_LENGTH && /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value) ? value : "";
+      }
+
+      function profileInitials(name) {
+        const parts = String(name || "?").replace(/[_-]+/g, " ").trim().split(/\s+/);
+        return (parts.length > 1 ? parts[0][0] + parts.at(-1)[0] : parts[0].slice(0, 2)).toUpperCase() || "?";
+      }
+
+      function profileAvatarMarkup(profile, name) {
+        const picture = normalizeProfilePicture(profile?.picture);
+        return picture ? `<img src="${picture}" alt="" loading="lazy" decoding="async">` : escapeHtml(profileInitials(name));
+      }
+
+      function paintProfileAvatar(element, profile, name) {
+        const signature = `${name}:${normalizeProfilePicture(profile?.picture)}`;
+        if (element.avatarSignature === signature) return;
+        element.avatarSignature = signature;
+        element.dataset.avatarName = name || "Guest";
+        element.dataset.tone = String([...String(name || "")].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 4);
+        const markup = profileAvatarMarkup(profile, name);
+        if (element.innerHTML !== markup) element.innerHTML = markup;
+      }
+
+      function ownPublicProfile() {
+        return usernameKey(currentUserData?.username || "") === getUserKeyFromAccount() ? currentUserData?.publicProfile || {} : {};
+      }
+
+      function renderOwnProfilePicture() {
+        const name = currentAccount?.username || "Guest";
+        const saved = ownPublicProfile();
+        paintProfileAvatar(headerProfilePicture, saved, name);
+        paintProfileAvatar(profilePicturePreview, profilePictureDraft?.key === getUserKeyFromAccount() ? profilePictureDraft : saved, name);
+        document.getElementById("profileIdentityName").textContent = name;
+        chooseProfilePicture.disabled = !currentAccount?.username || profilePictureBusy;
+        saveProfilePictureButton.disabled = !profilePictureDraft || profilePictureBusy;
+        resetProfilePictureButton.disabled = !currentAccount?.username || profilePictureBusy || !(profilePictureDraft ? profilePictureDraft.picture : normalizeProfilePicture(saved.picture));
+        cancelProfilePictureButton.hidden = !profilePictureDraft;
+        cancelProfilePictureButton.disabled = profilePictureBusy;
+      }
+
+      async function prepareProfilePicture(file) {
+        if (!file || !["image/png", "image/jpeg", "image/webp"].includes(file.type)) throw new Error("Choose a PNG, JPG, or WebP picture.");
+        if (file.size > 5 * 1024 * 1024) throw new Error("Choose a picture smaller than 5 MB.");
+        const bitmap = await createImageBitmap(file);
+        try {
+          if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > 25000000) throw new Error("Choose a picture smaller than 25 megapixels.");
+          const preview = document.createElement("canvas");
+          preview.width = preview.height = 192;
+          const context = preview.getContext("2d");
+          const side = Math.min(bitmap.width, bitmap.height);
+          context.fillStyle = "#18252f";
+          context.fillRect(0, 0, 192, 192);
+          context.drawImage(bitmap, (bitmap.width - side) / 2, (bitmap.height - side) / 2, side, side, 0, 0, 192, 192);
+          const picture = preview.toDataURL("image/jpeg", 0.85);
+          if (!normalizeProfilePicture(picture)) throw new Error("Could not prepare this picture. Try a smaller image.");
+          return picture;
+        } finally { bitmap.close(); }
+      }
+
+      async function chooseProfilePictureFile() {
+        const file = profilePictureInput.files?.[0];
+        profilePictureInput.value = "";
+        if (!file || !currentAccount?.username || profilePictureBusy) return;
+        const key = getUserKeyFromAccount();
+        const version = ++profilePictureEditVersion;
+        profilePictureBusy = true;
+        profilePictureStatus.textContent = "Preparing picture...";
+        renderOwnProfilePicture();
+        try {
+          const picture = await prepareProfilePicture(file);
+          if (version !== profilePictureEditVersion || key !== getUserKeyFromAccount()) return;
+          profilePictureDraft = { key, picture };
+          profilePictureStatus.textContent = "Picture ready to save.";
+        } catch (error) {
+          if (version === profilePictureEditVersion) profilePictureStatus.textContent = error.message || "Could not open this picture.";
+        } finally {
+          if (version === profilePictureEditVersion) { profilePictureBusy = false; renderOwnProfilePicture(); }
+        }
+      }
+
+      async function saveProfilePicture() {
+        const draft = profilePictureDraft;
+        const key = getUserKeyFromAccount();
+        if (!draft || draft.key !== key || profilePictureBusy) return;
+        const version = ++profilePictureEditVersion;
+        const username = currentAccount.username;
+        profilePictureBusy = true;
+        profilePictureStatus.textContent = "Saving picture...";
+        renderOwnProfilePicture();
+        try {
+          await patchUser(key, { "publicProfile/username": username, "publicProfile/picture": normalizeProfilePicture(draft.picture) || null });
+          if (key !== getUserKeyFromAccount() || version !== profilePictureEditVersion) return;
+          if (currentUserData) currentUserData.publicProfile = { ...currentUserData.publicProfile, username, picture: draft.picture };
+          profilePictureDraft = null;
+          profilePictureStatus.textContent = draft.picture ? "Profile picture saved." : "Profile picture removed.";
+        } catch {
+          if (version === profilePictureEditVersion) profilePictureStatus.textContent = "Could not save the picture. Check your connection and try again.";
+        } finally {
+          if (version === profilePictureEditVersion) { profilePictureBusy = false; renderOwnProfilePicture(); }
+        }
+      }
+
+      function getFriendActivity(profile, now = Date.now()) {
+        const sessions = Object.values(profile?.sessions || {}).filter((session) => Number.isFinite(session?.updatedAt) &&
+          session.updatedAt > now - PROFILE_PRESENCE_TTL && session.updatedAt <= now + 15000);
+        sessions.sort((a, b) => Number(Boolean(b.roomCode)) - Number(Boolean(a.roomCode)) || b.updatedAt - a.updatedAt);
+        const session = sessions[0];
+        const onlineGame = session && Object.hasOwn(onlineGameNames, session.game) ? onlineGameNames[session.game] : "";
+        const game = onlineGame || (session && Object.hasOwn(games, session.game) ? games[session.game]?.title : "");
+        const roomCode = session && /^[A-Z0-9]{4,12}$/.test(session.roomCode || "") && onlineGame ? session.roomCode : "";
+        return { online: Boolean(session), roomCode, label: profile?.unavailable ? "Status unavailable" : profile?.loading ? "Loading..." : session ? game || "Online" : "Offline" };
+      }
+
+      function queueFriendsRender() {
+        if (friendsRenderTimer !== null) return;
+        friendsRenderTimer = setTimeout(() => { friendsRenderTimer = null; renderHubFriends(); }, 40);
+      }
+
+      function syncFriendProfileSubscriptions() {
+        const key = getUserKeyFromAccount();
+        const keys = key && usernameKey(currentUserData?.username || "") === key ? Object.keys(currentUserData?.friends || {}).filter((friend) => usernameKey(friend) === friend && friend !== key) : [];
+        if (friendProfilesAccountKey !== key) {
+          for (const dispose of friendProfileSubscriptions.values()) dispose();
+          friendProfileSubscriptions.clear();
+          friendProfiles.clear();
+          friendProfilesAccountKey = key;
+        }
+        for (const [friend, dispose] of friendProfileSubscriptions) {
+          if (!keys.includes(friend)) { dispose(); friendProfileSubscriptions.delete(friend); friendProfiles.delete(friend); }
+        }
+        for (const friend of keys) {
+          if (friendProfileSubscriptions.has(friend)) continue;
+          friendProfiles.set(friend, { loading: true });
+          const ref = firebaseDb.ref(`users/${friend}/publicProfile`);
+          const dispose = () => ref.off("value", update);
+          const active = () => friendProfilesAccountKey === key && friendProfileSubscriptions.get(friend) === dispose;
+          const update = (snapshot) => {
+            if (!active()) return;
+            friendProfiles.set(friend, snapshot.val() || {});
+            queueFriendsRender();
+          };
+          friendProfileSubscriptions.set(friend, dispose);
+          ref.on("value", update, () => {
+            if (!active()) return;
+            friendProfiles.set(friend, { unavailable: true });
+            queueFriendsRender();
+          });
+        }
+        queueFriendsRender();
+      }
+
+      function updateFriendsScrollControls() {
+        hubFriendsPrevious.disabled = hubFriendsStrip.scrollLeft <= 1;
+        hubFriendsNext.disabled = hubFriendsStrip.scrollLeft + hubFriendsStrip.clientWidth >= hubFriendsStrip.scrollWidth - 1;
+      }
+
+      function renderHubFriends() {
+        const previousScroll = hubFriendsStrip.scrollLeft;
+        const focusedFriend = hubFriendsStrip.contains(document.activeElement) ? document.activeElement.dataset.hubFriend : null;
+        const focusedAddFriends = document.activeElement?.hasAttribute("data-add-friends");
+        const keys = [...friendProfileSubscriptions.keys()].sort((a, b) => Number(getFriendActivity(friendProfiles.get(b)).online) - Number(getFriendActivity(friendProfiles.get(a)).online) || a.localeCompare(b));
+        hubFriendsTitle.textContent = `Friends (${keys.length}) \u203a`;
+        const signature = JSON.stringify([getUserKeyFromAccount(), keys.map((key) => [key, friendProfiles.get(key)?.username, normalizeProfilePicture(friendProfiles.get(key)?.picture), getFriendActivity(friendProfiles.get(key))])]);
+        if (signature !== hubFriendsSignature) {
+          hubFriendsSignature = signature;
+          hubFriendsStrip.innerHTML = `<button type="button" class="hub-friend" data-add-friends><span class="profile-avatar add-friend-avatar" aria-hidden="true">+</span><span>Add Friends</span></button>` + keys.map((key) => {
+            const profile = friendProfiles.get(key) || {};
+            const name = profile.username || key;
+            const activity = getFriendActivity(profile);
+            return `<button type="button" class="hub-friend" data-hub-friend="${escapeHtml(key)}" title="${escapeHtml(`${name}: ${activity.label}`)}">
+              <span class="friend-avatar-wrap"><span class="profile-avatar" data-friend-avatar="${escapeHtml(key)}" aria-hidden="true">${profileAvatarMarkup(profile, name)}</span><span class="friend-online-dot ${activity.online ? "online" : ""}" aria-hidden="true"></span></span>
+              <span class="friend-name">${escapeHtml(name)}</span><span class="friend-activity">${escapeHtml(activity.label)}</span></button>`;
+          }).join("") + (keys.length ? "" : `<p id="hubFriendsEmpty">${currentAccount ? "No friends yet." : "Log in to see your friends."}</p>`);
+        }
+        for (const avatar of document.querySelectorAll("[data-friend-avatar]")) {
+          const key = avatar.dataset.friendAvatar;
+          paintProfileAvatar(avatar, friendProfiles.get(key), friendProfiles.get(key)?.username || key);
+        }
+        hubFriendsStrip.scrollLeft = previousScroll;
+        if (focusedAddFriends) hubFriendsStrip.querySelector("[data-add-friends]")?.focus({ preventScroll: true });
+        else if (focusedFriend) [...hubFriendsStrip.querySelectorAll("[data-hub-friend]")].find((button) => button.dataset.hubFriend === focusedFriend)?.focus({ preventScroll: true });
+        updateFriendsScrollControls();
+        if (friendProfileDialog.open) renderFriendProfileDialog();
+      }
+
+      function renderFriendProfileDialog() {
+        if (!friendProfileSubscriptions.has(friendProfileKey)) { friendProfileDialog.close(); return; }
+        const profile = friendProfiles.get(friendProfileKey) || {};
+        const name = profile.username || friendProfileKey;
+        const activity = getFriendActivity(profile);
+        paintProfileAvatar(document.getElementById("friendProfileAvatar"), profile, name);
+        document.getElementById("friendProfileName").textContent = name;
+        document.getElementById("friendProfileActivity").textContent = activity.label;
+        friendProfileJoin.dataset.friendKey = friendProfileKey;
+        friendProfileJoin.disabled = !activity.roomCode || activity.roomCode === onlineRoomCode || Boolean(pendingFriendJoin);
+        friendProfileJoin.textContent = activity.roomCode === onlineRoomCode && onlineRoomCode ? "In Your Room" : pendingFriendJoin ? "Join Request Pending" : "Join Room";
+      }
+
+      function stopProfilePresence() {
+        const previous = profilePresence;
+        profilePresence = null;
+        if (!previous) return;
+        clearInterval(previous.timer);
+        previous.connectedRef?.off("value", previous.onConnected);
+        previous.ref?.remove().catch(() => {});
+        previous.disconnect?.cancel().catch(() => {});
+      }
+
+      async function publishProfilePresence() {
+        const state = profilePresence;
+        if (!state?.connected || state.key !== getUserKeyFromAccount()) return;
+        if (state.busy) { state.dirty = true; return; }
+        state.busy = true;
+        const inRoom = Boolean(onlineRoomCode && !onlineSpectating);
+        const game = inRoom ? currentGame : canPlayGames() && startScreen.classList.contains("closed") && !waitingToPlay && !gameOver && isSinglePlayerGame(currentGame) ? currentGame : "";
+        try { await state.ref.set({ updatedAt: Date.now(), roomCode: inRoom ? onlineRoomCode : "", game }); }
+        catch { /* A missing heartbeat expires; never show a failed write as online. */ }
+        finally {
+          state.busy = false;
+          if (profilePresence !== state) state.ref.remove().catch(() => {});
+          else if (state.dirty) { state.dirty = false; publishProfilePresence(); }
+        }
+      }
+
+      function startProfilePresence() {
+        const key = getUserKeyFromAccount();
+        if (profilePresence?.key === key) return;
+        stopProfilePresence();
+        if (!key) return;
+        const state = { key, connected: false, busy: false };
+        profilePresence = state;
+        state.timer = setInterval(() => { publishProfilePresence(); queueFriendsRender(); }, 30000);
+        ensureFirebaseSession().then(() => {
+          if (profilePresence !== state) return;
+          state.ref = firebaseDb.ref(`users/${key}/publicProfile/sessions/${crypto.randomUUID()}`);
+          state.connectedRef = firebaseDb.ref(".info/connected");
+          state.onConnected = async (snapshot) => {
+            if (profilePresence !== state) return;
+            state.connected = Boolean(snapshot.val());
+            if (!state.connected) return;
+            try {
+              state.disconnect = state.ref.onDisconnect();
+              await state.disconnect.remove();
+              if (profilePresence !== state) { await state.disconnect.cancel(); return; }
+              await firebaseDb.ref(`users/${key}/publicProfile`).update({ username: currentAccount.username });
+              await publishProfilePresence();
+            } catch { state.connected = false; }
+          };
+          state.connectedRef.on("value", state.onConnected, () => { state.connected = false; });
+        }).catch(() => { if (profilePresence === state) stopProfilePresence(); });
+      }
+
       async function renderProfileMenu() {
+        renderOwnProfilePicture();
         if (!currentAccount?.username) {
           profileStats.innerHTML = "";
           profileBestScores.textContent = "";
@@ -15499,6 +15884,7 @@
         }
 
         const user = await refreshCurrentUserData();
+        if (!user) return;
         const achievementCount = Object.keys(user.achievements || {}).length;
         profileStats.innerHTML = `
           <div class="profile-card">Username <strong>${escapeHtml(currentAccount.username)}</strong></div>
@@ -15946,7 +16332,7 @@
           const description = active ? `${onlineGameNames[active.room.game] || "Online game"} | ${getOnlinePlayerEntries(active.room).length}/${ONLINE_MAX_PLAYERS} players` : roomsAvailable ? "Not in an online room" : "Room status unavailable";
           return `
           <div class="admin-user-card">
-            <div class="admin-user-top"><span class="admin-user-name">${escapeHtml(friend)}</span><span class="admin-badge">Friend</span></div>
+            <div class="admin-user-top"><span class="social-friend-identity"><span class="profile-avatar" data-friend-avatar="${escapeHtml(friend)}">${profileAvatarMarkup(friendProfiles.get(friend), friend)}</span><span class="admin-user-name">${escapeHtml(friendProfiles.get(friend)?.username || friend)}</span></span><span class="admin-badge">Friend</span></div>
             <p class="admin-user-meta">${escapeHtml(description)}</p>
             <div class="admin-user-actions">
               <button type="button" data-friend-action="join-room" data-friend-key="${escapeHtml(friend)}" ${!active || full || sameRoom ? "disabled" : ""}>${sameRoom ? "In Your Room" : full ? "Room Full" : "Join Room"}</button>
@@ -15955,6 +16341,7 @@
           </div>
         `; }).join("") || `<div class="empty-card">No friends yet.</div>`;
         socialMessage.textContent = roomsAvailable ? "Friends loaded." : "Could not load friend rooms. Try Refresh Friends.";
+        queueFriendsRender();
       }
 
       function findFriendRoom(rooms, friendKey) {
@@ -16988,6 +17375,7 @@
 
       function updateChatVisibility() {
         roomChat.hidden = !onlineRoomCode;
+        publishProfilePresence();
       }
 
       function renderRoomChat() {
@@ -18202,6 +18590,13 @@
 
       function setStoredAccount(account) {
         if (getUserKeyFromAccount() !== (account?.username ? usernameKey(account.username) : "")) {
+          stopProfilePresence();
+          profilePictureDraft = null;
+          profilePictureBusy = false;
+          profilePictureEditVersion++;
+          profilePictureStatus.textContent = "";
+          profilePictureInput.value = "";
+          friendProfileDialog.close();
           cancelPendingFriendJoin().catch(() => {});
           clearPendingFriendJoin();
           clearFriendRoomInvites();
@@ -18235,11 +18630,13 @@
         currentUserModerationRef = firebaseDb.ref(`users/${userKey}`);
         currentUserModerationRef.on("value", (snapshot) => {
           const user = snapshot.val();
-          if (!user || !currentAccount) {
+          if (!user || !currentAccount || userKey !== getUserKeyFromAccount()) {
             return;
           }
 
           currentUserData = normalizeUserProgress(user);
+          renderOwnProfilePicture();
+          syncFriendProfileSubscriptions();
           if (friendRequestRoom) renderFriendRoomInvites(friendRequestRoom.code, friendRequestRoom.room);
           renderCustomMusicLists();
           const timedBanActive = Number(user.bannedUntil || 0) > Date.now();
@@ -18693,6 +19090,9 @@
       }
 
       function updateAccountUi() {
+        renderOwnProfilePicture();
+        startProfilePresence();
+        syncFriendProfileSubscriptions();
         document.body.classList.toggle("admin-mode", Boolean(currentAccount?.isAdmin));
         document.body.classList.toggle("phone-preview-mode", Boolean(currentAccount?.isAdmin && phonePreviewMode));
 
@@ -20408,6 +20808,7 @@
         drawBoard();
         onlineState = prepareOnlineState(room, gameName, "p1");
         updateOnlineScoreboard();
+        publishProfilePresence();
 
         let startingRoom = false;
         subscribeToRoom(code, (latestRoom) => {
@@ -21942,6 +22343,11 @@
       pauseButton.parentElement.appendChild(gameFullscreenButton);
       document.addEventListener("visibilitychange", () => {
         document.body.classList.toggle("page-hidden", document.hidden);
+        if (!document.hidden) {
+          startProfilePresence();
+          publishProfilePresence();
+          queueFriendsRender();
+        }
         if (document.hidden) resetGameEffects();
         else draw();
         if (document.hidden && !onlineRoomCode && !paused && !waitingToPlay && !gameOver) {
@@ -21967,6 +22373,46 @@
       startProfileButton.addEventListener("click", () => {
         showStartSection("profile");
       });
+      document.getElementById("openProfilePictureButton").addEventListener("click", () => showStartSection("profile"));
+      chooseProfilePicture.addEventListener("click", () => profilePictureInput.click());
+      profilePictureInput.addEventListener("change", chooseProfilePictureFile);
+      saveProfilePictureButton.addEventListener("click", saveProfilePicture);
+      resetProfilePictureButton.addEventListener("click", () => {
+        profilePictureDraft = { key: getUserKeyFromAccount(), picture: "" };
+        profilePictureStatus.textContent = "Picture removal ready to save.";
+        renderOwnProfilePicture();
+      });
+      cancelProfilePictureButton.addEventListener("click", () => {
+        profilePictureDraft = null;
+        profilePictureStatus.textContent = "";
+        renderOwnProfilePicture();
+      });
+      const openFriends = () => {
+        showStartSection(currentAccount ? "social" : "account");
+        if (currentAccount) friendSearchInput.focus();
+      };
+      hubFriendsTitle.addEventListener("click", openFriends);
+      hubFriendsStrip.addEventListener("click", (event) => {
+        if (event.target.closest("[data-add-friends]")) { openFriends(); return; }
+        const button = event.target.closest("[data-hub-friend]");
+        if (!button) return;
+        friendProfileKey = button.dataset.hubFriend;
+        renderFriendProfileDialog();
+        friendProfileDialog.showModal();
+      });
+      for (const [button, direction] of [[hubFriendsPrevious, -1], [hubFriendsNext, 1]]) {
+        button.addEventListener("click", () => hubFriendsStrip.scrollBy({ left: direction * hubFriendsStrip.clientWidth * 0.8, behavior: reducedGameMotion.matches ? "auto" : "smooth" }));
+      }
+      hubFriendsStrip.addEventListener("scroll", updateFriendsScrollControls, { passive: true });
+      document.getElementById("friendProfileClose").addEventListener("click", () => friendProfileDialog.close());
+      friendProfileJoin.addEventListener("click", (event) => {
+        friendProfileDialog.close();
+        handleFriendAction(event);
+      });
+      document.addEventListener("error", (event) => {
+        const avatar = event.target instanceof HTMLImageElement ? event.target.parentElement : null;
+        if (avatar?.classList.contains("profile-avatar")) avatar.textContent = profileInitials(avatar.dataset.avatarName);
+      }, true);
       startSkinStudioButton.addEventListener("click", openSkinStudioFromStart);
       startShopButton.addEventListener("click", () => {
         showStartSection("shop");
@@ -22109,6 +22555,7 @@
       friendRoomInvites.addEventListener("click", respondToFriendRoomRequest);
       window.addEventListener("resize", () => {
         document.getElementById("battlePassScroller")?.dispatchEvent(new Event("scroll"));
+        updateFriendsScrollControls();
       }, { passive: true });
       startRoomCodeInput.addEventListener("input", () => {
         startRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");

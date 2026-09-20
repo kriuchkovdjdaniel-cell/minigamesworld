@@ -470,3 +470,126 @@ test("account refresh ignores a reply that arrives after logout", async () => {
   assert.equal(await refreshing, null);
   assert.equal(ctx.currentUserData, null);
 });
+
+test("profile pictures accept bounded raster data, never remote URLs, SVG or markup", () => {
+  const ctx = load(["normalizeProfilePicture", "profileInitials", "profileAvatarMarkup"], {
+    PROFILE_PICTURE_MAX_LENGTH: 65536,
+    escapeHtml: (value) => String(value).replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+  });
+  for (const type of ["jpeg", "png", "webp"]) {
+    const value = `data:image/${type};base64,AAAA`;
+    assert.equal(ctx.normalizeProfilePicture(value), value);
+  }
+  for (const value of [null, {}, "https://example.com/photo.png", "data:image/svg+xml;base64,AAAA", 'data:image/png;base64,AAAA" onerror="alert(1)', "data:image/jpeg;base64," + "A".repeat(65536)]) {
+    assert.equal(ctx.normalizeProfilePicture(value), "");
+  }
+  assert.equal(ctx.profileInitials("Long_Player_Name"), "LN");
+  assert.equal(ctx.profileInitials("Alice"), "AL");
+  assert.equal(ctx.profileInitials("---"), "?");
+  assert.equal(ctx.profileAvatarMarkup({ picture: "javascript:alert(1)" }, "Bob"), "BO");
+  assert.doesNotMatch(ctx.profileAvatarMarkup({}, "<script>"), /<script/);
+});
+
+test("avatar processing rejects invalid uploads before decoding and crops to a small square", async () => {
+  let decoded = 0;
+  let closed = 0;
+  let drawArgs;
+  const bitmap = { width: 400, height: 200, close: () => { closed++; } };
+  const ctx = load(["normalizeProfilePicture", "prepareProfilePicture"], {
+    PROFILE_PICTURE_MAX_LENGTH: 65536,
+    createImageBitmap: async () => { decoded++; return bitmap; },
+    document: { createElement: () => ({
+      getContext: () => ({ fillRect() {}, drawImage: (...args) => { drawArgs = args; } }),
+      toDataURL: (type) => `data:${type};base64,AAAA`
+    }) }
+  });
+  await assert.rejects(ctx.prepareProfilePicture({ type: "image/svg+xml", size: 500 }), /PNG, JPG, or WebP/);
+  await assert.rejects(ctx.prepareProfilePicture({ type: "image/png", size: 6 * 1024 * 1024 }), /5 MB/);
+  assert.equal(decoded, 0);
+  assert.equal(await ctx.prepareProfilePicture({ type: "image/png", size: 500 }), "data:image/jpeg;base64,AAAA");
+  assert.deepEqual(drawArgs.slice(1), [100, 0, 200, 200, 0, 0, 192, 192]);
+  assert.equal(closed, 1);
+  bitmap.width = bitmap.height = 10000;
+  await assert.rejects(ctx.prepareProfilePicture({ type: "image/png", size: 500 }), /25 megapixels/);
+  assert.equal(closed, 2);
+});
+
+test("friend status uses live heartbeats, prefers room sessions and expires stale activity", () => {
+  const ctx = load(["getFriendActivity"], {
+    PROFILE_PRESENCE_TTL: 120000,
+    onlineGameNames: { "online-bomb-tag": "Online Bomb Tag" },
+    games: { snake: { title: "Neon Snake" } }
+  });
+  const now = 200000;
+  const sessions = { hub: { updatedAt: now, game: "" }, app: { updatedAt: now - 1000, game: "online-bomb-tag", roomCode: "CODE1234" } };
+  assert.equal(ctx.getFriendActivity({ sessions }, now).label, "Online Bomb Tag");
+  assert.equal(ctx.getFriendActivity({ sessions }, now).roomCode, "CODE1234");
+  delete sessions.app;
+  assert.equal(ctx.getFriendActivity({ sessions }, now).label, "Online");
+  sessions.hub.game = "snake";
+  assert.equal(ctx.getFriendActivity({ sessions }, now).label, "Neon Snake");
+  assert.equal(ctx.getFriendActivity({ sessions }, now + 120001).online, false);
+  for (const updatedAt of [NaN, Infinity, "200000", now + 60000]) {
+    assert.equal(ctx.getFriendActivity({ sessions: { bad: { updatedAt } } }, now).online, false);
+  }
+  assert.equal(ctx.getFriendActivity({ sessions: { invalid: { updatedAt: now, game: "__proto__", roomCode: "CODE1234" } } }, now).roomCode, "");
+  assert.equal(ctx.getFriendActivity({ unavailable: true }, now).label, "Status unavailable");
+});
+
+test("switching accounts cannot reuse another account's cached profile picture", () => {
+  const ctx = load(["ownPublicProfile"], {
+    usernameKey: (value) => value.toLowerCase(), getUserKeyFromAccount: () => "bob",
+    currentUserData: { username: "Alice", publicProfile: { picture: "private-draft" } }
+  });
+  assert.equal(ctx.ownPublicProfile().picture, undefined);
+  ctx.currentUserData.username = "Bob";
+  assert.equal(ctx.ownPublicProfile().picture, "private-draft");
+});
+
+test("failed picture saves retain the draft, and retry updates only the public profile", async () => {
+  let fail = true;
+  const writes = [];
+  const ctx = load(["saveProfilePicture", "normalizeProfilePicture"], {
+    PROFILE_PICTURE_MAX_LENGTH: 65536,
+    profilePictureDraft: { key: "bob", picture: "data:image/jpeg;base64,AAAA" },
+    profilePictureBusy: false, profilePictureEditVersion: 0,
+    currentAccount: { username: "Bob" }, currentUserData: { publicProfile: { sessions: { test: { updatedAt: 123 } } } },
+    profilePictureStatus: { textContent: "" }, getUserKeyFromAccount: () => "bob", renderOwnProfilePicture() {},
+    patchUser: async (...args) => { if (fail) throw Error("Denied"); writes.push(args); }
+  });
+  await ctx.saveProfilePicture();
+  assert.ok(ctx.profilePictureDraft);
+  assert.equal(ctx.profilePictureBusy, false);
+  assert.match(ctx.profilePictureStatus.textContent, /Could not save/);
+  fail = false;
+  await ctx.saveProfilePicture();
+  assert.equal(ctx.profilePictureDraft, null);
+  assert.equal(ctx.currentUserData.publicProfile.picture, "data:image/jpeg;base64,AAAA");
+  assert.equal(ctx.currentUserData.publicProfile.sessions.test.updatedAt, 123);
+  assert.deepEqual(Object.keys(writes[0][1]), ["publicProfile/username", "publicProfile/picture"]);
+});
+
+test("a late picture-save result cannot update a newly logged-in account", async () => {
+  let finish;
+  let key = "bob";
+  const ctx = load(["saveProfilePicture", "normalizeProfilePicture"], {
+    PROFILE_PICTURE_MAX_LENGTH: 65536,
+    profilePictureDraft: { key: "bob", picture: "data:image/jpeg;base64,AAAA" },
+    profilePictureBusy: false, profilePictureEditVersion: 0,
+    currentAccount: { username: "Bob" }, currentUserData: { publicProfile: {} },
+    profilePictureStatus: { textContent: "" }, getUserKeyFromAccount: () => key, renderOwnProfilePicture() {},
+    patchUser: () => new Promise((resolve) => { finish = resolve; })
+  });
+  const saving = ctx.saveProfilePicture();
+  key = "alice";
+  ctx.currentAccount = { username: "Alice" };
+  ctx.currentUserData = { publicProfile: { picture: "alice-picture" } };
+  ctx.profilePictureDraft = null;
+  ctx.profilePictureBusy = false;
+  ctx.profilePictureEditVersion++;
+  ctx.profilePictureStatus.textContent = "";
+  finish();
+  await saving;
+  assert.equal(ctx.currentUserData.publicProfile.picture, "alice-picture");
+  assert.equal(ctx.profilePictureStatus.textContent, "");
+});
