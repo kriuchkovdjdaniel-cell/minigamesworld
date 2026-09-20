@@ -8794,7 +8794,50 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       body[data-runtime] #startPanel #battlePassList {
-        width: 100%; max-height: none; overflow-x: auto;
+        width: 100%; max-height: none; overflow: visible; min-width: 0;
+      }
+      #battlePassList .battle-pass-topbar { min-width: 0; flex-wrap: wrap; }
+      #battlePassList .battle-pass-scroll-controls {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      }
+      #battlePassList .battle-pass-scroll-controls button {
+        width: 44px; height: 44px; min-width: 44px; padding: 0; border-radius: 6px; font-size: 24px;
+      }
+      #battlePassList .battle-pass-scroll-controls output { font-size: 14px; }
+      #battlePassList .battle-pass-scroller {
+        display: grid; gap: 12px; width: 100%; min-width: 0;
+        overflow-x: auto; overflow-y: hidden; padding: 4px 0 16px;
+        overscroll-behavior-x: contain; scrollbar-width: auto;
+        scrollbar-color: #72bea6 #111b28; touch-action: pan-x pan-y;
+      }
+      #battlePassList .battle-pass-scroller:focus-visible { outline: 2px solid #72bea6; outline-offset: 3px; }
+      #battlePassList .battle-pass-scroller > :is(.battle-pass-track, .pass-levels) {
+        width: max-content; min-width: 0; max-width: none;
+      }
+      #battlePassList .battle-pass-scroller::-webkit-scrollbar { height: 12px; }
+      #battlePassList .battle-pass-scroller::-webkit-scrollbar-track { background: #111b28; }
+      #battlePassList .battle-pass-scroller::-webkit-scrollbar-thumb { background: #72bea6; border: 2px solid #111b28; border-radius: 6px; }
+      #friendRoomJoinStatus { display: grid; gap: 10px; margin-block: 14px; }
+      #friendRoomJoinStatus:empty { display: none; }
+      #friendRoomInvites {
+        position: fixed; top: 84px; right: 16px; z-index: 12050;
+        display: grid; gap: 10px; width: min(360px, calc(100vw - 32px));
+        max-height: calc(100dvh - 190px); overflow-y: auto; pointer-events: none;
+      }
+      #friendRoomInvites:empty { display: none; }
+      .friend-room-invite {
+        display: grid; gap: 12px; padding: 16px; border-radius: 8px;
+        border: 1px solid #467d71; background: #101d24; color: #edf6f3;
+        box-shadow: 0 6px 20px #0005; pointer-events: auto; overflow-wrap: anywhere;
+      }
+      .friend-room-invite p { margin: 0; font-size: 14px; }
+      .friend-room-invite .admin-user-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .friend-room-invite button { min-width: 0; min-height: 44px; border-radius: 6px; }
+      #refreshFriendsButton { margin-block: 12px; }
+      #friendsList .admin-user-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+      #friendsList .admin-user-actions button { flex: 1; min-width: min(140px, 100%); }
+      @media (max-width: 760px) {
+        #friendRoomInvites { top: 116px; }
       }
       body[data-runtime] #startAdminPanelMount > .admin-panel {
         width: 100%; max-width: none; max-height: none; margin: 0; padding: 0;
@@ -9078,6 +9121,8 @@
           <h3>Sent Requests</h3>
           <div class="admin-users" id="sentRequestsList"></div>
           <h3>Your Friends</h3>
+          <button type="button" id="refreshFriendsButton">Refresh Friends</button>
+          <div id="friendRoomJoinStatus" role="status" aria-live="polite"></div>
           <div class="admin-users" id="friendsList"></div>
           <p class="room-note" id="socialMessage"></p>
         </div>
@@ -9297,6 +9342,8 @@
         </div>
       </div>
     </div>
+
+    <section id="friendRoomInvites" aria-label="Room join requests" aria-live="polite"></section>
 
     <main>
       <div class="account-bar">
@@ -9780,6 +9827,9 @@
       const friendRequestsList = document.getElementById("friendRequestsList");
       const sentRequestsList = document.getElementById("sentRequestsList");
       const socialMessage = document.getElementById("socialMessage");
+      const friendRoomJoinStatus = document.getElementById("friendRoomJoinStatus");
+      const friendRoomInvites = document.getElementById("friendRoomInvites");
+      const refreshFriendsButton = document.getElementById("refreshFriendsButton");
       const scoreEl = document.getElementById("score");
       const bestEl = document.getElementById("best");
       const localScoreboard = document.getElementById("localScoreboard");
@@ -10068,6 +10118,13 @@
       let waitingTimer;
       let pauseMenuLevel = "main";
       let onlineRoomCode = "";
+      const FRIEND_ROOM_REQUEST_TTL = 120000;
+      let pendingFriendJoin = null;
+      let roomJoinInFlight = false;
+      let friendRequestRoom = null;
+      let friendInviteExpiryTimer = null;
+      let friendInviteSignature = "";
+      let friendListRenderVersion = 0;
       let onlinePlayerSlot = "";
       let onlineSpectating = false;
       let onlineDirection = { x: 1, y: 0 };
@@ -12679,9 +12736,11 @@
         }
 
         const user = await getUser(userKey);
+        if (userKey !== getUserKeyFromAccount()) return null;
         const shouldBootstrapAdmin = isBootstrapAdminUsername(user?.username || currentAccount.username || userKey);
         if (shouldBootstrapAdmin && !user?.isAdmin) {
           await patchUser(userKey, { isAdmin: true });
+          if (userKey !== getUserKeyFromAccount()) return null;
         }
 
         currentUserData = normalizeUserProgress({
@@ -15580,6 +15639,7 @@
       }
 
       async function renderBattlePassMenu() {
+        const previousScroll = document.getElementById("battlePassScroller")?.scrollLeft || 0;
         if (!currentAccount?.username) {
           battlePassList.textContent = "Log in first.";
           battlePassMessage.textContent = "";
@@ -15628,6 +15688,12 @@
             </div>
             <button type="button" disabled>${hasPremium ? "Activated" : "Activate"}</button>
           </div>
+          <div class="battle-pass-scroll-controls">
+            <button type="button" id="battlePassPrevious" aria-controls="battlePassScroller" aria-label="Previous rewards" title="Previous rewards">&#8592;</button>
+            <output id="battlePassVisibleLevels"></output>
+            <button type="button" id="battlePassNext" aria-controls="battlePassScroller" aria-label="Next rewards" title="Next rewards">&#8594;</button>
+          </div>
+          <div class="battle-pass-scroller" id="battlePassScroller" role="region" aria-label="Battle Pass rewards" tabindex="0">
           <div class="battle-pass-track">
             <div class="pass-label gold">Golden<br>Pass</div>
             ${battlePassRewards.map((reward) => renderReward(reward, "premium")).join("")}
@@ -15640,8 +15706,50 @@
             <div class="pass-label free">Free<br>Pass</div>
             ${battlePassRewards.map((reward) => renderReward(reward, "free")).join("")}
           </div>
+          </div>
         `;
+        setupBattlePassScrolling(previousScroll);
         battlePassMessage.textContent = `Your level: ${user.level}. ${hasPremium ? "Premium track active." : "Premium track locked."}`;
+      }
+
+      function setupBattlePassScrolling(previousScroll = 0) {
+        const scroller = document.getElementById("battlePassScroller");
+        if (!scroller) return;
+        const previous = document.getElementById("battlePassPrevious");
+        const next = document.getElementById("battlePassNext");
+        const visibleLevels = document.getElementById("battlePassVisibleLevels");
+        const update = () => {
+          previous.disabled = scroller.scrollLeft <= 1;
+          next.disabled = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 1;
+          const bounds = scroller.getBoundingClientRect();
+          const visible = [...scroller.querySelectorAll(".pass-level")].filter((level) => {
+            const rect = level.getBoundingClientRect();
+            return rect.right > bounds.left && rect.left < bounds.right;
+          });
+          visibleLevels.textContent = visible.length ? `Levels ${visible[0].textContent} - ${visible.at(-1).textContent} / ${battlePassRewards.length}` : "";
+        };
+        const move = (direction) => scroller.scrollBy({ left: direction * Math.max(150, scroller.clientWidth * 0.8), behavior: reducedGameMotion.matches ? "auto" : "smooth" });
+        previous.addEventListener("click", () => move(-1));
+        next.addEventListener("click", () => move(1));
+        scroller.addEventListener("scroll", update, { passive: true });
+        scroller.addEventListener("wheel", (event) => {
+          if (event.ctrlKey || event.shiftKey || Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+          const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? scroller.clientWidth : 1);
+          const target = Math.max(0, Math.min(scroller.scrollWidth - scroller.clientWidth, scroller.scrollLeft + delta));
+          if (target !== scroller.scrollLeft) {
+            event.preventDefault();
+            scroller.scrollLeft = target;
+          }
+        }, { passive: false });
+        scroller.addEventListener("keydown", (event) => {
+          if (event.target !== scroller || event.ctrlKey || event.metaKey || event.altKey) return;
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          if (event.key === "Home" || event.key === "End") scroller.scrollLeft = event.key === "Home" ? 0 : scroller.scrollWidth;
+          else move(event.key === "ArrowLeft" ? -1 : 1);
+        });
+        scroller.scrollLeft = previousScroll;
+        update();
       }
 
       async function renderLeaderboardMenu() {
@@ -15787,6 +15895,8 @@
       }
 
       async function renderFriendsMenu() {
+        const version = ++friendListRenderVersion;
+        const accountKey = getUserKeyFromAccount();
         if (!currentAccount?.username) {
           friendsList.textContent = "Log in first.";
           friendRequestsList.textContent = "";
@@ -15796,6 +15906,7 @@
         }
 
         const user = await refreshCurrentUserData();
+        if (version !== friendListRenderVersion || accountKey !== getUserKeyFromAccount() || !user) return;
         const friends = Object.keys(user.friends || {}).sort();
         const incoming = Object.keys(user.friendRequests?.incoming || {}).sort();
         const sent = Object.keys(user.friendRequests?.sent || {}).sort();
@@ -15823,13 +15934,280 @@
           </div>
         `).join("") || `<div class="empty-card">No sent requests.</div>`;
 
-        friendsList.innerHTML = friends.map((friend) => `
+        let rooms = {};
+        let roomsAvailable = true;
+        try { rooms = await getAllRooms() || {}; }
+        catch { roomsAvailable = false; }
+        if (version !== friendListRenderVersion || accountKey !== getUserKeyFromAccount()) return;
+        friendsList.innerHTML = friends.map((friend) => {
+          const active = findFriendRoom(rooms, friend);
+          const full = active && getOnlinePlayerEntries(active.room).length >= ONLINE_MAX_PLAYERS;
+          const sameRoom = active?.code === onlineRoomCode;
+          const description = active ? `${onlineGameNames[active.room.game] || "Online game"} | ${getOnlinePlayerEntries(active.room).length}/${ONLINE_MAX_PLAYERS} players` : roomsAvailable ? "Not in an online room" : "Room status unavailable";
+          return `
           <div class="admin-user-card">
             <div class="admin-user-top"><span class="admin-user-name">${escapeHtml(friend)}</span><span class="admin-badge">Friend</span></div>
-            <button type="button" data-friend-action="remove" data-friend-key="${escapeHtml(friend)}">Remove Friend</button>
+            <p class="admin-user-meta">${escapeHtml(description)}</p>
+            <div class="admin-user-actions">
+              <button type="button" data-friend-action="join-room" data-friend-key="${escapeHtml(friend)}" ${!active || full || sameRoom ? "disabled" : ""}>${sameRoom ? "In Your Room" : full ? "Room Full" : "Join Room"}</button>
+              <button type="button" data-friend-action="remove" data-friend-key="${escapeHtml(friend)}">Remove Friend</button>
+            </div>
           </div>
-        `).join("") || `<div class="empty-card">No friends yet.</div>`;
-        socialMessage.textContent = "Friends loaded.";
+        `; }).join("") || `<div class="empty-card">No friends yet.</div>`;
+        socialMessage.textContent = roomsAvailable ? "Friends loaded." : "Could not load friend rooms. Try Refresh Friends.";
+      }
+
+      function findFriendRoom(rooms, friendKey) {
+        for (const [code, room] of Object.entries(rooms || {}).sort(([, a], [, b]) => Number(b?.createdAt || 0) - Number(a?.createdAt || 0))) {
+          if (!room?.createdBy || !onlineGameNames[room.game]) continue;
+          const player = getOnlinePlayerEntries(room).find(([slot, member]) => member.memberId && room.members?.[slot] === member.memberId && usernameKey(member.username || "") === friendKey)?.[1];
+          if (player) return { code, room, player };
+        }
+        return null;
+      }
+
+      function roomRequestRecipientPresent(room, request) {
+        return Boolean(room?.createdBy && room.createdAt === request?.roomCreatedAt && getOnlinePlayerEntries(room).some(([slot, player]) =>
+          room.members?.[slot] === request.recipientId && player.memberId === request.recipientId && usernameKey(player.username || "") === request.recipientKey));
+      }
+
+      function queueFriendRoomRequest(room, request, now = Date.now()) {
+        if (!roomRequestRecipientPresent(room, request) || request.expiresAt <= now || request.status !== "pending") return;
+        const entries = getOnlinePlayerEntries(room);
+        if (entries.length >= ONLINE_MAX_PLAYERS || entries.some(([, player]) => player.memberId === request.requesterId)) return;
+        const requests = Object.fromEntries(Object.entries(room.joinRequests || {}).filter(([, value]) => value?.expiresAt > now));
+        const existing = requests[request.requesterId];
+        if (existing && ["pending", "accepted"].includes(existing.status)) return;
+        if (Object.keys(requests).length >= 20) return;
+        requests[request.requesterId] = request;
+        return { ...room, joinRequests: requests };
+      }
+
+      function resolveFriendRoomRequest(room, requesterId, requestId, recipientId, recipientKey, decision, now = Date.now()) {
+        const request = room?.joinRequests?.[requesterId];
+        if (!request || request.id !== requestId || request.status !== "pending" || request.expiresAt <= now) return;
+        if (request.recipientId !== recipientId || request.recipientKey !== recipientKey || !roomRequestRecipientPresent(room, request)) return;
+        if (!["accepted", "declined"].includes(decision)) return;
+        const status = decision === "accepted" && getOnlinePlayerEntries(room).length >= ONLINE_MAX_PLAYERS ? "full" : decision;
+        return { ...room, joinRequests: { ...room.joinRequests, [requesterId]: { ...request, status } } };
+      }
+
+      function consumeFriendRoomApproval(room, requesterId, requesterKey, requestId, makePlayer, now = Date.now()) {
+        const request = room?.joinRequests?.[requesterId];
+        if (!request || request.id !== requestId || request.requesterId !== requesterId || request.requesterKey !== requesterKey) return;
+        if (request.status !== "accepted" || request.expiresAt <= now || !roomRequestRecipientPresent(room, request)) return;
+        const joined = addPlayerToRoom(room, requesterId, makePlayer);
+        if (!joined || !getOnlinePlayerEntries(joined).some(([, player]) => player.memberId === requesterId)) return;
+        const requests = { ...joined.joinRequests };
+        delete requests[requesterId];
+        return { ...joined, joinRequests: requests };
+      }
+
+      function areRoomFriends(requester, recipient, requesterKey, recipientKey) {
+        return Boolean(requesterKey && recipientKey && requesterKey !== recipientKey && requester?.friends?.[recipientKey] && recipient?.friends?.[requesterKey]);
+      }
+
+      function setFriendRoomJoinMessage(message, cancellable = false) {
+        friendRoomJoinStatus.innerHTML = `<span>${escapeHtml(message)}</span>${cancellable ? '<button type="button" data-room-request-cancel>Cancel Join Request</button>' : ""}`;
+      }
+
+      function clearPendingFriendJoin() {
+        const pending = pendingFriendJoin;
+        if (!pending) return;
+        pendingFriendJoin = null;
+        clearTimeout(pending.timeout);
+        pending.dispose?.();
+      }
+
+      async function cancelPendingFriendJoin(message = "Join request canceled.") {
+        const pending = pendingFriendJoin;
+        if (!pending || pending.busy) return;
+        clearPendingFriendJoin();
+        setFriendRoomJoinMessage(message);
+        try {
+          await firebaseDb.ref(`rooms/${pending.code}/joinRequests/${pending.requesterId}`).transaction((request) => request?.id === pending.id ? null : undefined, undefined, false);
+        } catch { showTopNotification("The request will expire automatically."); }
+      }
+
+      async function requestFriendRoomJoin(friendKey) {
+        if (!currentAccount?.username) throw new Error("Log in first.");
+        if (!requireDesktopGameplay("Open the app to join your friend's room.")) return;
+        if (onlineRoomCode || roomJoinInFlight) throw new Error("Leave your current room before joining a friend.");
+        if (pendingFriendJoin) throw new Error("You already have a pending join request. Cancel it first.");
+        const requesterKey = getUserKeyFromAccount();
+        const user = await refreshCurrentUserData();
+        if (isCurrentUserBanned()) throw new Error("You are banned from online rooms right now.");
+        const friend = await getUser(friendKey);
+        if (!areRoomFriends(user, friend, requesterKey, friendKey)) throw new Error("You must both be friends to request a room join.");
+        const active = findFriendRoom(await getAllRooms(), friendKey);
+        if (!active) throw new Error("Your friend is no longer in an online room.");
+        if (getUserKeyFromAccount() !== requesterKey || onlineRoomCode || roomJoinInFlight || pendingFriendJoin) return;
+        const request = {
+          id: crypto.randomUUID(), requesterId: playerId, requesterKey, requesterName: currentAccount.username,
+          recipientId: active.player.memberId, recipientKey: friendKey,
+          roomCreatedAt: active.room.createdAt, createdAt: Date.now(), expiresAt: Date.now() + FRIEND_ROOM_REQUEST_TTL, status: "pending"
+        };
+        const pending = { ...request, code: active.code, friendName: friend.username || friendKey, busy: false };
+        pendingFriendJoin = pending;
+        setFriendRoomJoinMessage(`Sending join request to ${pending.friendName}...`);
+        try {
+          const ref = firebaseDb.ref(`rooms/${active.code}`);
+          await ref.once("value");
+          const result = await ref.transaction((room) => {
+            if (pendingFriendJoin !== pending || getUserKeyFromAccount() !== requesterKey) return;
+            return queueFriendRoomRequest(room, request);
+          }, undefined, false);
+          if (!result.committed) throw new Error("Could not request this room. It may be full, closed, or already have your request.");
+          if (pendingFriendJoin !== pending || getUserKeyFromAccount() !== requesterKey) {
+            await ref.child(`joinRequests/${playerId}`).transaction((latest) => latest?.id === request.id ? null : undefined, undefined, false);
+            return;
+          }
+          setFriendRoomJoinMessage(`Waiting for ${pending.friendName} to accept...`, true);
+          const requestRef = ref.child(`joinRequests/${playerId}`);
+          const membersRef = ref.child("members");
+          const fail = (message) => {
+            if (pendingFriendJoin !== pending || pending.busy) return;
+            clearPendingFriendJoin();
+            setFriendRoomJoinMessage(message);
+            showTopNotification(message);
+          };
+          const onRequest = (snapshot) => {
+            if (pendingFriendJoin !== pending || pending.busy) return;
+            const latest = snapshot.val();
+            if (!latest || latest.id !== pending.id) return fail("Room or join request is no longer available.");
+            if (latest.expiresAt <= Date.now()) return fail("Join request expired.");
+            if (latest.status === "accepted") joinApprovedFriendRoom(pending).catch((error) => {
+              if (pendingFriendJoin !== pending) return;
+              pending.busy = false;
+              fail(error.message || "Could not join your friend's room.");
+            });
+            else if (latest.status !== "pending") fail(latest.status === "declined" ? `${pending.friendName} declined your join request.` : "Your friend's room is full or unavailable.");
+          };
+          const onMembers = (snapshot) => {
+            if (!Object.values(snapshot.val() || {}).includes(pending.recipientId)) fail("Your friend left the room.");
+          };
+          pending.dispose = () => { requestRef.off("value", onRequest); membersRef.off("value", onMembers); };
+          requestRef.on("value", onRequest, () => fail("Could not receive the reply. Check your connection."));
+          membersRef.on("value", onMembers, () => fail("Room connection lost."));
+          pending.timeout = setTimeout(() => cancelPendingFriendJoin("Join request expired."), Math.max(0, request.expiresAt - Date.now()));
+        } catch (error) {
+          if (pendingFriendJoin === pending) clearPendingFriendJoin();
+          throw error;
+        }
+      }
+
+      async function joinApprovedFriendRoom(pending) {
+        if (pendingFriendJoin !== pending || pending.busy) return;
+        pending.busy = true;
+        if (!canPlayGames() || onlineRoomCode || getUserKeyFromAccount() !== pending.requesterKey) throw new Error("Join canceled: your account or current room changed.");
+        const user = await refreshCurrentUserData();
+        const friend = await getUser(pending.recipientKey);
+        if (isCurrentUserBanned() || !areRoomFriends(user, friend, pending.requesterKey, pending.recipientKey)) throw new Error("Room access is no longer available.");
+        if (pendingFriendJoin !== pending || getUserKeyFromAccount() !== pending.requesterKey || onlineRoomCode) throw new Error("Join canceled: your session changed.");
+        setFriendRoomJoinMessage(`${pending.friendName} accepted. Joining...`);
+        const ref = firebaseDb.ref(`rooms/${pending.code}`);
+        await ref.once("value");
+        const result = await ref.transaction((room) => {
+          if (pendingFriendJoin !== pending || onlineRoomCode || getUserKeyFromAccount() !== pending.requesterKey || !canPlayGames()) return;
+          return consumeFriendRoomApproval(room, playerId, pending.requesterKey, pending.id, makeOnlinePlayer);
+        }, undefined, false);
+        const room = result.snapshot.val();
+        const slot = getOnlinePlayerEntries(room).find(([, player]) => player.memberId === playerId)?.[0];
+        if (!result.committed || !slot) throw new Error("Could not join: the room filled up, your friend left, or the request expired.");
+        try {
+          await registerRoomDisconnect(pending.code, slot);
+          if (pendingFriendJoin !== pending || getUserKeyFromAccount() !== pending.requesterKey || onlineRoomCode || !canPlayGames()) throw new Error("Join canceled: your session changed.");
+          closeStartScreen();
+          await beginOnlineRoom(pending.code, room.game, slot, room);
+        } catch (error) {
+          const disconnect = onlineDisconnect;
+          if (onlineRoomCode === pending.code) closeOnlineRoomLocally("Could not open your friend's room.");
+          // Release only the membership claimed by this request, never a reused room or slot.
+          const released = await ref.transaction((latest) => releaseFriendRoomMembership(latest, pending), undefined, false).catch(() => null);
+          if (released?.committed && disconnect && onlineDisconnect === disconnect && !onlineRoomCode) {
+            await disconnect.cancel().catch(() => {});
+            onlineDisconnect = null;
+          }
+          throw error;
+        }
+        clearPendingFriendJoin();
+        setFriendRoomJoinMessage(`Joined ${pending.friendName}'s room.`);
+        showTopNotification(`Joined ${pending.friendName}'s room.`);
+      }
+
+      function releaseFriendRoomMembership(room, request) {
+        if (!room || room.createdAt !== request.roomCreatedAt || room.createdBy === request.requesterId) return;
+        const slot = getOnlinePlayerEntries(room).find(([, member]) => member.memberId === request.requesterId && usernameKey(member.username || "") === request.requesterKey)?.[0];
+        if (!slot) return;
+        const members = { ...room.members };
+        const playersState = { ...room.playersState };
+        delete members[slot];
+        delete playersState[slot];
+        const players = getOnlinePlayerEntries({ ...room, members, playersState }).length;
+        return { ...room, members, playersState, players, status: players > 1 ? "playing" : "waiting" };
+      }
+
+      function clearFriendRoomInvites() {
+        clearTimeout(friendInviteExpiryTimer);
+        friendInviteSignature = "";
+        friendRequestRoom = null;
+        friendRoomInvites.replaceChildren();
+      }
+
+      function renderFriendRoomInvites(code, room) {
+        if (code !== onlineRoomCode || onlineSpectating || !currentAccount?.username) {
+          clearFriendRoomInvites();
+          return;
+        }
+        friendRequestRoom = { code, room };
+        clearTimeout(friendInviteExpiryTimer);
+        const key = getUserKeyFromAccount();
+        const requests = Object.values(room?.joinRequests || {}).filter((request) => request?.status === "pending" && request.expiresAt > Date.now() &&
+          request.recipientId === playerId && request.recipientKey === key && currentUserData?.friends?.[request.requesterKey] && roomRequestRecipientPresent(room, request));
+        const signature = JSON.stringify(requests.map((request) => [request.id, request.requesterName, request.expiresAt]));
+        if (signature !== friendInviteSignature) {
+          friendInviteSignature = signature;
+          friendRoomInvites.innerHTML = requests.map((request) => `
+            <article class="friend-room-invite">
+              <strong>Room Join Request</strong>
+              <p>${escapeHtml(request.requesterName || request.requesterKey)} wants to join your room.</p>
+              <div class="admin-user-actions">
+                <button type="button" data-room-request-decision="accepted" data-requester="${escapeHtml(request.requesterId)}" data-request-id="${escapeHtml(request.id)}">Accept</button>
+                <button type="button" data-room-request-decision="declined" data-requester="${escapeHtml(request.requesterId)}" data-request-id="${escapeHtml(request.id)}">Decline</button>
+              </div>
+            </article>`).join("");
+        }
+        if (requests.length) friendInviteExpiryTimer = setTimeout(() => renderFriendRoomInvites(code, room), Math.max(10, Math.min(...requests.map((request) => request.expiresAt)) - Date.now()));
+      }
+
+      async function respondToFriendRoomRequest(event) {
+        const button = event.target.closest("[data-room-request-decision]");
+        const active = friendRequestRoom;
+        if (!button || !active || !currentAccount?.username) return;
+        const { requester, requestId, roomRequestDecision } = button.dataset;
+        const recipientKey = getUserKeyFromAccount();
+        const request = active.room?.joinRequests?.[requester];
+        if (!request || request.id !== requestId) return;
+        const buttons = button.closest("article").querySelectorAll("button");
+        buttons.forEach((item) => { item.disabled = true; });
+        try {
+          const user = await refreshCurrentUserData();
+          const from = await getUser(request.requesterKey);
+          const decision = areRoomFriends(from, user, request.requesterKey, recipientKey) ? roomRequestDecision : "declined";
+          const ref = firebaseDb.ref(`rooms/${active.code}`);
+          await ref.once("value");
+          const result = await ref.transaction((room) => {
+            if (getUserKeyFromAccount() !== recipientKey || onlineRoomCode !== active.code || onlineSpectating) return;
+            return resolveFriendRoomRequest(room, requester, requestId, playerId, recipientKey, decision);
+          }, undefined, false);
+          if (!result.committed) throw new Error("Request expired or the room changed.");
+          const status = result.snapshot.val()?.joinRequests?.[requester]?.status;
+          showTopNotification(status === "accepted" ? "Join request accepted." : status === "full" ? "Room is full." : "Join request declined.");
+          renderFriendRoomInvites(active.code, result.snapshot.val());
+        } catch (error) {
+          showTopNotification(error.message || "Could not reply to the join request.");
+          buttons.forEach((item) => { item.disabled = false; });
+        }
       }
 
       async function handleShopAction(event) {
@@ -16452,10 +16830,16 @@
             await cancelFriendRequest(friendKey);
           } else if (action === "remove") {
             await removeFriend(friendKey);
+          } else if (action === "join-room") {
+            await requestFriendRoomJoin(friendKey);
           }
+        } catch (error) {
+          const message = error.message || "Could not update friends. Check your connection.";
+          showTopNotification(message);
+          if (action === "join-room" && !pendingFriendJoin) setFriendRoomJoinMessage(message);
         } finally {
           button.disabled = false;
-          await renderFriendsMenu();
+          await renderFriendsMenu().catch(() => { socialMessage.textContent = "Could not refresh friends. Try again."; });
         }
       }
 
@@ -17817,6 +18201,13 @@
       }
 
       function setStoredAccount(account) {
+        if (getUserKeyFromAccount() !== (account?.username ? usernameKey(account.username) : "")) {
+          cancelPendingFriendJoin().catch(() => {});
+          clearPendingFriendJoin();
+          clearFriendRoomInvites();
+          friendRoomJoinStatus.replaceChildren();
+          friendListRenderVersion++;
+        }
         currentAccount = account;
 
         if (account) {
@@ -17849,6 +18240,7 @@
           }
 
           currentUserData = normalizeUserProgress(user);
+          if (friendRequestRoom) renderFriendRoomInvites(friendRequestRoom.code, friendRequestRoom.room);
           renderCustomMusicLists();
           const timedBanActive = Number(user.bannedUntil || 0) > Date.now();
           const ipBanActive = Boolean(user.ipBanned);
@@ -19591,6 +19983,7 @@
       }
 
       function unsubscribeFromRoom() {
+        clearFriendRoomInvites();
         if (onlineRoomUnsubscribe) {
           onlineRoomUnsubscribe();
           onlineRoomUnsubscribe = null;
@@ -19601,7 +19994,9 @@
         unsubscribeFromRoom();
         const roomRef = firebaseDb.ref(`rooms/${code}`);
         const handler = (snapshot) => {
-          onRoom(snapshot.val());
+          const room = snapshot.val();
+          onRoom(room);
+          if (code === onlineRoomCode) renderFriendRoomInvites(code, room);
         };
 
         roomRef.on("value", handler, () => {
@@ -21291,10 +21686,15 @@
       }
 
       async function createRoom() {
+        if (pendingFriendJoin || roomJoinInFlight) {
+          showTopNotification("Finish or cancel your current room request first.");
+          return;
+        }
         if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to create ${onlineGameNames[selectedOnlineGame]} rooms.`)) {
           return;
         }
 
+        roomJoinInFlight = true;
         createRoomButton.disabled = true;
         joinRoomButton.disabled = true;
         roomCodeEl.textContent = "";
@@ -21358,12 +21758,17 @@
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not create room. Check Firebase database rules.";
         } finally {
+          roomJoinInFlight = false;
           createRoomButton.disabled = false;
           joinRoomButton.disabled = false;
         }
       }
 
       async function joinRoom() {
+        if (pendingFriendJoin || roomJoinInFlight) {
+          showTopNotification("Finish or cancel your current room request first.");
+          return;
+        }
         if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to join online rooms.`)) {
           return;
         }
@@ -21382,6 +21787,7 @@
           return;
         }
 
+        roomJoinInFlight = true;
         createRoomButton.disabled = true;
         joinRoomButton.disabled = true;
         roomCodeEl.textContent = "";
@@ -21435,6 +21841,7 @@
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not join room. Check Firebase database rules.";
         } finally {
+          roomJoinInFlight = false;
           createRoomButton.disabled = false;
           joinRoomButton.disabled = false;
         }
@@ -21690,6 +22097,19 @@
       friendRequestsList.addEventListener("click", handleFriendAction);
       sentRequestsList.addEventListener("click", handleFriendAction);
       friendsList.addEventListener("click", handleFriendAction);
+      refreshFriendsButton.addEventListener("click", async () => {
+        refreshFriendsButton.disabled = true;
+        try { await renderFriendsMenu(); }
+        catch { socialMessage.textContent = "Could not refresh friends. Check your connection."; }
+        finally { refreshFriendsButton.disabled = false; }
+      });
+      friendRoomJoinStatus.addEventListener("click", (event) => {
+        if (event.target.closest("[data-room-request-cancel]")) cancelPendingFriendJoin();
+      });
+      friendRoomInvites.addEventListener("click", respondToFriendRoomRequest);
+      window.addEventListener("resize", () => {
+        document.getElementById("battlePassScroller")?.dispatchEvent(new Event("scroll"));
+      }, { passive: true });
       startRoomCodeInput.addEventListener("input", () => {
         startRoomCodeInput.value = startRoomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
       });

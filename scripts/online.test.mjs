@@ -321,3 +321,152 @@ test("movement patches reuse appearance data and guests cannot overwrite shared 
   assert.equal(next["playersState/p5/score"], undefined);
   assert.ok(JSON.stringify(next).length < JSON.stringify(first).length / 4);
 });
+
+function friendRoomContext() {
+  return load([
+    "getOnlinePlayerEntries", "addPlayerToRoom", "findFriendRoom", "roomRequestRecipientPresent",
+    "queueFriendRoomRequest", "resolveFriendRoomRequest", "consumeFriendRoomApproval",
+    "areRoomFriends", "releaseFriendRoomMembership"
+  ], {
+    usernameKey: (name) => name.toLowerCase(),
+    onlineGameNames: { "online-bomb-tag": "Online Bomb Tag" }
+  });
+}
+
+function friendRoom() {
+  const room = fullRoom();
+  for (const slot of ["p3", "p4", "p5"]) {
+    delete room.members[slot];
+    delete room.playersState[slot];
+  }
+  room.players = 2;
+  room.createdAt = 100;
+  room.isPublic = false;
+  room.playersState.p2.username = "Alice";
+  return room;
+}
+
+function joinRequest(extra = {}) {
+  return {
+    id: "request-1", requesterId: "bob-device", requesterKey: "bob", requesterName: "Bob",
+    recipientId: "member2", recipientKey: "alice", roomCreatedAt: 100,
+    status: "pending", createdAt: 200, expiresAt: 2000, ...extra
+  };
+}
+
+test("friends can find private rooms, but stale player records are not presence", () => {
+  const ctx = friendRoomContext();
+  const room = friendRoom();
+  assert.equal(ctx.findFriendRoom({ PRIVATE: room }, "alice").code, "PRIVATE");
+  room.members.p2 = "replacement-device";
+  assert.equal(ctx.findFriendRoom({ PRIVATE: room }, "alice"), null);
+  assert.equal(ctx.roomRequestRecipientPresent(room, joinRequest()), false);
+  delete room.members.p2;
+  assert.equal(ctx.findFriendRoom({ PRIVATE: room }, "alice"), null);
+  assert.equal(ctx.findFriendRoom({ EMPTY: null, SOLO: { game: "snake" } }, "alice"), null);
+  assert.equal(ctx.areRoomFriends({ friends: { alice: true } }, { friends: { bob: true } }, "bob", "alice"), true);
+  assert.equal(ctx.areRoomFriends({ friends: { alice: true } }, {}, "bob", "alice"), false);
+});
+
+test("requests require the same active recipient and room, with capacity and duplicate checks", () => {
+  const ctx = friendRoomContext();
+  const room = friendRoom();
+  const request = joinRequest();
+  const pending = ctx.queueFriendRoomRequest(room, request, 500);
+  assert.equal(pending.joinRequests[request.requesterId], request);
+  assert.equal(ctx.getOnlinePlayerEntries(pending).length, 2);
+  assert.equal(ctx.queueFriendRoomRequest(pending, request, 500), undefined);
+  assert.equal(ctx.queueFriendRoomRequest(room, { ...request, recipientId: "other-device" }, 500), undefined);
+  assert.equal(ctx.queueFriendRoomRequest(room, { ...request, roomCreatedAt: 99 }, 500), undefined);
+  assert.equal(ctx.queueFriendRoomRequest(room, request, 2000), undefined);
+  const full = fullRoom();
+  full.createdAt = 100;
+  full.playersState.p2.username = "Alice";
+  assert.equal(ctx.queueFriendRoomRequest(full, request, 500), undefined);
+});
+
+test("only the addressed friend can accept or decline a current request", () => {
+  const ctx = friendRoomContext();
+  const room = ctx.queueFriendRoomRequest(friendRoom(), joinRequest(), 500);
+  for (const args of [
+    ["wrong", "member2", "alice", "accepted", 500],
+    ["request-1", "host", "alice", "accepted", 500],
+    ["request-1", "member2", "other", "accepted", 500],
+    ["request-1", "member2", "alice", "accepted", 2000],
+    ["request-1", "member2", "alice", "invalid", 500]
+  ]) assert.equal(ctx.resolveFriendRoomRequest(room, "bob-device", ...args), undefined);
+  const declined = ctx.resolveFriendRoomRequest(room, "bob-device", "request-1", "member2", "alice", "declined", 500);
+  assert.equal(declined.joinRequests["bob-device"].status, "declined");
+  assert.equal(ctx.consumeFriendRoomApproval(declined, "bob-device", "bob", "request-1", makePlayer, 500), undefined);
+  assert.equal(ctx.getOnlinePlayerEntries(declined).length, 2);
+  assert.ok(ctx.queueFriendRoomRequest(declined, joinRequest({ id: "retry" }), 600));
+});
+
+test("approval is consumed once, never before acceptance or after expiry/friend departure", () => {
+  const ctx = friendRoomContext();
+  const pending = ctx.queueFriendRoomRequest(friendRoom(), joinRequest(), 500);
+  assert.equal(ctx.consumeFriendRoomApproval(pending, "bob-device", "bob", "request-1", makePlayer, 500), undefined);
+  const approved = ctx.resolveFriendRoomRequest(pending, "bob-device", "request-1", "member2", "alice", "accepted", 500);
+  assert.equal(ctx.consumeFriendRoomApproval(approved, "bob-device", "other-account", "request-1", makePlayer, 500), undefined);
+  assert.equal(ctx.consumeFriendRoomApproval(approved, "bob-device", "bob", "request-1", makePlayer, 2000), undefined);
+  const joined = ctx.consumeFriendRoomApproval(approved, "bob-device", "bob", "request-1", makePlayer, 500);
+  assert.equal(ctx.getOnlinePlayerEntries(joined).length, 3);
+  assert.equal(joined.joinRequests["bob-device"], undefined);
+  assert.equal(ctx.consumeFriendRoomApproval(joined, "bob-device", "bob", "request-1", makePlayer, 500), undefined);
+  delete approved.members.p2;
+  assert.equal(ctx.consumeFriendRoomApproval(approved, "bob-device", "bob", "request-1", makePlayer, 500), undefined);
+});
+
+test("two approvals competing for the last slot cannot add a sixth player", () => {
+  const ctx = friendRoomContext();
+  let room = friendRoom();
+  room = ctx.addPlayerToRoom(room, "third", makePlayer);
+  room = ctx.addPlayerToRoom(room, "fourth", makePlayer);
+  const first = joinRequest();
+  const second = joinRequest({ id: "request-2", requesterId: "eve-device", requesterKey: "eve" });
+  for (const request of [first, second]) {
+    room = ctx.queueFriendRoomRequest(room, request, 500);
+    room = ctx.resolveFriendRoomRequest(room, request.requesterId, request.id, "member2", "alice", "accepted", 500);
+  }
+  room = ctx.consumeFriendRoomApproval(room, first.requesterId, first.requesterKey, first.id, makePlayer, 500);
+  assert.equal(ctx.getOnlinePlayerEntries(room).length, 5);
+  assert.equal(ctx.consumeFriendRoomApproval(room, second.requesterId, second.requesterKey, second.id, makePlayer, 500), undefined);
+});
+
+test("expired requests are pruned and live request queues remain bounded", () => {
+  const ctx = friendRoomContext();
+  const room = friendRoom();
+  room.joinRequests = Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`r${i}`, joinRequest({ expiresAt: 2000 })]));
+  assert.equal(ctx.queueFriendRoomRequest(room, joinRequest(), 500), undefined);
+  room.joinRequests.r0.expiresAt = 500;
+  const queued = ctx.queueFriendRoomRequest(room, joinRequest(), 500);
+  assert.equal(Object.keys(queued.joinRequests).length, 20);
+  assert.equal(queued.joinRequests.r0, undefined);
+});
+
+test("failed joins release only their own membership, not a host or reused room", () => {
+  const ctx = friendRoomContext();
+  const request = joinRequest();
+  const room = ctx.addPlayerToRoom(friendRoom(), "bob-device", () => ({ ...makePlayer("p3"), username: "Bob" }));
+  const released = ctx.releaseFriendRoomMembership(room, request);
+  assert.equal(ctx.getOnlinePlayerEntries(released).length, 2);
+  assert.equal(released.members.p1, "host");
+  assert.equal(ctx.getOnlinePlayerEntries(room).length, 3);
+  assert.equal(ctx.releaseFriendRoomMembership({ ...room, createdAt: 101 }, request), undefined);
+  assert.equal(ctx.releaseFriendRoomMembership(room, { ...request, requesterKey: "other-account" }), undefined);
+  assert.equal(ctx.releaseFriendRoomMembership(room, { ...request, requesterId: "host" }), undefined);
+});
+
+test("account refresh ignores a reply that arrives after logout", async () => {
+  let finishRead;
+  const ctx = load(["refreshCurrentUserData"], {
+    currentAccount: { username: "Bob" }, currentUserData: null,
+    getUserKeyFromAccount: () => ctx.currentAccount?.username.toLowerCase() || "",
+    getUser: () => new Promise((resolve) => { finishRead = resolve; })
+  });
+  const refreshing = ctx.refreshCurrentUserData();
+  ctx.currentAccount = null;
+  finishRead({ username: "Bob", friends: { alice: true } });
+  assert.equal(await refreshing, null);
+  assert.equal(ctx.currentUserData, null);
+});
