@@ -4,15 +4,22 @@
   "private": true,
   "description": "Windows desktop installer wrapper for MiniGameWorld.",
   "scripts": {
-    "dev": "node scripts/serve.mjs",
-    "test": "node --test scripts/online.test.mjs",
+    "dev": "node scripts/build-3d.mjs && node scripts/serve.mjs",
+    "test": "node --test scripts/online.test.mjs scripts/three-games.test.mjs",
+    "build:3d": "node scripts/build-3d.mjs",
     "prepare:tauri": "node scripts/prepare-tauri.mjs",
     "build": "node scripts/prepare-vercel.mjs",
     "tauri": "tauri",
     "tauri:build": "npm run prepare:tauri && tauri build",
     "build:desktop": "npm run prepare:tauri && tauri build"
   },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.20.0",
+    "lucide": "1.47.0",
+    "three": "0.186.0"
+  },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0"
+    "@tauri-apps/cli": "^2.0.0",
+    "esbuild": "0.28.2"
   }
 }

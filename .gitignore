@@ -13,3 +13,5 @@ public/
 src-tauri/target/
 src-tauri/gen/
 package-lock.json
+assets/three-games.js
+assets/three-games.js.LEGAL.txt

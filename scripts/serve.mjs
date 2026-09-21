@@ -7,7 +7,10 @@ const types = {
   "service-worker.js": "text/javascript; charset=utf-8",
   "minigameworld-icon.png": "image/png",
   "sigma-icon.svg": "image/svg+xml",
-  "loading-music.mp3": "audio/mpeg"
+  "loading-music.mp3": "audio/mpeg",
+  "assets/three-games.js": "text/javascript; charset=utf-8",
+  "assets/three-games.js.LEGAL.txt": "text/plain; charset=utf-8",
+  "assets/crystal-isles-3d.png": "image/png"
 };
 const server = createServer(async (request, response) => {
   const pathname = new URL(request.url, "http://localhost").pathname;

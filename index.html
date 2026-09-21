@@ -8950,6 +8950,65 @@
         #hubFriends .profile-avatar { width: 72px; height: 72px; }
         #hubFriendsTitle { font-size: 16px; }
       }
+      /* The 3D game owns the viewport; hub styles must not resize its scene or HUD. */
+      #threeGameHost[hidden] { display: none !important; }
+      #threeGameHost {
+        position: fixed; inset: 0; z-index: 11000; width: 100%; height: 100%;
+        background: #112b30; overflow: hidden; color: #f2f6ef; font-family: Arial, sans-serif;
+        letter-spacing: 0; text-shadow: none;
+      }
+      #threeGameHost > canvas:first-child { position: absolute; inset: 0; display: block; width: 100%; height: 100%; max-width: none; max-height: none; border: 0; border-radius: 0; box-shadow: none; outline: none; touch-action: none; }
+      #threeGameHost .three-hud {
+        position: absolute; inset: 20px 24px auto; display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; align-items: start; pointer-events: none;
+      }
+      #threeGameHost .three-title { display: grid; gap: 5px; min-width: 0; text-align: left; text-shadow: 0 1px 4px #102729; }
+      #threeGameHost .three-title span { font-size: 11px; font-weight: 700; }
+      #threeGameHost .three-title strong { font-size: 22px; line-height: 1.2; overflow-wrap: anywhere; }
+      #threeGameHost .three-counters { display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; padding: 12px 18px; background: #11292ee8; border: 1px solid #638783; border-radius: 8px; font: 700 15px Arial, sans-serif; }
+      #threeGameHost .three-counters span { display: flex; align-items: center; gap: 7px; }
+      #threeGameHost .three-counters svg { color: #e1c57d; }
+      #threeGameHost .three-counters output { font-variant-numeric: tabular-nums; min-width: 1ch; }
+      #threeGameHost .three-tools { display: flex; justify-content: end; gap: 8px; pointer-events: auto; }
+      #threeGameHost button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        min-width: 0; min-height: 44px; padding: 10px 16px; border: 1px solid #648a85; border-radius: 6px;
+        background: #143b3de8; color: #f2f6ef; box-shadow: none; text-shadow: none;
+        font: 700 14px/1.3 Arial, sans-serif; letter-spacing: 0; text-transform: none; transform: none; cursor: pointer;
+      }
+      #threeGameHost button::before, #threeGameHost button::after { display: none; }
+      #threeGameHost button:hover { background: #285852; }
+      #threeGameHost button:active { background: #396b61; }
+      #threeGameHost button:focus-visible { outline: 3px solid #e9c77d; outline-offset: 3px; }
+      #threeGameHost button[hidden] { display: none !important; }
+      #threeGameHost .three-tools button { width: 44px; height: 44px; padding: 10px; flex: 0 0 44px; }
+      #threeGameHost .three-map { position: absolute; left: 24px; bottom: 24px; width: 160px; height: 160px; border: 1px solid #73988f; border-radius: 6px; }
+      #threeGameHost .three-notice { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 40px); margin: 0; padding: 12px 20px; background: #102c2ee8; border-radius: 6px; font: 700 16px/1.4 Arial, sans-serif; }
+      #threeGameHost .three-notice:empty { display: none; }
+      #threeGameHost .three-menu, #threeGameHost .three-loading {
+        width: min(340px, calc(100% - 32px)); box-sizing: border-box; max-height: calc(100% - 32px); overflow-y: auto;
+        padding: 26px; background: #10292c; color: #f2f6ef; border: 1px solid #658e83; border-radius: 8px; text-align: left;
+      }
+      #threeGameHost .three-menu { margin: auto; }
+      #threeGameHost .three-menu::backdrop { background: #06171e99; }
+      #threeGameHost .three-loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+      #threeGameHost h2 { margin: 0 0 12px; font: 700 24px/1.2 Arial, sans-serif; color: #f2f6ef; text-shadow: none; }
+      #threeGameHost p { font: 15px/1.5 Arial, sans-serif; color: #c2d5ce; }
+      #threeGameHost .three-menu button, #threeGameHost .three-loading button { width: 100%; margin-top: 10px; }
+      .game-thumb[data-game="crystal-isles-3d"], .showcase-thumb[data-game="crystal-isles-3d"] {
+        background: #75a19c url("assets/crystal-isles-3d.png") center / cover no-repeat !important;
+      }
+      [data-game="crystal-isles-3d"] .game-icon-large,
+      [data-game="crystal-isles-3d"] .showcase-icon { visibility: hidden; }
+      body[data-runtime] #startGamesMenu .showcase-thumb[data-game="crystal-isles-3d"] { border-radius: 8px; }
+      @media (max-width: 640px) {
+        #threeGameHost .three-hud { inset: 12px 12px auto; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; }
+        #threeGameHost .three-title strong { font-size: 18px; }
+        #threeGameHost .three-counters { grid-row: 2; grid-column: 1 / -1; justify-self: center; font-size: 14px; gap: 16px; padding: 9px 14px; }
+        #threeGameHost .three-tools { grid-column: 2; grid-row: 1; gap: 4px; }
+        #threeGameHost .three-map { width: 112px; height: 112px; bottom: 12px; left: 12px; }
+        #threeGameHost .three-notice { bottom: 12px; left: auto; right: 12px; transform: none; max-width: calc(100% - 148px); padding: 10px; font-size: 14px; }
+      }
     </style>
   </head>
   <body>
@@ -9035,6 +9094,7 @@
           </div>
           <h3>Games</h3>
           <div class="game-card-grid">
+            <button type="button" data-start-game="crystal-isles-3d">Crystal Isles 3D</button>
             <button type="button" class="selected" data-start-game="snake">Neon Snake</button>
             <button type="button" data-start-game="catcher">Apple Drop</button>
             <button type="button" data-start-game="dodger">Gem Dash</button>
@@ -9435,6 +9495,7 @@
     </div>
 
     <section id="friendRoomInvites" aria-label="Room join requests" aria-live="polite"></section>
+    <section id="threeGameHost" aria-label="3D game" hidden></section>
     <dialog id="friendProfileDialog" aria-labelledby="friendProfileName">
       <button type="button" id="friendProfileClose" aria-label="Close friend profile" title="Close">&#215;</button>
       <span class="profile-avatar" id="friendProfileAvatar" role="img" aria-label="Friend's profile picture"></span>
@@ -10054,6 +10115,11 @@
         { x: 6, y: 10 }
       ];
       const games = {
+        "crystal-isles-3d": {
+          title: "Crystal Isles 3D",
+          bestKey: "crystal-isles-3d-best",
+          help: "Eight crystals. Floating islands. One way home."
+        },
         snake: {
           title: "Neon Snake",
           bestKey: "snake-best",
@@ -10152,6 +10218,7 @@
         "online-bomb-tag": "Online Bomb Tag"
       };
       const startGameMeta = {
+        "crystal-isles-3d": { display: "Crystal Isles 3D", creator: "MiniGameWorld Studio" },
         snake: { display: "Neon Snake", creator: "MiniGameWorld Studio" },
         catcher: { display: "Apple Drop", creator: "MiniGameWorld Games" },
         dodger: { display: "Gem Dash", creator: "MiniGameWorld Studio" },
@@ -10171,6 +10238,9 @@
       };
 
       let currentGame = "snake";
+      let threeGameSession = null;
+      let threeGameLoading = null;
+      const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
       let selectedStartMode = "solo";
       let selectedOnlineGame = "online-snake";
@@ -10730,6 +10800,11 @@
           return;
         }
 
+        if (gameName === "crystal-isles-3d") {
+          startThreeGame();
+          return;
+        }
+        disposeThreeGame();
         if (unlockMusic) {
           unlockBackgroundMusic();
         }
@@ -10760,7 +10835,79 @@
       }
 
       function isSinglePlayerGame(gameName) {
-        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector"].includes(gameName);
+        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector", "crystal-isles-3d"].includes(gameName);
+      }
+
+      function disposeThreeGame() {
+        threeGameLoading?.abort();
+        threeGameLoading = null;
+        threeGameSession?.dispose();
+        threeGameSession = null;
+        threeGameHost.hidden = true;
+        threeGameHost.replaceChildren();
+      }
+
+      async function startThreeGame() {
+        if (!requireDesktopGameplay()) return;
+        if (onlineRoomCode || roomJoinInFlight) {
+          showTopNotification("Leave your online room before starting Crystal Isles 3D.");
+          return;
+        }
+        disposeThreeGame();
+        const controller = new AbortController();
+        threeGameLoading = controller;
+        const owner = getUserKeyFromAccount();
+        clearInterval(timer);
+        clearInterval(waitingTimer);
+        resetGameEffects();
+        currentGame = "crystal-isles-3d";
+        score = 0;
+        gameOver = paused = waitingToPlay = false;
+        unlockBackgroundMusic();
+        closeStartScreen();
+        hidePlayOverlay();
+        pauseMenu.classList.remove("open");
+        pauseMenu.setAttribute("aria-hidden", "true");
+        threeGameHost.hidden = false;
+        threeGameHost.innerHTML = '<div class="three-loading" role="status"><h2>Crystal Isles 3D</h2><p>Loading islands...</p><button data-three-cancel>Return to Games</button></div>';
+        threeGameHost.querySelector("button").focus();
+        const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
+        try {
+          const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+          const { mountThreeGame } = await Promise.race([import("./assets/three-games.js"), canceled]);
+          controller.signal.throwIfAborted();
+          const mounting = mountThreeGame(threeGameHost, {
+            mode: currentGame, signal: controller.signal, quality: getGraphicsQualityRank(),
+            color: getTheme(playerStyle.color).head,
+            pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "",
+            palette: pixelSkinPalette,
+            onPause: (value) => { paused = value; },
+            onPickup: () => playSound("eat"),
+            onFullscreen: toggleGameFullscreen,
+            onExit: showMainMenu,
+            onRestart: startThreeGame,
+            onFinish: (result) => {
+              if (threeGameLoading !== controller) return;
+              gameOver = true;
+              score = result.score;
+              if (score > getLocalBestScore("crystal-isles-3d")) setLocalBestScore("crystal-isles-3d", score);
+              if (owner && owner === getUserKeyFromAccount()) {
+                firebaseDb.ref(`users/${owner}/bestScores/crystal-isles-3d`).transaction((previous) => Math.max(Number(previous) || 0, result.score))
+                  .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
+              }
+              publishProfilePresence();
+              playSound(result.won ? "eat" : "gameover");
+            }
+          });
+          const session = await Promise.race([mounting, canceled]);
+          if (controller.signal.aborted || threeGameLoading !== controller) { session.dispose(); return; }
+          threeGameSession = session;
+          publishProfilePresence();
+        } catch (error) {
+          if (threeGameLoading !== controller) return;
+          threeGameHost.innerHTML = `<div class="three-loading" role="alert"><h2>Unable to open 3D game</h2><p>${escapeHtml(error?.message || "Please retry.")}</p><button data-three-retry>Retry</button><button data-three-cancel>Return to Games</button></div>`;
+          threeGameHost.querySelector("button").focus();
+        } finally { clearTimeout(timeout); }
       }
 
       function getLocalBestScore(gameName) {
@@ -13334,6 +13481,7 @@
       }
 
       function resetGame() {
+        if (currentGame === "crystal-isles-3d") { startThreeGame(); return; }
         const restartAfterDeath = gameOver;
         resetGameEffects();
 
@@ -14676,6 +14824,7 @@
       }
 
       function playLocalGame() {
+        if (currentGame === "crystal-isles-3d") return;
         if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[currentGame]?.title || "minigames"}.`)) {
           return;
         }
@@ -14862,6 +15011,12 @@
       }
 
       function showMainMenu() {
+        if (threeGameLoading || threeGameSession) {
+          disposeThreeGame();
+          currentGame = "snake";
+          gameOver = paused = false;
+          waitingToPlay = true;
+        }
         resetGameEffects();
         stopLoadingMusic();
         syncRuntimeUi();
@@ -15134,6 +15289,7 @@
         }
 
         const genres = {
+          "crystal-isles-3d": "3D platformer",
           snake: "Classic arcade",
           catcher: "Reaction",
           dodger: "Survival",
@@ -17483,6 +17639,7 @@
       }
 
       function draw() {
+        if (currentGame === "crystal-isles-3d") return;
         const sceneKey = [currentGame, onlineRoomCode, canvas.width, canvas.height].join(":");
         if (sceneKey !== effectSceneKey) resetGameEffects();
         if (document.hidden || !startScreen.classList.contains("closed")) return;
@@ -17491,6 +17648,7 @@
 
       function renderGameFrame(timestamp) {
         gameFrameRequest = null;
+        if (currentGame === "crystal-isles-3d") return;
         if (document.hidden || !startScreen.classList.contains("closed")) {
           lastGameFrameTime = null;
           return;
@@ -18343,6 +18501,7 @@
       }
 
       document.addEventListener("keydown", (event) => {
+        if (currentGame === "crystal-isles-3d") return;
         if (isTypingField(event.target)) {
           return;
         }
@@ -18369,6 +18528,7 @@
       });
 
       document.addEventListener("keyup", (event) => {
+        if (currentGame === "crystal-isles-3d") return;
         if (isTypingField(event.target)) {
           return;
         }
@@ -18437,6 +18597,7 @@
       }
 
       function togglePause() {
+        if (currentGame === "crystal-isles-3d") { threeGameSession?.pause(); return; }
         paused = !paused;
         lastGameFrameTime = null;
         draw();
@@ -18590,6 +18751,7 @@
 
       function setStoredAccount(account) {
         if (getUserKeyFromAccount() !== (account?.username ? usernameKey(account.username) : "")) {
+          if (threeGameLoading || threeGameSession) showMainMenu();
           stopProfilePresence();
           profilePictureDraft = null;
           profilePictureBusy = false;
@@ -18964,6 +19126,7 @@
 
       function getLocalBestScores() {
         return {
+          "crystal-isles-3d": getLocalBestScore("crystal-isles-3d"),
           snake: getLocalBestScore("snake"),
           catcher: getLocalBestScore("catcher"),
           dodger: getLocalBestScore("dodger"),
@@ -20428,6 +20591,7 @@
       }
 
       async function beginOnlineRoom(code, gameName, slot, room) {
+        disposeThreeGame();
         clearInterval(timer);
         clearInterval(waitingTimer);
         unsubscribeFromRoom();
@@ -22553,6 +22717,10 @@
         if (event.target.closest("[data-room-request-cancel]")) cancelPendingFriendJoin();
       });
       friendRoomInvites.addEventListener("click", respondToFriendRoomRequest);
+      threeGameHost.addEventListener("click", (event) => {
+        if (event.target.closest("[data-three-cancel]")) showMainMenu();
+        if (event.target.closest("[data-three-retry]")) startThreeGame();
+      });
       window.addEventListener("resize", () => {
         document.getElementById("battlePassScroller")?.dispatchEvent(new Event("scroll"));
         updateFriendsScrollControls();

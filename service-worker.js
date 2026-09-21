@@ -1,11 +1,14 @@
-const CACHE_NAME = "minigameworld-v4";
+const CACHE_NAME = "minigameworld-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./minigameworld-icon.png",
-  "./loading-music.mp3"
+  "./loading-music.mp3",
+  "./assets/crystal-isles-3d.png"
 ];
+// Cache the self-contained 3D engine after first play, not during app installation.
+const LAZY_ASSETS = ["./assets/three-games.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,7 +35,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  const shellUrls = APP_SHELL.map((path) => new URL(path, self.registration.scope).pathname);
+  const shellUrls = [...APP_SHELL, ...LAZY_ASSETS].map((path) => new URL(path, self.registration.scope).pathname);
   if (event.request.mode !== "navigate" && !shellUrls.includes(requestUrl.pathname)) return;
   const cacheKey = event.request.mode === "navigate" ? new URL("./index.html", self.registration.scope).href : event.request;
   const refresh = fetch(event.request).then(async (response) => {
