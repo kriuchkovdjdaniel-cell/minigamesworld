@@ -1,17 +1,15 @@
 import RAPIER from "@dimforge/rapier3d-compat";
+import { LEVELS } from "./three-levels.mjs";
 
 export const STEP = 1 / 60;
 let ready;
 
-export function makeLevel(mode) {
+export function makeLevel(mode, levelIndex = 0) {
   if (mode === "crystal-isles-3d") {
-    const islands = [
-      [0, -0.6, 10, 10, 10], [0, -0.2, 1, 5, 6], [6, 0.3, -4, 6, 6],
-      [10, 0.8, -12, 5, 6], [2, 1.2, -16, 7, 6], [-7, 0.9, -12, 6, 6],
-      [-11, 0.2, -4, 5, 6], [-7, -0.2, 3, 5, 5]
-    ];
+    if (!Number.isInteger(levelIndex) || !LEVELS[levelIndex]) throw new Error("Unknown 3D level.");
+    const { islands, name, theme } = LEVELS[levelIndex];
     return {
-      mode, title: "Crystal Isles 3D", spawn: { x: 0, y: 1.2, z: 13 },
+      mode, levelIndex, name, theme, title: "Crystal Isles 3D", spawn: { x: 0, y: 1.2, z: 13 },
       boxes: islands.map(([x, y, z, w, d]) => ({ x, y, z, w, h: 1.2, d, kind: "island" })),
       gems: islands.map(([x, y, z]) => ({ x, y: y + 1.75, z })),
       portal: { x: 3, y: 1.3, z: 12 }, hazards: []
@@ -20,10 +18,10 @@ export function makeLevel(mode) {
   throw new Error("Unknown 3D game.");
 }
 
-export async function createSimulation(mode) {
+export async function createSimulation(mode, levelIndex = 0) {
   ready ||= RAPIER.init().catch((error) => { ready = null; throw error; });
   await ready;
-  const level = makeLevel(mode);
+  const level = makeLevel(mode, levelIndex);
   const world = new RAPIER.World({ x: 0, y: -22, z: 0 });
   world.timestep = STEP;
   for (const box of level.boxes) {

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createSimulation, makeLevel, STEP } from "../src/three-world.mjs";
+import { LEVELS, normalizeProgress, recordLevelResult } from "../src/three-levels.mjs";
 
 const mode = "crystal-isles-3d";
 const tick = (sim, count, input) => { for (let i = 0; i < count; i++) sim.step(input); };
@@ -10,8 +11,8 @@ const teleport = (sim, point) => {
   sim.state.velocityY = 0;
   tick(sim, 3);
 };
-async function withSimulation(fn) {
-  const sim = await createSimulation(mode);
+async function withSimulation(fn, levelIndex = 0) {
+  const sim = await createSimulation(mode, levelIndex);
   try { await fn(sim); } finally { sim.dispose(); }
 }
 
@@ -37,7 +38,8 @@ test("gravity lands the player on a solid platform without sinking", () => withS
   assert.ok(Math.abs(sim.state.elapsed - 180 * STEP) < 1e-9);
 }));
 
-test("the entire course can be completed through movement and jumps without teleporting", () => withSimulation((sim) => {
+for (const [levelIndex, level] of LEVELS.entries()) {
+test(`${level.name} can be completed through movement and jumps without teleporting`, () => withSimulation((sim) => {
   const walkTo = (target, jump = false) => {
     for (let n = 0; n < 300; n++) {
       if (sim.state.status === "won") return;
@@ -62,7 +64,42 @@ test("the entire course can be completed through movement and jumps without tele
   }
   walkTo(sim.level.portal);
   assert.equal(sim.state.status, "won");
-}));
+}, levelIndex));
+}
+
+test("new courses have distinct routes, names and scenery, and reject invalid indexes", () => {
+  assert.equal(LEVELS.length, 4);
+  assert.equal(new Set(LEVELS.map(level => level.name)).size, 4);
+  assert.equal(new Set(LEVELS.map(level => JSON.stringify(level.islands))).size, 4);
+  assert.equal(new Set(LEVELS.map(level => level.theme.sky)).size, 4);
+  for (const index of [-1, 4, NaN, Infinity, "1", 1.5]) assert.throws(() => makeLevel(mode, index), /Unknown 3D level/);
+});
+
+test("saved level progress is bounded and completing or replaying a level cannot erase other clears", () => {
+  for (const value of [null, "corrupt", { selected: 99 }, { selected: -1 }, { selected: "2", completed: ["true", 1] }]) {
+    assert.deepEqual(normalizeProgress(value), { selected: 0, completed: [false, false, false, false] });
+  }
+  const original = { selected: 1, completed: [true, false, false, false] };
+  const won = recordLevelResult(original, { levelIndex: 1, won: true });
+  assert.deepEqual(won.completed, [true, true, false, false]);
+  assert.deepEqual(original.completed, [true, false, false, false]);
+  assert.deepEqual(recordLevelResult(won, { levelIndex: 0, won: false }).completed, won.completed);
+  assert.deepEqual(recordLevelResult(won, { levelIndex: 1, won: true }), won);
+  assert.deepEqual(recordLevelResult(won, { levelIndex: 40, won: true }), won);
+});
+
+for (let levelIndex = 1; levelIndex < LEVELS.length; levelIndex++) {
+  test(`${LEVELS[levelIndex].name} resets crystals and lives, and keeps the portal locked until complete`, () => withSimulation((sim) => {
+    assert.equal(sim.state.collected.size, 0);
+    assert.equal(sim.state.lives, 3);
+    teleport(sim, sim.level.portal);
+    assert.equal(sim.state.status, "playing");
+    for (const gem of sim.level.gems) teleport(sim, gem);
+    teleport(sim, sim.level.portal);
+    assert.equal(sim.state.status, "won");
+    assert.equal(sim.state.collected.size, sim.level.gems.length);
+  }, levelIndex));
+}
 
 test("movement is bounded, diagonals are normalized and invalid input is ignored", async () => {
   const distance = async (input) => {

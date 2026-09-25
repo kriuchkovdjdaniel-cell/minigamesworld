@@ -8995,6 +8995,11 @@
       #threeGameHost h2 { margin: 0 0 12px; font: 700 24px/1.2 Arial, sans-serif; color: #f2f6ef; text-shadow: none; }
       #threeGameHost p { font: 15px/1.5 Arial, sans-serif; color: #c2d5ce; }
       #threeGameHost .three-menu button, #threeGameHost .three-loading button { width: 100%; margin-top: 10px; }
+      #threeGameHost .three-menu label { display: block; margin: 18px 0 8px; color: #c2d5ce; font: 700 14px/1.4 Arial, sans-serif; }
+      #threeGameHost .three-level-picker { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; }
+      #threeGameHost .three-level-picker select { min-width: 0; width: 100%; height: 44px; padding: 8px; border: 1px solid #648a85; border-radius: 6px; background: #143b3d; color: #f2f6ef; font: 14px/1.3 Arial, sans-serif; text-transform: none; }
+      #threeGameHost .three-level-picker button { width: 44px; height: 44px; margin: 0; padding: 10px; }
+      #threeGameHost .three-level-picker select:focus-visible { outline: 3px solid #e9c77d; outline-offset: 3px; }
       .game-thumb[data-game="crystal-isles-3d"], .showcase-thumb[data-game="crystal-isles-3d"] {
         background: #75a19c url("assets/crystal-isles-3d.png") center / cover no-repeat !important;
       }
@@ -10118,7 +10123,7 @@
         "crystal-isles-3d": {
           title: "Crystal Isles 3D",
           bestKey: "crystal-isles-3d-best",
-          help: "Eight crystals. Floating islands. One way home."
+          help: "Four island courses. Collect every crystal and reach the portal."
         },
         snake: {
           title: "Neon Snake",
@@ -10240,6 +10245,7 @@
       let currentGame = "snake";
       let threeGameSession = null;
       let threeGameLoading = null;
+      let threeGameLevelIndex = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
       let selectedStartMode = "solo";
@@ -10847,7 +10853,7 @@
         threeGameHost.replaceChildren();
       }
 
-      async function startThreeGame() {
+      async function startThreeGame(requestedLevel) {
         if (!requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting Crystal Isles 3D.");
@@ -10874,10 +10880,26 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const { mountThreeGame } = await Promise.race([import("./assets/three-games.js"), canceled]);
+          const { mountThreeGame, LEVELS, normalizeProgress, recordLevelResult } = await Promise.race([import("./assets/three-games.js?v=levels-2"), canceled]);
           controller.signal.throwIfAborted();
+          const progressKey = `crystal-isles-3d-progress-${owner || "guest"}`;
+          const readProgress = () => {
+            try { return normalizeProgress(JSON.parse(localStorage.getItem(progressKey) || "null")); }
+            catch { return normalizeProgress(null); }
+          };
+          let progress = readProgress();
+          const levelIndex = Number.isInteger(requestedLevel) && requestedLevel >= 0 && requestedLevel < LEVELS.length ? requestedLevel : progress.selected;
+          threeGameLevelIndex = levelIndex;
+          progress.selected = levelIndex;
+          const saveProgress = () => {
+            const latest = readProgress();
+            progress.completed = progress.completed.map((cleared, index) => cleared || latest.completed[index]);
+            try { localStorage.setItem(progressKey, JSON.stringify(progress)); }
+            catch { showTopNotification("Level progress could not be saved on this device."); }
+          };
+          saveProgress();
           const mounting = mountThreeGame(threeGameHost, {
-            mode: currentGame, signal: controller.signal, quality: getGraphicsQualityRank(),
+            mode: currentGame, levelIndex, completed: progress.completed, signal: controller.signal, quality: getGraphicsQualityRank(),
             color: getTheme(playerStyle.color).head,
             pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "",
             palette: pixelSkinPalette,
@@ -10885,9 +10907,12 @@
             onPickup: () => playSound("eat"),
             onFullscreen: toggleGameFullscreen,
             onExit: showMainMenu,
-            onRestart: startThreeGame,
+            onRestart: () => startThreeGame(levelIndex),
+            onLevelChange: (nextLevel) => startThreeGame(nextLevel),
             onFinish: (result) => {
               if (threeGameLoading !== controller) return;
+              progress = recordLevelResult(progress, result);
+              saveProgress();
               gameOver = true;
               score = result.score;
               if (score > getLocalBestScore("crystal-isles-3d")) setLocalBestScore("crystal-isles-3d", score);
@@ -22719,7 +22744,7 @@
       friendRoomInvites.addEventListener("click", respondToFriendRoomRequest);
       threeGameHost.addEventListener("click", (event) => {
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
-        if (event.target.closest("[data-three-retry]")) startThreeGame();
+        if (event.target.closest("[data-three-retry]")) startThreeGame(threeGameLevelIndex);
       });
       window.addEventListener("resize", () => {
         document.getElementById("battlePassScroller")?.dispatchEvent(new Event("scroll"));

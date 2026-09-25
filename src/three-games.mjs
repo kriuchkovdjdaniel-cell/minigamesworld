@@ -1,20 +1,24 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
-import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Gem, Heart, Timer } from "lucide";
+import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Gem, Heart, Timer, ArrowRight } from "lucide";
 import { createSimulation, STEP } from "./three-world.mjs";
+import { LEVELS, normalizeProgress } from "./three-levels.mjs";
+export { LEVELS, normalizeProgress, recordLevelResult } from "./three-levels.mjs";
 
-const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, gem: Gem, heart: Heart, timer: Timer };
+const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, gem: Gem, heart: Heart, timer: Timer, next: ArrowRight };
 
 export async function mountThreeGame(host, options) {
-  const sim = await createSimulation(options.mode);
+  const sim = await createSimulation(options.mode, options.levelIndex);
+  const { theme, levelIndex } = sim.level;
+  const completed = normalizeProgress({ completed: options.completed }).completed;
   if (options.signal?.aborted) { sim.dispose(); throw new DOMException("Canceled", "AbortError"); }
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ antialias: options.quality > 0, powerPreference: "high-performance" }); }
   catch (error) { sim.dispose(); throw new Error("3D graphics are unavailable on this device. Try enabling hardware acceleration.", { cause: error }); }
   const abort = new AbortController();
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#a0bec3");
+  scene.background = new THREE.Color(theme.sky);
   scene.fog = new THREE.Fog(scene.background, 36, 150);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, [1, 1.25, 1.5, 1.75][options.quality] || 1));
   renderer.shadowMap.enabled = options.quality > 0;
@@ -22,10 +26,11 @@ export async function mountThreeGame(host, options) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.25;
   renderer.domElement.setAttribute("aria-label", sim.level.title + " game scene");
+  renderer.domElement.title = "Hold right mouse button to rotate camera; scroll to zoom";
   renderer.domElement.tabIndex = 0;
   host.innerHTML = `
     <div class="three-hud">
-      <div class="three-title"><span>MINIGAMEWORLD</span><strong>${sim.level.title}</strong></div>
+      <div class="three-title"><span>MINIGAMEWORLD</span><strong>${sim.level.title}</strong><span data-level>Level ${levelIndex + 1} / ${LEVELS.length} - ${sim.level.name}</span></div>
       <div class="three-counters" aria-label="Game progress">
         <span><i data-three-icon="gem"></i><output data-gems>0 / ${sim.level.gems.length}</output></span>
         <span><i data-three-icon="heart"></i><output data-lives>3</output></span>
@@ -41,8 +46,14 @@ export async function mountThreeGame(host, options) {
     <p class="three-notice" role="status" aria-live="polite"></p>
     <dialog class="three-menu" aria-labelledby="threeMenuTitle">
       <h2 id="threeMenuTitle">Paused</h2><p data-result></p>
+      <button data-action="next" hidden><i data-three-icon="next"></i>Next Level</button>
       <button data-action="resume"><i data-three-icon="resume"></i>Resume</button>
-      <button data-action="restart"><i data-three-icon="restart"></i>Restart</button>
+      <button data-action="restart"><i data-three-icon="restart"></i>Restart Level</button>
+      <label for="threeLevelSelect">Level</label>
+      <div class="three-level-picker">
+        <select id="threeLevelSelect" aria-label="Level"></select>
+        <button data-action="level" title="Play selected level" aria-label="Play selected level"><i data-three-icon="resume"></i></button>
+      </div>
       <button data-action="exit"><i data-three-icon="exit"></i>Return to Games</button>
     </dialog>`;
   host.prepend(renderer.domElement);
@@ -50,8 +61,8 @@ export async function mountThreeGame(host, options) {
   const camera = new THREE.PerspectiveCamera(54, 1, 0.1, 260);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false;
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.12;
+  controls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: THREE.MOUSE.ROTATE };
+  controls.enableDamping = false;
   controls.minDistance = 5;
   controls.maxDistance = 22;
   controls.minPolarAngle = 0.25;
@@ -89,13 +100,13 @@ export async function mountThreeGame(host, options) {
   for (const kind of ["wall", "floor", "island"]) {
     const boxes = sim.level.boxes.filter((box) => box.kind === kind);
     if (!boxes.length) continue;
-    const batch = new THREE.InstancedMesh(boxGeometry, material(kind === "island" ? "#667773" : kind === "wall" ? "#517875" : "#243f46"), boxes.length);
-    const caps = new THREE.InstancedMesh(boxGeometry, material(kind === "island" ? "#70a77a" : "#7fa999"), boxes.length);
+    const batch = new THREE.InstancedMesh(boxGeometry, material(theme.stone), boxes.length);
+    const caps = new THREE.InstancedMesh(boxGeometry, material(theme.grass), boxes.length);
     boxes.forEach((box, i) => {
       transform.position.set(box.x, box.y, box.z); transform.scale.set(box.w, box.h, box.d); transform.updateMatrix(); batch.setMatrixAt(i, transform.matrix);
       transform.position.y = box.y + box.h / 2 + 0.01; transform.scale.set(box.w, 0.05, box.d); transform.updateMatrix(); caps.setMatrixAt(i, transform.matrix);
       if (kind === "island") {
-        const rock = new THREE.Mesh(new THREE.ConeGeometry(Math.max(box.w, box.d) * 0.55, 4, 5), material("#405962"));
+        const rock = new THREE.Mesh(new THREE.ConeGeometry(Math.max(box.w, box.d) * 0.55, 4, 5), material(theme.rock));
         rock.rotation.z = Math.PI; rock.position.set(box.x, box.y - 2.5, box.z); scene.add(rock);
         addBox(box.x + box.w / 2 - 0.7, box.y + 1.25, box.z + box.d / 2 - 0.7, 0.12, 1.3, 0.12, "#344e4b");
         const flag = addBox(box.x + box.w / 2 - 0.35, box.y + 1.8, box.z + box.d / 2 - 0.7, 0.65, 0.4, 0.08, i % 2 ? "#c3a0c8" : "#dfc57d");
@@ -105,16 +116,16 @@ export async function mountThreeGame(host, options) {
     batch.castShadow = batch.receiveShadow = caps.receiveShadow = true;
     scene.add(batch, caps);
   }
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), material("#3c7a87", { roughness: 0.35, metalness: 0.25 }));
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), material(theme.water, { roughness: 0.35, metalness: 0.25 }));
   water.rotation.x = -Math.PI / 2; water.position.y = -9; scene.add(water);
   for (let i = 0; i < 18; i++) {
     const angle = i * Math.PI * 2 / 18;
-    const mountain = new THREE.Mesh(new THREE.ConeGeometry(10 + i % 4 * 3, 15 + i % 5 * 5, 5), material(i % 2 ? "#698c8b" : "#55787e"));
+    const mountain = new THREE.Mesh(new THREE.ConeGeometry(10 + i % 4 * 3, 15 + i % 5 * 5, 5), material(i % 2 ? theme.mountain : theme.rock));
     mountain.position.set(Math.sin(angle) * 78, -3, Math.cos(angle) * 78); scene.add(mountain);
   }
   const gemGeometry = new THREE.OctahedronGeometry(0.5);
   const gemMeshes = sim.level.gems.map((point) => {
-    const mesh = new THREE.Mesh(gemGeometry, material("#f0d285", { metalness: 0.3, roughness: 0.25, emissive: "#765c23", emissiveIntensity: 0.35 }));
+    const mesh = new THREE.Mesh(gemGeometry, material(theme.gem, { metalness: 0.3, roughness: 0.25, emissive: theme.gem, emissiveIntensity: 0.1 }));
     mesh.position.copy(point); mesh.castShadow = true; scene.add(mesh); return mesh;
   });
   const hazardMeshes = sim.hazards.map(() => {
@@ -143,13 +154,30 @@ export async function mountThreeGame(host, options) {
   const map = host.querySelector(".three-map");
   const mapContext = map.getContext("2d");
   const menu = host.querySelector(".three-menu");
+  const levelSelect = host.querySelector("#threeLevelSelect");
+  function updateLevelOptions() {
+    levelSelect.replaceChildren(...LEVELS.map((level, index) => new Option(`${index + 1}. ${level.name}${completed[index] ? " - Clear" : ""}`, String(index), false, index === levelIndex)));
+  }
+  updateLevelOptions();
   const notice = host.querySelector(".three-notice");
   const keys = new Set();
   let paused = false, ended = false, disposed = false, jump = false, frameId = null, lastTime = null, accumulator = 0, previousCount = 0, previousLives = 3, noticeUntil = 0;
+  let cameraPointer = null;
+  function releaseCameraDrag() {
+    if (cameraPointer === null) return;
+    const pointer = cameraPointer;
+    cameraPointer = null;
+    if (renderer.domElement.hasPointerCapture(pointer)) renderer.domElement.releasePointerCapture(pointer);
+    // Reconnecting clears OrbitControls' drag state after blur, cancel, or a modal.
+    controls.disconnect();
+    controls.connect(renderer.domElement);
+    renderer.domElement.style.cursor = "";
+  }
   const clockLabel = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
   function setPaused(value) {
     if (disposed || ended) return;
     paused = value; keys.clear(); jump = false; lastTime = null; accumulator = 0;
+    releaseCameraDrag();
     controls.enabled = !paused;
     if (paused) {
       host.querySelector("#threeMenuTitle").textContent = "Paused";
@@ -165,10 +193,10 @@ export async function mountThreeGame(host, options) {
     mapContext.fillStyle = "#071619d9"; mapContext.fillRect(0, 0, 160, 160);
     for (const box of sim.level.boxes) {
       if (box.kind === "floor") continue;
-      mapContext.fillStyle = "#729d81";
+      mapContext.fillStyle = theme.grass;
       mapContext.fillRect(80 + (box.x - box.w / 2) * scale, 80 + (box.z - box.d / 2) * scale, box.w * scale, box.d * scale);
     }
-    sim.level.gems.forEach((point, i) => { if (!sim.state.collected.has(i)) { mapContext.fillStyle = "#f2ce6f"; mapContext.fillRect(78 + point.x * scale, 78 + point.z * scale, 4, 4); } });
+    sim.level.gems.forEach((point, i) => { if (!sim.state.collected.has(i)) { mapContext.fillStyle = theme.gem; mapContext.fillRect(78 + point.x * scale, 78 + point.z * scale, 4, 4); } });
     mapContext.strokeStyle = sim.state.collected.size === sim.level.gems.length ? "#d7afff" : "#8995a4";
     mapContext.strokeRect(76 + sim.level.portal.x * scale, 76 + sim.level.portal.z * scale, 8, 8);
     mapContext.fillStyle = "#fff"; mapContext.beginPath(); mapContext.arc(80 + player.position.x * scale, 80 + player.position.z * scale, 3, 0, Math.PI * 2); mapContext.fill();
@@ -209,12 +237,17 @@ export async function mountThreeGame(host, options) {
     }
     render();
     if (sim.state.status !== "playing") {
+      releaseCameraDrag();
       ended = true; keys.clear(); controls.enabled = false;
-      host.querySelector("#threeMenuTitle").textContent = sim.state.status === "won" ? "Course Clear" : "Out of Lives";
+      const won = sim.state.status === "won";
+      if (won) completed[levelIndex] = true;
+      updateLevelOptions();
+      host.querySelector("#threeMenuTitle").textContent = won ? (levelIndex === LEVELS.length - 1 ? "Final Course Clear" : "Course Clear") : "Out of Lives";
       host.querySelector("[data-result]").textContent = `${sim.state.score} points | ${clockLabel(sim.state.elapsed)}`;
       host.querySelector('[data-action="resume"]').hidden = true;
+      host.querySelector('[data-action="next"]').hidden = !won || levelIndex === LEVELS.length - 1;
       menu.showModal();
-      options.onFinish?.({ won: sim.state.status === "won", score: sim.state.score, seconds: sim.state.elapsed });
+      options.onFinish?.({ won, score: sim.state.score, seconds: sim.state.elapsed, levelIndex });
     } else schedule();
   }
   const resize = () => { const { width, height } = host.getBoundingClientRect(); if (width && height) { renderer.setSize(width, height); camera.aspect = width / height; camera.updateProjectionMatrix(); render(); } };
@@ -225,8 +258,23 @@ export async function mountThreeGame(host, options) {
     if (action === "resume") setPaused(false);
     if (action === "camera") { resetCamera(); render(); renderer.domElement.focus(); }
     if (action === "fullscreen") Promise.resolve(options.onFullscreen?.()).finally(() => { if (!disposed) renderer.domElement.focus(); });
+    if (action === "next" && sim.state.status === "won" && levelIndex + 1 < LEVELS.length) { menu.close(); options.onLevelChange?.(levelIndex + 1); }
+    if (action === "level") { menu.close(); options.onLevelChange?.(Number(levelSelect.value)); }
     if (action === "exit" || action === "restart") { menu.close(); options[action === "exit" ? "onExit" : "onRestart"]?.(); }
   }, { signal: abort.signal });
+  renderer.domElement.addEventListener("pointerdown", (event) => {
+    if (event.pointerType !== "mouse") return;
+    if (paused || ended || event.button !== 2) { event.stopImmediatePropagation(); return; }
+    cameraPointer = event.pointerId;
+    renderer.domElement.style.cursor = "grabbing";
+    renderer.domElement.focus();
+  }, { signal: abort.signal, capture: true });
+  renderer.domElement.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "mouse" && !(event.buttons & 2)) releaseCameraDrag();
+  }, { signal: abort.signal, capture: true });
+  window.addEventListener("pointerup", (event) => { if (!(event.buttons & 2)) releaseCameraDrag(); }, { signal: abort.signal });
+  renderer.domElement.addEventListener("pointercancel", releaseCameraDrag, { signal: abort.signal });
+  renderer.domElement.addEventListener("lostpointercapture", releaseCameraDrag, { signal: abort.signal });
   window.addEventListener("keydown", (event) => {
     if (event.target.closest("input,select,textarea,button") || event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.code === "Escape" && !menu.open) { event.preventDefault(); setPaused(true); return; }
@@ -243,10 +291,10 @@ export async function mountThreeGame(host, options) {
   resize(); renderer.domElement.focus(); schedule();
   return {
     pause: () => setPaused(true),
-    snapshot: () => ({ ...sim.state, collected: sim.state.collected.size, position: { ...sim.body.translation() }, drawCalls: renderer.info.render.calls }),
+    snapshot: () => ({ ...sim.state, levelIndex, levelName: sim.level.name, paused, collected: sim.state.collected.size, position: { ...sim.body.translation() }, camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls }),
     dispose() {
       if (disposed) return;
-      disposed = true; cancelAnimationFrame(frameId); abort.abort(); observer.disconnect(); controls.dispose(); menu.close();
+      disposed = true; cancelAnimationFrame(frameId); abort.abort(); observer.disconnect(); releaseCameraDrag(); controls.dispose(); menu.close();
       const geometries = new Set(); scene.traverse((object) => { if (object.geometry) geometries.add(object.geometry); if (object.isInstancedMesh) object.dispose(); });
       for (const geometry of geometries) geometry.dispose();
       for (const value of materials.values()) { value.map?.dispose(); value.dispose(); }
