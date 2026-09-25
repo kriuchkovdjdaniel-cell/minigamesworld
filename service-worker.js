@@ -1,14 +1,15 @@
-const CACHE_NAME = "minigameworld-v6";
+const CACHE_NAME = "minigameworld-v7";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   "./minigameworld-icon.png",
   "./loading-music.mp3",
-  "./assets/crystal-isles-3d.png"
+  "./assets/crystal-isles-3d.png",
+  "./assets/dead-route-3d.png"
 ];
 // Cache the self-contained 3D engine after first play, not during app installation.
-const LAZY_ASSETS = ["./assets/three-games.js"];
+const LAZY_ASSETS = ["./assets/three-games.js", "./assets/zombie-game.js"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

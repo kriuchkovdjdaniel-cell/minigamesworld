@@ -14,7 +14,10 @@ const staticFiles = [
   "loading-music.mp3",
   "assets/three-games.js",
   "assets/three-games.js.LEGAL.txt",
-  "assets/crystal-isles-3d.png"
+  "assets/crystal-isles-3d.png",
+  "assets/zombie-game.js",
+  "assets/zombie-game.js.LEGAL.txt",
+  "assets/dead-route-3d.png"
 ];
 
 await build3d();

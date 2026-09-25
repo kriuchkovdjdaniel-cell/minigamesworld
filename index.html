@@ -9014,6 +9014,65 @@
         #threeGameHost .three-map { width: 112px; height: 112px; bottom: 12px; left: 12px; }
         #threeGameHost .three-notice { bottom: 12px; left: auto; right: 12px; transform: none; max-width: calc(100% - 148px); padding: 10px; font-size: 14px; }
       }
+      /* Dead Route is scoped to its full-screen game host, not the hub. */
+      #threeGameHost .zombie-header { position: absolute; inset: 0 0 auto; display: grid; grid-template-columns: 230px minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 16px 24px; background: #152c2bef; border: 0; border-bottom: 1px solid #799287; border-radius: 0; pointer-events: none; }
+      #threeGameHost .zombie-brand { display: grid; gap: 4px; text-align: left; }
+      #threeGameHost .zombie-brand > span { color: #c3cbae; font: 700 10px Arial, sans-serif; }
+      #threeGameHost .zombie-brand strong { font: 800 23px Arial, sans-serif; }
+      #threeGameHost .zombie-brand small { color: #d5bb77; font-size: 14px; }
+      #threeGameHost .zombie-route { display: grid; gap: 6px; text-align: left; min-width: 0; }
+      #threeGameHost .zombie-route span { color: #d5bb77; font: 700 11px/1.3 Arial, sans-serif; }
+      #threeGameHost .zombie-route strong { font: 600 14px/1.35 Arial, sans-serif; overflow-wrap: anywhere; }
+      #threeGameHost .zombie-tools, #threeGameHost .zombie-actions { display: flex; gap: 6px; pointer-events: auto; }
+      #threeGameHost .zombie-tools button, #threeGameHost .zombie-actions button { width: 42px; height: 44px; padding: 8px; flex: 0 0 42px; }
+      #threeGameHost .zombie-map { position: absolute; top: 104px; right: 24px; width: 152px; height: 152px; border: 1px solid #819c8c; border-radius: 6px; box-shadow: none; }
+      #threeGameHost .zombie-vitals { position: absolute; bottom: 24px; left: 24px; width: 280px; padding: 15px; box-sizing: border-box; background: #172e2bea; border: 1px solid #738c7e; border-radius: 6px; }
+      #threeGameHost .zombie-vitals > div { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 5px 7px; margin-bottom: 10px; font: 13px Arial, sans-serif; }
+      #threeGameHost .zombie-vitals output { font-variant-numeric: tabular-nums; color: #e5daba; }
+      #threeGameHost .zombie-vitals meter { grid-column: 2 / -1; width: 100%; height: 7px; border: 0; background: #344b44; }
+      #threeGameHost .zombie-vitals meter::-webkit-meter-bar { background: #344b44; border: 0; border-radius: 0; }
+      #threeGameHost .zombie-vitals meter::-webkit-meter-optimum-value { background: #8ac4a4; }
+      #threeGameHost .zombie-vitals meter[data-fuel-meter]::-webkit-meter-optimum-value { background: #d5bb77; }
+      #threeGameHost .zombie-vitals footer { display: flex; justify-content: space-between; padding-top: 5px; font: 700 11px Arial, sans-serif; color: #c4d5c3; }
+      #threeGameHost .zombie-ammo { position: absolute; right: 24px; bottom: 82px; display: grid; gap: 5px; padding: 14px 18px; min-width: 168px; background: #172e2bea; border: 1px solid #738c7e; border-radius: 6px; text-align: right; }
+      #threeGameHost .zombie-ammo span { font: 700 11px Arial, sans-serif; color: #d5bb77; }
+      #threeGameHost .zombie-ammo strong { font: 700 25px Arial, sans-serif; }
+      #threeGameHost .zombie-ammo small { font: 12px Arial, sans-serif; }
+      #threeGameHost .zombie-actions { position: absolute; bottom: 24px; right: 24px; }
+      #threeGameHost .zombie-interaction { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); }
+      #threeGameHost .zombie-interaction button { background: #dfd3a6; color: #203a33; border-color: #faf0d3; min-width: 150px; }
+      #threeGameHost .zombie-notice { position: absolute; left: 50%; top: 100px; transform: translateX(-50%); max-width: min(420px, calc(100% - 32px)); padding: 10px 20px; margin: 0; border-radius: 6px; background: #192e2cec; text-align: center; pointer-events: none; color: #f2e5be; }
+      #threeGameHost .zombie-notice:empty { display: none; }
+      #threeGameHost .zombie-menu { width: min(480px, calc(100% - 32px)); }
+      #threeGameHost .zombie-offers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      #threeGameHost .zombie-offers button { flex-direction: column; align-items: start; text-align: left; margin-top: 0; }
+      #threeGameHost .zombie-offers small { font: 12px/1.4 Arial, sans-serif; color: #c7d8c8; }
+      #threeGameHost .zombie-inventory { padding: 12px 0; font: 14px/1.5 Arial, sans-serif; }
+      #threeGameHost button:disabled { opacity: 0.5; cursor: not-allowed; }
+      #threeGameHost.zombie-hurt { box-shadow: inset 0 0 0 5px #ae655f; }
+      .game-thumb[data-game="dead-route-3d"], .showcase-thumb[data-game="dead-route-3d"] { background: #638778 url("assets/dead-route-3d.png") center / cover no-repeat !important; }
+      [data-game="dead-route-3d"] .game-icon-large, [data-game="dead-route-3d"] .showcase-icon { visibility: hidden; }
+      @media (max-width: 760px) {
+        #threeGameHost .zombie-header { padding: 12px; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+        #threeGameHost .zombie-brand strong { font-size: 18px; }
+        #threeGameHost .zombie-tools { gap: 3px; }
+        #threeGameHost .zombie-tools button { width: 36px; flex-basis: 36px; }
+        #threeGameHost .zombie-route { grid-row: 2; grid-column: 1 / -1; }
+        #threeGameHost .zombie-map { top: 142px; right: 12px; width: 96px; height: 96px; }
+        #threeGameHost .zombie-notice { top: 250px; font-size: 13px; padding: 8px 12px; }
+        #threeGameHost .zombie-vitals { bottom: 12px; left: 12px; width: 180px; padding: 10px; }
+        #threeGameHost .zombie-vitals > div { font-size: 11px; gap: 3px; margin-bottom: 7px; }
+        #threeGameHost .zombie-vitals svg { width: 16px; }
+        #threeGameHost .zombie-ammo { right: 12px; bottom: 68px; min-width: 0; max-width: calc(100% - 224px); padding: 10px; }
+        #threeGameHost .zombie-ammo strong { font-size: 19px; overflow-wrap: anywhere; }
+        #threeGameHost .zombie-ammo small { font-size: 11px; }
+        #threeGameHost .zombie-actions { bottom: 12px; right: 12px; }
+        #threeGameHost .zombie-interaction { bottom: 194px; }
+      }
+      @media (max-height: 520px) {
+        #threeGameHost .zombie-map { display: none; }
+        #threeGameHost .zombie-notice { top: 140px; }
+      }
     </style>
   </head>
   <body>
@@ -9099,6 +9158,7 @@
           </div>
           <h3>Games</h3>
           <div class="game-card-grid">
+            <button type="button" data-start-game="dead-route-3d">Dead Route 3D</button>
             <button type="button" data-start-game="crystal-isles-3d">Crystal Isles 3D</button>
             <button type="button" class="selected" data-start-game="snake">Neon Snake</button>
             <button type="button" data-start-game="catcher">Apple Drop</button>
@@ -10120,6 +10180,11 @@
         { x: 6, y: 10 }
       ];
       const games = {
+        "dead-route-3d": {
+          title: "Dead Route 3D",
+          bestKey: "dead-route-3d-best",
+          help: "A survivor. A bus. Three stops to Safe Haven."
+        },
         "crystal-isles-3d": {
           title: "Crystal Isles 3D",
           bestKey: "crystal-isles-3d-best",
@@ -10223,6 +10288,7 @@
         "online-bomb-tag": "Online Bomb Tag"
       };
       const startGameMeta = {
+        "dead-route-3d": { display: "Dead Route 3D", creator: "MiniGameWorld Studio" },
         "crystal-isles-3d": { display: "Crystal Isles 3D", creator: "MiniGameWorld Studio" },
         snake: { display: "Neon Snake", creator: "MiniGameWorld Studio" },
         catcher: { display: "Apple Drop", creator: "MiniGameWorld Games" },
@@ -10246,6 +10312,8 @@
       let threeGameSession = null;
       let threeGameLoading = null;
       let threeGameLevelIndex = 0;
+      let zombieGameModule = null;
+      let zombieGameImportAttempt = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
       let selectedStartMode = "solo";
@@ -10806,6 +10874,7 @@
           return;
         }
 
+        if (gameName === "dead-route-3d") { startZombieGame(); return; }
         if (gameName === "crystal-isles-3d") {
           startThreeGame();
           return;
@@ -10841,7 +10910,11 @@
       }
 
       function isSinglePlayerGame(gameName) {
-        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector", "crystal-isles-3d"].includes(gameName);
+        return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector", "crystal-isles-3d", "dead-route-3d"].includes(gameName);
+      }
+
+      function isThreeGame(gameName = currentGame) {
+        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d";
       }
 
       function disposeThreeGame() {
@@ -10851,6 +10924,67 @@
         threeGameSession = null;
         threeGameHost.hidden = true;
         threeGameHost.replaceChildren();
+        delete threeGameHost.dataset.game;
+      }
+
+      async function startZombieGame(fresh = false) {
+        if (!requireDesktopGameplay()) return;
+        if (onlineRoomCode || roomJoinInFlight) {
+          showTopNotification("Leave your online room before starting Dead Route 3D.");
+          return;
+        }
+        disposeThreeGame();
+        const controller = new AbortController();
+        threeGameLoading = controller;
+        const owner = getUserKeyFromAccount();
+        const checkpointKey = `dead-route-3d-checkpoint-${owner || "guest"}`;
+        clearInterval(timer); clearInterval(waitingTimer); resetGameEffects();
+        currentGame = "dead-route-3d"; score = 0;
+        gameOver = paused = waitingToPlay = false;
+        unlockBackgroundMusic(); closeStartScreen(); hidePlayOverlay();
+        pauseMenu.classList.remove("open"); pauseMenu.setAttribute("aria-hidden", "true");
+        threeGameHost.hidden = false;
+        threeGameHost.innerHTML = '<div class="three-loading" role="status"><h2>Dead Route 3D</h2><p>Loading the road...</p><button data-three-cancel>Return to Games</button></div>';
+        threeGameHost.querySelector("button").focus();
+        const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
+        try {
+          const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+          const loadingModule = zombieGameModule ? Promise.resolve(zombieGameModule) : import(`./assets/zombie-game.js?v=route-1&attempt=${++zombieGameImportAttempt}`)
+            .then(module => { zombieGameModule = module; return module; });
+          const { mountZombieGame, normalizeCheckpoint } = await Promise.race([loadingModule, canceled]);
+          controller.signal.throwIfAborted();
+          let checkpoint = null;
+          if (!fresh) { try { checkpoint = JSON.parse(localStorage.getItem(checkpointKey) || "null"); } catch {} }
+          const mounting = mountZombieGame(threeGameHost, {
+            checkpoint: normalizeCheckpoint(checkpoint), signal: controller.signal, quality: getGraphicsQualityRank(), color: getTheme(playerStyle.color).head, volume: getGameVolume(),
+            onPause: value => { paused = value; },
+            onPickup: () => playSound("eat"), onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
+            onRestart: restartFresh => startZombieGame(restartFresh),
+            onCheckpoint: value => {
+              if (threeGameLoading !== controller || owner !== getUserKeyFromAccount()) return;
+              try { localStorage.setItem(checkpointKey, JSON.stringify(value)); }
+              catch { showTopNotification("Checkpoint could not be saved on this device."); }
+            },
+            onFinish: result => {
+              if (threeGameLoading !== controller) return;
+              gameOver = true; score = result.score;
+              try { if (score > getLocalBestScore("dead-route-3d")) setLocalBestScore("dead-route-3d", score); }
+              catch { showTopNotification("Best score could not be saved on this device."); }
+              if (owner && owner === getUserKeyFromAccount()) {
+                firebaseDb.ref(`users/${owner}/bestScores/dead-route-3d`).transaction(previous => Math.max(Number(previous) || 0, result.score))
+                  .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
+              }
+              publishProfilePresence(); playSound(result.won ? "eat" : "gameover");
+            }
+          });
+          const session = await Promise.race([mounting, canceled]);
+          if (controller.signal.aborted || threeGameLoading !== controller) { session.dispose(); return; }
+          threeGameSession = session; publishProfilePresence();
+        } catch (error) {
+          if (threeGameLoading !== controller) return;
+          threeGameHost.innerHTML = `<div class="three-loading" role="alert"><h2>Unable to open Dead Route 3D</h2><p>${escapeHtml(error?.message || "Please retry.")}</p><button data-three-retry>Retry</button><button data-three-cancel>Return to Games</button></div>`;
+          threeGameHost.querySelector("button").focus();
+        } finally { clearTimeout(timeout); }
       }
 
       async function startThreeGame(requestedLevel) {
@@ -13506,6 +13640,7 @@
       }
 
       function resetGame() {
+        if (currentGame === "dead-route-3d") { startZombieGame(); return; }
         if (currentGame === "crystal-isles-3d") { startThreeGame(); return; }
         const restartAfterDeath = gameOver;
         resetGameEffects();
@@ -14849,7 +14984,7 @@
       }
 
       function playLocalGame() {
-        if (currentGame === "crystal-isles-3d") return;
+        if (isThreeGame()) return;
         if (!requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[currentGame]?.title || "minigames"}.`)) {
           return;
         }
@@ -15314,6 +15449,7 @@
         }
 
         const genres = {
+          "dead-route-3d": "3D survival RPG",
           "crystal-isles-3d": "3D platformer",
           snake: "Classic arcade",
           catcher: "Reaction",
@@ -17664,7 +17800,7 @@
       }
 
       function draw() {
-        if (currentGame === "crystal-isles-3d") return;
+        if (isThreeGame()) return;
         const sceneKey = [currentGame, onlineRoomCode, canvas.width, canvas.height].join(":");
         if (sceneKey !== effectSceneKey) resetGameEffects();
         if (document.hidden || !startScreen.classList.contains("closed")) return;
@@ -17673,7 +17809,7 @@
 
       function renderGameFrame(timestamp) {
         gameFrameRequest = null;
-        if (currentGame === "crystal-isles-3d") return;
+        if (isThreeGame()) return;
         if (document.hidden || !startScreen.classList.contains("closed")) {
           lastGameFrameTime = null;
           return;
@@ -18526,7 +18662,7 @@
       }
 
       document.addEventListener("keydown", (event) => {
-        if (currentGame === "crystal-isles-3d") return;
+        if (isThreeGame()) return;
         if (isTypingField(event.target)) {
           return;
         }
@@ -18553,7 +18689,7 @@
       });
 
       document.addEventListener("keyup", (event) => {
-        if (currentGame === "crystal-isles-3d") return;
+        if (isThreeGame()) return;
         if (isTypingField(event.target)) {
           return;
         }
@@ -18622,7 +18758,7 @@
       }
 
       function togglePause() {
-        if (currentGame === "crystal-isles-3d") { threeGameSession?.pause(); return; }
+        if (isThreeGame()) { threeGameSession?.pause(); return; }
         paused = !paused;
         lastGameFrameTime = null;
         draw();
@@ -19151,6 +19287,7 @@
 
       function getLocalBestScores() {
         return {
+          "dead-route-3d": getLocalBestScore("dead-route-3d"),
           "crystal-isles-3d": getLocalBestScore("crystal-isles-3d"),
           snake: getLocalBestScore("snake"),
           catcher: getLocalBestScore("catcher"),
@@ -22744,7 +22881,10 @@
       friendRoomInvites.addEventListener("click", respondToFriendRoomRequest);
       threeGameHost.addEventListener("click", (event) => {
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
-        if (event.target.closest("[data-three-retry]")) startThreeGame(threeGameLevelIndex);
+        if (event.target.closest("[data-three-retry]")) {
+          if (currentGame === "dead-route-3d") startZombieGame();
+          else startThreeGame(threeGameLevelIndex);
+        }
       });
       window.addEventListener("resize", () => {
         document.getElementById("battlePassScroller")?.dispatchEvent(new Event("scroll"));

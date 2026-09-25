@@ -15,3 +15,5 @@ src-tauri/gen/
 package-lock.json
 assets/three-games.js
 assets/three-games.js.LEGAL.txt
+assets/zombie-game.js
+assets/zombie-game.js.LEGAL.txt

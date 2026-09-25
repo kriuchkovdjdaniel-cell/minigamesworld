@@ -25,7 +25,7 @@ const makePlayer = (slot) => ({ username: slot, score: 0, x: 30, y: 30, size: 28
 function effectsContext(extra = {}) {
   const context = load([
     "isValidEffectOrigin", "spawnScoreBurst", "spawnCoinFlame", "spawnImpactEffect",
-    "trimGameEffects", "advanceGameEffects", "resetGameEffects",
+    "trimGameEffects", "advanceGameEffects", "resetGameEffects", "isThreeGame",
     "drawScoreBursts", "drawCoinFlames", "drawImpactEffects", "draw", "renderGameFrame"
   ], {
     scoreBursts: [], coinFlames: [], impactEffects: [], effectTime: 0,
@@ -178,6 +178,16 @@ test("scene changes clear stale particles, and hidden pages do not keep renderin
   ctx.resetGameEffects();
   assert.equal(ctx.lastGameFrameTime, null);
   assert.equal(ctx.effectTime, 0);
+});
+
+test("standalone 3D games do not schedule the legacy 2D renderer", () => {
+  for (const game of ["crystal-isles-3d", "dead-route-3d"]) {
+    let paints = 0;
+    const ctx = effectsContext({ currentGame: game, paintGame: () => { paints++; } });
+    ctx.draw(); ctx.renderGameFrame(1000);
+    assert.equal(ctx.pendingFrames(), 0);
+    assert.equal(paints, 0);
+  }
 });
 
 test("online effects fire once per score or respawn, not per redraw or joining player", () => {
