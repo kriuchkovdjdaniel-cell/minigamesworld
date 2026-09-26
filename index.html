@@ -10949,16 +10949,16 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loadingModule = zombieGameModule ? Promise.resolve(zombieGameModule) : import(`./assets/zombie-game.js?v=route-1&attempt=${++zombieGameImportAttempt}`)
+          const loadingModule = zombieGameModule ? Promise.resolve(zombieGameModule) : import(`./assets/zombie-game.js?v=route-2&attempt=${++zombieGameImportAttempt}`)
             .then(module => { zombieGameModule = module; return module; });
           const { mountZombieGame, normalizeCheckpoint } = await Promise.race([loadingModule, canceled]);
           controller.signal.throwIfAborted();
           let checkpoint = null;
           if (!fresh) { try { checkpoint = JSON.parse(localStorage.getItem(checkpointKey) || "null"); } catch {} }
           const mounting = mountZombieGame(threeGameHost, {
-            checkpoint: normalizeCheckpoint(checkpoint), signal: controller.signal, quality: getGraphicsQualityRank(), color: getTheme(playerStyle.color).head, volume: getGameVolume(),
+            checkpoint: normalizeCheckpoint(checkpoint), signal: controller.signal, quality: getGraphicsQualityRank(), color: getTheme(playerStyle.color).head, getVolume: getGameVolume,
             onPause: value => { paused = value; },
-            onPickup: () => playSound("eat"), onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
+            onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
             onRestart: restartFresh => startZombieGame(restartFresh),
             onCheckpoint: value => {
               if (threeGameLoading !== controller || owner !== getUserKeyFromAccount()) return;
@@ -10974,7 +10974,7 @@
                 firebaseDb.ref(`users/${owner}/bestScores/dead-route-3d`).transaction(previous => Math.max(Number(previous) || 0, result.score))
                   .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
               }
-              publishProfilePresence(); playSound(result.won ? "eat" : "gameover");
+              publishProfilePresence();
             }
           });
           const session = await Promise.race([mounting, canceled]);

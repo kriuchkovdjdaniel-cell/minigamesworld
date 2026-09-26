@@ -1,10 +1,13 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Heart, Crosshair, Backpack, Fuel, Shield } from "lucide";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Heart, Crosshair, Backpack, Fuel, Shield, Volume2, VolumeX } from "lucide";
 import { createZombieSimulation, STOPS, STEP, normalizeCheckpoint } from "./zombie-world.mjs";
+import { buildRoadScenery } from "./zombie-scenery.mjs";
+import { createRouteAudio, spatialMix } from "./zombie-audio.mjs";
 export { normalizeCheckpoint } from "./zombie-world.mjs";
 
-const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, heal: Heart, reload: Crosshair, inventory: Backpack, fuel: Fuel, shield: Shield };
+const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, heal: Heart, reload: Crosshair, inventory: Backpack, fuel: Fuel, shield: Shield, sound: Volume2 };
 
 export async function mountZombieGame(host, options) {
   const sim = await createZombieSimulation(options.checkpoint);
@@ -13,13 +16,15 @@ export async function mountZombieGame(host, options) {
   try { renderer = new THREE.WebGLRenderer({ antialias: options.quality > 0, powerPreference: "high-performance" }); }
   catch (error) { sim.dispose(); throw new Error("3D graphics are unavailable. Enable hardware acceleration and retry.", { cause: error }); }
   const abort = new AbortController(), signal = abort.signal;
+  const audio = createRouteAudio({ volume: options.getVolume || options.volume });
+  try { audio.setMuted(localStorage.getItem("dead-route-muted") === "true"); } catch {}
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#b8c8c8");
-  scene.fog = new THREE.Fog("#b8c8c8", 48, 150);
+  scene.background = new THREE.Color("#a8c5d1");
+  scene.fog = new THREE.Fog("#a8c5d1", 70, 175);
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, [1, 1.25, 1.5, 1.75][options.quality] || 1));
   renderer.shadowMap.enabled = options.quality > 0;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.2;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
   const canvas = renderer.domElement;
   canvas.tabIndex = 0; canvas.setAttribute("aria-label", "Dead Route 3D game scene");
   canvas.title = "WASD move or drive; right mouse rotates camera; click shoots; E interact; R reload; Space melee; H heal; Tab workshop";
@@ -29,6 +34,7 @@ export async function mountZombieGame(host, options) {
       <div class="zombie-brand"><span>MINIGAMEWORLD</span><strong>DEAD ROUTE <small>3D</small></strong></div>
       <div class="zombie-route"><span data-stop></span><strong data-objective></strong></div>
       <nav class="zombie-tools" aria-label="Game controls">
+        <button data-action="sound" title="Mute game sounds (M)" aria-label="Mute game sounds" aria-pressed="false"><i data-icon="sound"></i></button>
         <button data-action="workshop" title="Inventory / Bus Workshop (Tab)" aria-label="Inventory and Bus Workshop"><i data-icon="inventory"></i></button>
         <button data-action="camera" title="Reset camera" aria-label="Reset camera"><i data-icon="camera"></i></button>
         <button data-action="fullscreen" title="Fullscreen" aria-label="Fullscreen"><i data-icon="fullscreen"></i></button>
@@ -76,10 +82,10 @@ export async function mountZombieGame(host, options) {
   controls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: THREE.MOUSE.ROTATE };
   controls.minDistance = 6; controls.maxDistance = 24;
   controls.minPolarAngle = 0.28; controls.maxPolarAngle = 1.25;
-  function resetCamera() { camera.position.copy(controls.target).add(new THREE.Vector3(7, 12, 16)); controls.update(); }
+  function resetCamera() { camera.position.copy(controls.target).add(new THREE.Vector3(8, 9, 16)); controls.update(); }
   controls.target.set(sim.position().x, 1.1, sim.position().z); resetCamera();
-  scene.add(new THREE.HemisphereLight("#e1f0ef", "#4d695c", 2.4));
-  const sun = new THREE.DirectionalLight("#fff1d6", 3.1);
+  scene.add(new THREE.HemisphereLight("#e5f1ff", "#638071", 2.1));
+  const sun = new THREE.DirectionalLight("#fff0d7", 3.5);
   sun.castShadow = true; sun.shadow.mapSize.setScalar(options.quality > 1 ? 2048 : 1024);
   Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 100 });
   sun.shadow.bias = -0.001; scene.add(sun, sun.target);
@@ -90,7 +96,8 @@ export async function mountZombieGame(host, options) {
     return materials.get(key);
   };
   const boxGeo = new THREE.BoxGeometry(1, 1, 1), cylinderGeo = new THREE.CylinderGeometry(1, 1, 1, 10), coneGeo = new THREE.ConeGeometry(1, 1, 7);
-  geometries.add(boxGeo); geometries.add(cylinderGeo); geometries.add(coneGeo);
+  const roundedGeo = new RoundedBoxGeometry(1, 1, 1, 1, 0.055);
+  geometries.add(boxGeo); geometries.add(cylinderGeo); geometries.add(coneGeo); geometries.add(roundedGeo);
   const staticBoxes = new Map();
   function box(parent, x, y, z, w, h, d, color, batch = false) {
     if (batch) {
@@ -111,68 +118,8 @@ export async function mountZombieGame(host, options) {
     const geo = new THREE.PlaneGeometry(width / height, 1); geometries.add(geo);
     return new THREE.Mesh(geo, mat);
   }
-  box(scene, 0, -0.25, -145, 190, 0.5, 410, "#577761", true);
-  box(scene, 0, 0.015, -145, 13, 0.04, 380, "#42494a", true);
-  for (const side of [-1, 1]) box(scene, side * 6.15, 0.043, -145, 0.13, 0.025, 370, "#d4d3ba", true);
-  for (let z = 28; z > -320; z -= 9) box(scene, 0, 0.045, z, 0.16, 0.025, 4, "#d2bf77", true);
-  const roofs = [];
-  for (const b of sim.road.buildings) {
-    box(scene, b.x, 0.07, b.z + 1, 13, 0.15, 14, "#a9aaa0", true);
-    for (const w of sim.road.walls.filter(w => Math.abs(w.x - b.x) < 7 && Math.abs(w.z - b.z) <= 5)) box(scene, w.x, w.y, w.z, w.w, w.h, w.d, b.color, true);
-    const roof = box(scene, b.x, 4.3, b.z, 12.8, 0.35, 11, "#e0d9bf"); roofs.push({ mesh: roof, building: b });
-    const sign = label(b.name); sign.position.set(b.x, 3.4, b.z + 5.3); sign.scale.setScalar(1.8); scene.add(sign);
-    box(scene, b.x, 0.6, b.z - 3.8, 9, 1.2, 1.2, "#6c5950", true);
-    for (let i = -1; i <= 1; i++) box(scene, b.x + i * 2.5, 1.6, b.z - 3.8, 1.1, 0.7, 0.9, i % 2 ? "#879b81" : "#b19775", true);
-    if (b.side === -1) {
-      for (const dx of [-2, 2]) {
-        box(scene, b.x + dx, 0.9, b.z + 9, 0.9, 1.8, 0.65, "#d6c39a", true);
-        box(scene, b.x + dx, 1.3, b.z + 9.35, 0.65, 0.55, 0.08, "#243c3e", true);
-      }
-    }
-  }
-  for (const stop of STOPS) {
-    const sign = label(stop.name.toUpperCase(), "#fff1cd", "#354b48");
-    sign.position.set(9, 3.6, stop.z + 17); sign.scale.setScalar(0.9); scene.add(sign);
-    box(scene, 9, 1.8, stop.z + 17, 0.14, 3.6, 0.14, "#707b77", true);
-    for (const side of [-1, 1]) {
-      box(scene, side * 8, 0.45, stop.z - 33, 2.8, 0.9, 0.5, "#adab96", true);
-      box(scene, side * 8, 0.46, stop.z - 32.72, 1.5, 0.2, 0.04, "#b58458", true);
-    }
-  }
-  const sanctuary = label("SAFE HAVEN", "#d4edca", "#315a4c"); sanctuary.position.set(0, 6.5, -304); sanctuary.scale.setScalar(2); scene.add(sanctuary);
-  for (const x of [-8, 8]) box(scene, x, 3, -304, 0.6, 6, 0.6, "#626f66", true);
-  box(scene, 0, 3, -321, 35, 6, 1, "#8c9b87", true);
-  const quarantine = label("QUARANTINE ZONE", "#eadca4", "#575b57"); quarantine.position.set(0, 5.8, -235); quarantine.scale.setScalar(1.6); scene.add(quarantine);
-  for (const x of [-8, 8]) box(scene, x, 3, -235, 0.35, 6, 0.35, "#8f9890", true);
-  for (const x of [-25, 25]) {
-    box(scene, x, 4.2, -225, 4, 1.5, 4, "#6b7b74", true);
-    box(scene, x, 5.7, -225, 4.5, 0.25, 4.5, "#ced2c0", true);
-    for (const dx of [-1.5, 1.5]) for (const dz of [-1.5, 1.5]) box(scene, x + dx, 2.1, -225 + dz, 0.18, 4.2, 0.18, "#667d73", true);
-    for (let i = 0; i < 4; i++) box(scene, x > 0 ? 12 + i * 3 : -12 - i * 3, 0.5, -234, 2.6, 1, 1, "#b3af91", true);
-  }
-  const tank = new THREE.Mesh(cylinderGeo, material("#92a9aa")); tank.position.set(26, 9, -125); tank.scale.set(2.2, 3.2, 2.2); tank.castShadow = true; scene.add(tank);
-  for (const dx of [-1.5, 1.5]) for (const dz of [-1.5, 1.5]) box(scene, 26 + dx, 3.8, -125 + dz, 0.2, 7.6, 0.2, "#657a76", true);
-  // Instanced roadside vegetation keeps the full road inexpensive to render.
+  const { roofs, buildingCount } = buildRoadScenery({ scene, road: sim.road, box, material, label, boxGeo, cylinderGeo, coneGeo, geometries, textures, quality: options.quality });
   const treeTransform = new THREE.Object3D();
-  const trunks = new THREE.InstancedMesh(cylinderGeo, material("#6c6256"), 100);
-  const crowns = new THREE.InstancedMesh(coneGeo, material("#456f60"), 100);
-  for (let i = 0; i < 100; i++) {
-    const side = i % 2 ? -1 : 1, x = side * (32 + i % 7 * 4), z = 30 - Math.floor(i / 2) * 7.3, h = 5 + i % 4;
-    treeTransform.position.set(x, 1.8, z); treeTransform.scale.set(0.3, 3.6, 0.3); treeTransform.updateMatrix(); trunks.setMatrixAt(i, treeTransform.matrix);
-    treeTransform.position.y = h / 2 + 2; treeTransform.scale.set(2.5 + i % 3 * 0.5, h, 2.5 + i % 3 * 0.5); treeTransform.updateMatrix(); crowns.setMatrixAt(i, treeTransform.matrix);
-  }
-  trunks.castShadow = crowns.castShadow = true; scene.add(trunks, crowns);
-  for (let i = 0; i < 14; i++) {
-    const mountain = new THREE.Mesh(coneGeo, material(i % 2 ? "#899ca0" : "#9ca5a0"));
-    mountain.position.set((i % 2 ? 1 : -1) * (75 + i % 3 * 10), 8, 10 - Math.floor(i / 2) * 55);
-    mountain.scale.set(35, 40 + i % 3 * 10, 40); scene.add(mountain);
-  }
-  for (let i = 0; i < 12; i++) {
-    const z = 18 - i * 29;
-    box(scene, 26, 4.5, z, 0.22, 9, 0.22, "#766c5a", true);
-    box(scene, 26, 8.4, z, 3.2, 0.18, 0.18, "#766c5a", true);
-    box(scene, 25, 8.7, z - 14.5, 0.035, 0.035, 29, "#5c665d", true);
-  }
   for (const [color, boxes] of staticBoxes) {
     const batch = new THREE.InstancedMesh(boxGeo, material(color), boxes.length);
     boxes.forEach(([x, y, z, w, h, d], i) => { treeTransform.position.set(x, y, z); treeTransform.scale.set(w, h, d); treeTransform.updateMatrix(); batch.setMatrixAt(i, treeTransform.matrix); });
@@ -180,7 +127,7 @@ export async function mountZombieGame(host, options) {
   }
 
   const bus = new THREE.Group(); scene.add(bus);
-  box(bus, 0, 1.5, 0, 3.3, 2.1, 8.4, "#447f72");
+  box(bus, 0, 1.5, 0, 3.3, 2.1, 8.4, "#508f82").geometry = roundedGeo;
   box(bus, 0, 2.9, 0, 3.3, 0.7, 8.4, "#e5debd");
   box(bus, 0, 0.55, 0, 3.35, 0.35, 8.55, "#303b3c");
   box(bus, 0, 3.34, 0, 3.45, 0.2, 8.55, "#d1ceae");
@@ -192,27 +139,66 @@ export async function mountZombieGame(host, options) {
     box(bus, x, 1.15, 0, 0.08, 0.14, 8.2, "#d4bd7c");
     box(bus, x * 1.19, 2.2, -3.9, 0.35, 0.55, 0.2, "#344749");
   }
-  box(bus, 1.72, 1.55, -2.75, 0.08, 2, 1.1, "#355b53");
-  box(bus, 1.78, 2.1, -2.75, 0.06, 0.8, 0.9, "#64848a");
+  const door = new THREE.Group(); door.position.set(1.72, 0, -3.3); bus.add(door);
+  box(door, 0, 1.55, 0.55, 0.08, 2, 1.1, "#355b53");
+  box(door, 0.06, 2.1, 0.55, 0.06, 0.8, 0.9, "#82a5ad");
+  box(door, 0.1, 1.35, 0.95, 0.1, 0.12, 0.22, "#dbd6bb");
   for (const x of [-1.14, 1.14]) { box(bus, x, 1, -4.3, 0.48, 0.35, 0.12, "#f7df9b"); box(bus, x, 1, 4.3, 0.35, 0.25, 0.1, "#b76e64"); }
   const busSign = label("ROUTE 09", "#e8d899", "#293c3c", 256, 64); busSign.rotation.y = Math.PI; busSign.position.set(0, 3, -4.3); busSign.scale.setScalar(0.45); bus.add(busSign);
   box(bus, 0, 3.7, 1, 2.5, 0.65, 3.2, "#827963");
   box(bus, 0, 4.05, 1, 0.12, 0.1, 3.3, "#3a4d46");
+  const armorParts = [];
+  for (const side of [-1, 1]) {
+    box(bus, side * 1.5, 3.6, 0.4, 0.08, 0.55, 6, "#566c6b");
+    for (const z of [-2.5, 0.5, 3.3]) box(bus, side * 1.5, 3.7, z, 0.08, 0.15, 0.08, "#d4ceb7");
+    for (let i = 0; i < 5; i++) {
+      box(bus, side * 1.72, 2.65, -2.8 + i * 1.45, 0.02, 0.12, 0.95, "#799da4");
+      box(bus, side * 1.73, 0.85, -2.9 + i * 1.4, 0.025, 0.08, 0.5, "#a3916e");
+    }
+    armorParts.push(box(bus, side * 1.75, 1.2, 0.6, 0.12, 0.7, 4.4, "#798a91"));
+  }
+  for (const y of [0.9, 1.3, 1.7, 2.1, 2.5, 2.9, 3.3]) box(bus, -1.08, y, 4.36, 0.55, 0.07, 0.12, "#93a6a3");
+  for (const x of [-1.37, -0.8]) box(bus, x, 2.1, 4.36, 0.06, 2.7, 0.12, "#93a6a3");
+  armorParts.push(box(bus, 0, 0.85, -4.6, 3.5, 0.15, 0.25, "#899d9c"));
+  const backSign = label("09 / SAFE HAVEN", "#e8d899", "#293c3c", 256, 64); backSign.position.set(0.1, 1.55, 4.27); backSign.scale.setScalar(0.34); bus.add(backSign);
   const wheels = [];
   for (const x of [-1.7, 1.7]) for (const z of [-2.7, 2.7]) {
     const wheel = new THREE.Group(); wheel.position.set(x, 0.65, z);
     const tire = new THREE.Mesh(cylinderGeo, material("#293031")); tire.rotation.z = Math.PI / 2; tire.scale.set(0.68, 0.42, 0.68); tire.castShadow = true; wheel.add(tire);
     const hub = new THREE.Mesh(cylinderGeo, material("#c2c6b7")); hub.rotation.z = Math.PI / 2; hub.scale.set(0.29, 0.44, 0.29); wheel.add(hub); bus.add(wheel); wheels.push(wheel);
   }
-  function person(zombie = false, boss = false) {
-    const group = new THREE.Group(), skin = zombie ? boss ? "#7c9070" : "#9aae86" : "#dbb597", shirt = zombie ? boss ? "#7b607a" : "#807b6c" : options.color || "#57938c";
-    box(group, 0, 1.15, 0, 0.65, 0.7, 0.38, shirt);
-    box(group, 0, 1.8, 0, 0.49, 0.52, 0.44, skin);
+  // Batch rigid bus trim, leaving the door, wheels and upgrade plates independent.
+  const busBatches = new Map();
+  for (const part of [...bus.children]) {
+    if (!part.isMesh || part.geometry !== boxGeo || armorParts.includes(part)) continue;
+    const key = part.material.uuid;
+    if (!busBatches.has(key)) busBatches.set(key, []);
+    busBatches.get(key).push(part);
+  }
+  for (const parts of busBatches.values()) {
+    const batch = new THREE.InstancedMesh(boxGeo, parts[0].material, parts.length);
+    parts.forEach((part, i) => { part.updateMatrix(); batch.setMatrixAt(i, part.matrix); bus.remove(part); });
+    batch.castShadow = batch.receiveShadow = true; bus.add(batch);
+  }
+  function person(zombie = false, boss = false, variant = 0) {
+    const group = new THREE.Group(), skin = zombie ? boss ? "#7c9070" : "#9aae86" : "#dbb597", shirt = zombie ? boss ? "#786e96" : ["#8c7872", "#6c8a95", "#909a76", "#a68f69"][variant % 4] : options.color || "#57938c";
+    box(group, 0, 1.15, 0, 0.7, 0.7, 0.43, shirt).geometry = roundedGeo;
+    box(group, 0, 1.8, 0, 0.52, 0.52, 0.46, skin).geometry = roundedGeo;
     box(group, 0, 2.04, 0.04, 0.55, 0.1, 0.53, zombie ? "#4b5549" : "#46493e");
     for (const x of [-0.12, 0.12]) box(group, x, 1.83, -0.23, 0.07, 0.07, 0.03, zombie ? "#dcb482" : "#293738");
     const arms = [-1, 1].map(side => { const joint = new THREE.Group(); joint.position.set(side * 0.44, 1.43, 0); box(joint, 0, -0.26, 0, 0.23, 0.62, 0.24, skin); group.add(joint); return joint; });
     const legs = [-1, 1].map(side => { const joint = new THREE.Group(); joint.position.set(side * 0.18, 0.85, 0); box(joint, 0, -0.39, 0, 0.26, 0.78, 0.32, zombie ? "#4c5a58" : "#3e535b"); group.add(joint); return joint; });
-    if (!zombie) { box(group, 0, 1.22, 0.3, 0.5, 0.65, 0.3, "#806e4d"); box(arms[1], 0, -0.56, -0.28, 0.14, 0.2, 0.5, "#28353a"); }
+    for (const leg of legs) box(leg, 0, -0.71, -0.06, 0.29, 0.15, 0.42, "#334646");
+    box(group, 0, 0.91, -0.23, 0.68, 0.12, 0.07, "#43534c");
+    box(group, 0, 1.67, -0.25, 0.16, 0.035, 0.03, zombie ? "#666250" : "#896e5a");
+    const gun = new THREE.Group(); group.add(gun); gun.position.set(0.42, 1.28, -0.5); gun.visible = !zombie;
+    if (!zombie) {
+      box(group, 0, 1.22, 0.3, 0.5, 0.65, 0.3, "#806e4d").geometry = roundedGeo;
+      box(group, -0.22, 1.26, -0.25, 0.18, 0.4, 0.06, "#c5b787");
+      box(gun, 0, 0, -0.13, 0.16, 0.19, 0.5, "#526674"); box(gun, 0, -0.13, 0.04, 0.13, 0.2, 0.15, "#34494b");
+      box(gun, 0, 0.04, -0.41, 0.09, 0.1, 0.22, "#c2c8bd");
+    }
+    if (boss) { box(group, 0, 2.08, 0, 0.68, 0.22, 0.6, "#576571"); for (const x of [-0.43, 0.43]) box(group, x, 1.51, 0, 0.3, 0.3, 0.5, "#8b9290"); }
     if (boss) group.scale.setScalar(1.5);
     const health = new THREE.Group();
     if (zombie) {
@@ -224,15 +210,17 @@ export async function mountZombieGame(host, options) {
       }
       scene.add(health);
     }
-    scene.add(group); return { group, arms, legs, health };
+    scene.add(group); return { group, arms, legs, health, gun, deathTime: null };
   }
   const survivor = person();
+  const flashMaterial = new THREE.MeshBasicMaterial({ color: "#ffe6ac" }); materials.set("muzzle-flash", flashMaterial);
+  const muzzle = new THREE.Mesh(coneGeo, flashMaterial); muzzle.rotation.x = -Math.PI / 2; muzzle.position.set(0, 0.03, -0.66); muzzle.scale.set(0.14, 0.34, 0.14); muzzle.visible = false; survivor.gun.add(muzzle);
   let enemies = new Map(), loot = new Map(), renderedStop = -1;
   const lootGeo = new THREE.OctahedronGeometry(0.25); geometries.add(lootGeo);
   function refreshStop() {
     for (const model of enemies.values()) scene.remove(model.group, model.health);
     for (const model of loot.values()) scene.remove(model.group);
-    enemies = new Map(sim.state.enemies.map(enemy => [enemy.id, person(true, enemy.boss)]));
+    enemies = new Map(sim.state.enemies.map((enemy, i) => [enemy.id, person(true, enemy.boss, i)]));
     loot = new Map(sim.state.loot.map(item => {
       const group = new THREE.Group(); group.position.set(item.x, 0, item.z);
       box(group, 0, 0.45, 0, 1.05, 0.9, 0.85, item.color);
@@ -250,27 +238,30 @@ export async function mountZombieGame(host, options) {
   const aimGeo = new THREE.RingGeometry(0.25, 0.32, 24); geometries.add(aimGeo);
   const aimMat = new THREE.MeshBasicMaterial({ color: "#f8e1a0", side: THREE.DoubleSide, depthWrite: false }); materials.set("aim", aimMat);
   const aimMarker = new THREE.Mesh(aimGeo, aimMat); aimMarker.rotation.x = -Math.PI / 2; scene.add(aimMarker);
+  const particles = [], particleLimit = options.quality > 0 ? 64 : 24;
+  const particleMaterial = new THREE.MeshBasicMaterial({ color: "#ffffff" }); materials.set("route-particles", particleMaterial);
+  const particleMesh = new THREE.InstancedMesh(boxGeo, particleMaterial, particleLimit); particleMesh.frustumCulled = false; particleMesh.count = 0; scene.add(particleMesh);
+  const particleTransform = new THREE.Object3D(), particleColor = new THREE.Color();
+  let muzzleTime = 0, exhaustTime = 0;
+  function burst(x, y, z, count, color, smoke = false) {
+    for (let i = 0; i < count && particles.length < particleLimit; i++) {
+      const angle = i * 2.4 + sim.state.elapsed;
+      particles.push({ x, y, z, dx: Math.sin(angle) * (smoke ? 0.3 : 2), dy: smoke ? 0.9 : 1.5 + i % 3, dz: Math.cos(angle) * (smoke ? 0.3 : 2), life: smoke ? 0.65 : 0.3, max: smoke ? 0.65 : 0.3, color, smoke });
+    }
+  }
   const map = host.querySelector(".zombie-map"), mapCtx = map.getContext("2d"), menu = host.querySelector("dialog");
   const el = name => host.querySelector(`[data-${name}]`);
   const keys = new Set(), oneShot = new Set(), raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(0, 0);
   let pointerActive = false, shooting = false, cameraPointer = null, paused = false, ended = false, disposed = false, frameId = 0, previous = 0, accumulator = 0, hudTime = 0, noticeTime = 0, tracerTime = 0, lastWalking = false;
-  let soundContext, shotBuffer;
-  function shotSound() {
-    const volume = Math.max(0, Math.min(1, options.volume ?? 0.7));
-    if (!volume) return;
-    try {
-      soundContext ||= new (window.AudioContext || window.webkitAudioContext)();
-      if (soundContext.state === "suspended") { soundContext.resume().catch(() => {}); return; }
-      if (!shotBuffer) {
-        shotBuffer = soundContext.createBuffer(1, Math.floor(soundContext.sampleRate * 0.1), soundContext.sampleRate);
-        const data = shotBuffer.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / data.length * 7);
-      }
-      const source = soundContext.createBufferSource(), filter = soundContext.createBiquadFilter(), gain = soundContext.createGain();
-      source.buffer = shotBuffer; filter.type = "lowpass"; filter.frequency.value = 1700; gain.gain.value = volume * 0.16;
-      source.connect(filter); filter.connect(gain); gain.connect(soundContext.destination); source.start();
-      source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
-    } catch { /* Sound is optional when the browser blocks audio. */ }
+  function updateSoundButton() {
+    const muted = audio.snapshot().muted, button = host.querySelector('[data-action="sound"]');
+    button.replaceChildren(createElement(muted ? VolumeX : Volume2, { width: 19, height: 19, "aria-hidden": "true" }));
+    button.setAttribute("aria-pressed", String(muted)); button.setAttribute("aria-label", muted ? "Unmute game sounds" : "Mute game sounds");
+    button.title = muted ? "Unmute game sounds (M)" : "Mute game sounds (M)";
+  }
+  function toggleSound() {
+    const muted = !audio.snapshot().muted; audio.setMuted(muted); updateSoundButton();
+    try { localStorage.setItem("dead-route-muted", String(muted)); } catch {}
   }
   const groundAim = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.25), aimed = new THREE.Vector3();
   function notify(message) { if (!message) return; host.querySelector(".zombie-notice").textContent = message; noticeTime = 3.2; }
@@ -282,6 +273,7 @@ export async function mountZombieGame(host, options) {
   function pause(value = !paused, workshop = false) {
     if (disposed || ended && !value) return;
     paused = value; options.onPause?.(value); clearInput(); controls.enabled = !value;
+    audio.setPaused(value);
     if (paused) {
       cancelAnimationFrame(frameId); frameId = 0;
       updateHUD();
@@ -329,7 +321,7 @@ export async function mountZombieGame(host, options) {
     };
     mapCtx.fillStyle = "#49574b"; mapCtx.fillRect(76 + (-6.5 - p.x) * zoom, 0, 13 * zoom, 152);
     mapCtx.fillStyle = "#779187";
-    for (const b of sim.road.buildings) mapCtx.fillRect(76 + (b.x - 6 - p.x) * zoom, 76 + (b.z - 5 - p.z) * zoom, 24, 20);
+    for (const b of sim.road.buildings) mapCtx.fillRect(76 + (b.x - b.w / 2 - p.x) * zoom, 76 + (b.z - b.d / 2 - p.z) * zoom, b.w * zoom, b.d * zoom);
     for (const item of s.loot) if (!item.taken) drawDot(item, "#e5c785", 3);
     for (const enemy of s.enemies) if (enemy.hp > 0) drawDot(enemy.body.translation(), "#d18780", enemy.boss ? 4 : 2.5);
     drawDot(sim.bus.body.translation(), "#8fb6d1", 5); drawDot(p, "#f5f1cd", 3);
@@ -338,11 +330,18 @@ export async function mountZombieGame(host, options) {
     for (const event of sim.state.events.splice(0)) {
       if (event.type === "checkpoint") options.onCheckpoint?.(event.checkpoint);
       if (event.type === "shot") {
-        shotSound();
+        audio.play("shot", { rate: sim.state.weapon ? 1.12 : 0.94 }); muzzleTime = 0.06;
         const positions = tracerGeo.attributes.position; positions.setXYZ(0, event.from.x, event.from.y, event.from.z); positions.setXYZ(1, event.to.x, event.to.y, event.to.z); positions.needsUpdate = true;
         tracer.visible = true; tracerTime = 0.07;
       }
-      if (["loot", "level"].includes(event.type)) options.onPickup?.();
+      if (["reload", "melee", "door", "loot", "upgrade", "heal"].includes(event.type)) audio.play(event.type);
+      if (event.type === "level") audio.play("upgrade");
+      if (event.type === "hit" || event.type === "hurt") {
+        const mix = spatialMix(event, sim.position(), controls.getAzimuthalAngle());
+        audio.play(event.type, { ...mix, gain: Math.max(0.15, mix.gain) * 0.65 });
+        if (event.type === "hit") burst(event.x, 1.2, event.z, 6, "#e2ce99");
+      }
+      if (event.type === "kill") { const model = enemies.get(event.id); if (model) model.deathTime = sim.state.elapsed; burst(event.x, 0.7, event.z, 8, "#9faeaa"); }
       if (event.type === "finish") { ended = true; options.onFinish?.({ won: sim.state.status === "won", score: sim.state.score }); pause(true); }
       if (event.message) notify(event.message);
     }
@@ -376,19 +375,36 @@ export async function mountZombieGame(host, options) {
       const delta = nextTarget.clone().sub(controls.target); controls.target.copy(nextTarget); camera.position.add(delta); controls.update();
       tracerTime -= dt; tracer.visible = tracerTime > 0;
       noticeTime -= dt; if (noticeTime <= 0) host.querySelector(".zombie-notice").textContent = "";
+      audio.update({ position: sim.position(), inBus: sim.state.inBus, speed: sim.bus.speed, fuel: sim.state.fuel, enemies: sim.state.enemies, yaw: controls.getAzimuthalAngle() }, dt);
+      muzzleTime -= dt; exhaustTime -= dt;
+      if (sim.state.inBus && sim.state.fuel > 0 && exhaustTime <= 0) {
+        exhaustTime = options.quality > 0 ? 0.18 : 0.4;
+        const exhaust = bus.localToWorld(new THREE.Vector3(1.1, 0.55, 4.5)); burst(exhaust.x, exhaust.y, exhaust.z, 1, "#8c9d9c", true);
+      }
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i]; p.life -= dt;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        p.x += p.dx * dt; p.y += p.dy * dt; p.z += p.dz * dt; if (!p.smoke) p.dy -= dt * 9;
+      }
     }
     const t = sim.state.elapsed, pos = sim.player.body.translation();
     survivor.group.visible = !sim.state.inBus;
     survivor.group.position.set(pos.x, pos.y - 0.86, pos.z); survivor.group.rotation.y = Math.atan2(-sim.state.aim.x, -sim.state.aim.z);
+    survivor.gun.scale.z = sim.state.weapon ? 1.3 : 1; survivor.gun.rotation.x = sim.state.reload > 0 ? 0.65 : Math.max(0, muzzleTime) * 3;
+    muzzle.visible = muzzleTime > 0;
     for (let i = 0; i < 2; i++) {
       survivor.legs[i].rotation.x = !paused && lastWalking ? Math.sin(t * 11 + i * Math.PI) * 0.6 : 0;
       survivor.arms[i].rotation.x = i ? -1.35 - (sim.state.meleeCooldown > 0.4 ? 0.6 : 0) : survivor.legs[1 - i].rotation.x;
     }
     const b = sim.bus.body.translation(); bus.position.set(b.x, b.y - 1.5, b.z); bus.rotation.y = sim.bus.yaw;
+    door.rotation.y += ((sim.state.inBus ? 0 : 0.8) - door.rotation.y) * Math.min(1, dt * 7);
+    armorParts.forEach((part, i) => { part.visible = sim.state.armor > (i === 2 ? 1 : 0); });
     for (const wheel of wheels) wheel.rotation.x = -sim.bus.wheels / 0.68;
     for (const enemy of sim.state.enemies) {
       const model = enemies.get(enemy.id); if (!model) continue;
-      model.group.visible = enemy.hp > 0;
+      const dying = model.deathTime === null ? 0 : Math.min(1, (t - model.deathTime) / 0.45);
+      model.group.visible = enemy.hp > 0 || model.deathTime !== null && dying < 1;
+      model.group.rotation.x = enemy.hp <= 0 ? -dying * Math.PI / 2 : 0;
       const p = enemy.body.translation(); model.group.position.set(p.x, p.y - 0.86, p.z); model.group.rotation.y = enemy.yaw;
       model.health.visible = enemy.hp > 0 && (enemy.hp < enemy.maxHp || enemy.boss);
       model.health.position.set(p.x, enemy.boss ? 3.5 : 2.5, p.z); model.health.quaternion.copy(camera.quaternion);
@@ -397,7 +413,14 @@ export async function mountZombieGame(host, options) {
       model.group.scale.setScalar((enemy.boss ? 1.5 : 1) * (enemy.flash > 0 ? 1.04 : 1));
     }
     for (const item of sim.state.loot) { const model = loot.get(item.id); model.group.visible = !item.taken; model.marker.rotation.y = t; model.marker.position.y = 1.8 + Math.sin(t * 2) * 0.1; }
-    for (const roof of roofs) roof.mesh.visible = sim.state.inBus || Math.abs(pos.x - roof.building.x) > 7 || Math.abs(pos.z - roof.building.z) > 7;
+    for (const roof of roofs) roof.mesh.visible = sim.state.inBus || Math.abs(pos.x - roof.building.x) > roof.building.w / 2 + 1 || Math.abs(pos.z - roof.building.z) > roof.building.d / 2 + 2;
+    particleMesh.count = particles.length;
+    particles.forEach((p, i) => {
+      particleTransform.position.set(p.x, p.y, p.z); particleTransform.rotation.set(p.life * 3, p.life * 4, 0);
+      particleTransform.scale.setScalar(p.smoke ? 0.13 + (1 - p.life / p.max) * 0.3 : 0.07 * p.life / p.max);
+      particleTransform.updateMatrix(); particleMesh.setMatrixAt(i, particleTransform.matrix); particleMesh.setColorAt(i, particleColor.set(p.color));
+    });
+    particleMesh.instanceMatrix.needsUpdate = true; if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
     aimMarker.visible = !sim.state.inBus && pointerActive && !paused;
     aimMarker.position.set(pos.x + sim.state.aim.x * 5, 0.08, pos.z + sim.state.aim.z * 5);
     sun.position.set(controls.target.x - 24, 35, controls.target.z + 18); sun.target.position.copy(controls.target);
@@ -414,11 +437,13 @@ export async function mountZombieGame(host, options) {
   const observer = new ResizeObserver(resize); observer.observe(host); resize();
   host.addEventListener("click", event => {
     const button = event.target.closest("button"); if (!button || button.disabled) return;
+    if (button.dataset.action !== "sound") void audio.unlock();
     if (button.dataset.buy) { sim.purchase(button.dataset.buy); drainEvents(); workshopUI(); updateHUD(); return; }
     switch (button.dataset.action) {
       case "pause": pause(true); break;
       case "resume": pause(false); break;
       case "workshop": pause(true, true); break;
+      case "sound": toggleSound(); break;
       case "camera": resetCamera(); break;
       case "fullscreen": options.onFullscreen?.(); break;
       case "restart": options.onRestart?.(false); break;
@@ -433,6 +458,8 @@ export async function mountZombieGame(host, options) {
     }
   }, { signal });
   window.addEventListener("keydown", event => {
+    if (!paused && !ended) void audio.unlock();
+    if (event.code === "KeyM" && !event.repeat && !paused && !ended) { event.preventDefault(); toggleSound(); return; }
     if (event.code === "Escape") { event.preventDefault(); if (!ended) pause(!paused); return; }
     if (event.code === "Tab" && !paused && !ended) { event.preventDefault(); pause(true, true); return; }
     if (paused || ended || !["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "KeyE", "KeyR", "KeyH", "Space"].includes(event.code)) return;
@@ -441,6 +468,7 @@ export async function mountZombieGame(host, options) {
   window.addEventListener("keyup", event => keys.delete(event.code), { signal });
   canvas.addEventListener("pointerdown", event => {
     if (paused || ended) return;
+    void audio.unlock();
     canvas.focus();
     if (event.button === 2) { cameraPointer = event.pointerId; shooting = false; }
     else { event.stopImmediatePropagation(); if (event.button === 0) shooting = true; }
@@ -469,9 +497,9 @@ export async function mountZombieGame(host, options) {
     for (const mat of materials.values()) mat.dispose();
     for (const texture of textures) texture.dispose();
     renderer.dispose(); renderer.forceContextLoss(); sim.dispose(); host.classList.remove("zombie-hurt");
-    soundContext?.close().catch(() => {});
+    audio.dispose();
   }
   options.signal?.addEventListener("abort", dispose, { once: true });
-  drainEvents(); updateHUD(); canvas.focus(); frameId = requestAnimationFrame(frame);
-  return { pause, dispose, snapshot: () => ({ status: sim.state.status, stop: sim.state.stopIndex, paused, inBus: sim.state.inBus, health: sim.state.health, enemies: sim.state.enemies.filter(e => e.hp > 0).length, position: sim.position(), camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls }) };
+  drainEvents(); updateHUD(); updateSoundButton(); canvas.focus(); void audio.unlock(); frameId = requestAnimationFrame(frame);
+  return { pause, dispose, snapshot: () => ({ status: sim.state.status, stop: sim.state.stopIndex, paused, inBus: sim.state.inBus, health: sim.state.health, enemies: sim.state.enemies.filter(e => e.hp > 0).length, position: sim.position(), camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls, buildings: buildingCount, particles: particles.length, audio: audio.snapshot() }) };
 }

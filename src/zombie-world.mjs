@@ -27,14 +27,17 @@ export function normalizeCheckpoint(value) {
 
 export function makeRoad() {
   const walls = [], buildings = [];
+  const styles = [["garage", "diner", "motel", "workshop"], ["market", "ranger", "bakery", "house"], ["clinic", "security", "warehouse", "radio"]];
+  const extraNames = [["SUNSET MOTEL", "AUTO SALVAGE"], ["CORNER BAKERY", "PINEWOOD RESIDENCE"], ["RELIEF DEPOT", "RADIO CONTROL"]];
   STOPS.forEach((stop, index) => {
-    [-1, 1].forEach((side, shop) => {
-      const x = side * 17, z = stop.z - 8;
-      buildings.push({ x, z, side, color: stop.color, name: stop.shops[shop], stopIndex: index });
-      const box = (bx, bz, w, d) => walls.push({ x: bx, y: 2, z: bz, w, h: 4, d });
-      box(x, z - 5, 12, 0.5); box(x - 6, z, 0.5, 10); box(x + 6, z, 0.5, 10);
-      // The street-facing facade has a generous real doorway, not a painted entrance.
-      box(x - 4.5, z + 5, 3, 0.5); box(x + 4.5, z + 5, 3, 0.5);
+    [-1, 1, -1, 1].forEach((side, shop) => {
+      const extra = shop > 1, x = side * (extra ? 20 : 17), z = stop.z - (extra ? 28 : 8), w = extra ? 10 : 12, d = extra ? 9 : 10;
+      const id = `${index}-${shop}`;
+      buildings.push({ id, x, z, w, d, side, color: stop.color, name: extra ? extraNames[index][shop - 2] : stop.shops[shop], kind: styles[index][shop], stopIndex: index });
+      const box = (bx, bz, width, depth) => walls.push({ buildingId: id, x: bx, y: 2, z: bz, w: width, h: 4, d: depth });
+      box(x, z - d / 2, w, 0.5); box(x - w / 2, z, 0.5, d); box(x + w / 2, z, 0.5, d);
+      const facade = (w - 6) / 2;
+      box(x - w / 2 + facade / 2, z + d / 2, facade, 0.5); box(x + w / 2 - facade / 2, z + d / 2, facade, 0.5);
     });
   });
   walls.push({ x: -30, y: 2, z: -140, w: 1, h: 4, d: 370 }, { x: 30, y: 2, z: -140, w: 1, h: 4, d: 370 });
@@ -97,7 +100,9 @@ export async function createZombieSimulation(saved) {
     state.loot = [
       { id: "fuel", kind: "Fuel cache", x: -17, z: stop.z - 10, color: "#d0b261" },
       { id: "supplies", kind: "Supply crate", x: 17, z: stop.z - 10, color: "#659caf" },
-      { id: "scrap", kind: "Salvage", x: -9, z: stop.z + 10, color: "#a38cc6" }
+      { id: "scrap", kind: "Salvage", x: -9, z: stop.z + 10, color: "#a38cc6" },
+      { id: "spares", kind: "Spare parts", x: -20, z: stop.z - 29, color: "#9e87ba" },
+      { id: "emergency", kind: "Emergency ammo", x: 20, z: stop.z - 29, color: "#729eae" }
     ].map(item => ({ ...item, taken: false }));
     grid = new PF.Grid(64, 64);
     for (let z = 0; z < 64; z++) for (let x = 0; x < 64; x++) {
@@ -136,27 +141,29 @@ export async function createZombieSimulation(saved) {
       for (const side of [1, -1]) {
         const point = { x: b.x + Math.cos(bus.yaw) * 3.2 * side, y: 0.95, z: b.z - Math.sin(bus.yaw) * 3.2 * side };
         if (world.intersectionWithShape(point, { x: 0, y: 0, z: 0, w: 1 }, player.collider.shape, RAPIER.QueryFilterFlags.EXCLUDE_SENSORS, undefined, player.collider)) continue;
-        state.inBus = false; player.collider.setEnabled(true); teleport(player, point); emit("notice", "On foot"); return true;
+        state.inBus = false; player.collider.setEnabled(true); teleport(player, point); emit("door", "On foot"); return true;
       }
       emit("notice", "Exit blocked. Move the bus to open ground."); return false;
     }
     if (target.action === "board") {
-      state.inBus = true; state.reload = 0; player.collider.setEnabled(false); emit("notice", "Bus boarded"); return true;
+      state.inBus = true; state.reload = 0; player.collider.setEnabled(false); emit("door", "Bus boarded"); return true;
     }
     const item = state.loot.find(item => item.id === target.action);
     item.taken = true;
     if (item.id === "fuel") { state.fuel = Math.min(100, state.fuel + 45); state.fuelFound = true; state.scrap += 10; }
     if (item.id === "supplies") { state.ammo += 48; state.medkits += 1; state.scrap += 10; }
     if (item.id === "scrap") state.scrap += 16;
+    if (item.id === "spares") state.scrap += 8;
+    if (item.id === "emergency") state.ammo += 12;
     state.score += 50;
-    emit("loot", item.id === "fuel" ? "+45 fuel / +10 scrap" : item.id === "supplies" ? "+48 ammo / +1 medkit / +10 scrap" : "+16 scrap");
+    emit("loot", { fuel: "+45 fuel / +10 scrap", supplies: "+48 ammo / +1 medkit / +10 scrap", scrap: "+16 scrap", spares: "+8 scrap", emergency: "+12 ammo" }[item.id]);
     return true;
   }
   function purchase(action) {
     if (state.status !== "playing") return false;
     if (action === "heal") {
       if (!state.medkits || state.health >= state.maxHealth) return false;
-      state.medkits--; state.health = Math.min(state.maxHealth, state.health + 60); emit("notice", "+60 health"); return true;
+      state.medkits--; state.health = Math.min(state.maxHealth, state.health + 60); emit("heal", "+60 health"); return true;
     }
     if (!state.inBus && distance(player.body.translation(), bus.body.translation()) > 7) { emit("notice", "Return to the bus for workshop upgrades"); return false; }
     const offers = { repair: [8, () => state.busHealth < state.maxBusHealth], armor: [18, () => state.armor < 2], weapon: [22, () => !state.weapon], refuel: [5, () => state.fuel < 100], ammo: [5, () => state.ammo < 300] };
@@ -168,13 +175,14 @@ export async function createZombieSimulation(saved) {
     if (action === "weapon") state.weapon = 1;
     if (action === "refuel") state.fuel = Math.min(100, state.fuel + 35);
     if (action === "ammo") state.ammo += 36;
-    emit("notice", "Workshop complete"); return true;
+    emit("upgrade", "Workshop complete"); return true;
   }
   function damageEnemy(enemy, amount) {
     if (!enemy || enemy.hp <= 0) return;
     enemy.hp = Math.max(0, enemy.hp - amount); enemy.flash = 0.12;
     emit("hit", "", { x: enemy.body.translation().x, z: enemy.body.translation().z });
     if (enemy.hp) return;
+    emit("kill", "", { id: enemy.id, x: enemy.body.translation().x, z: enemy.body.translation().z });
     enemy.collider.setEnabled(false); state.kills++; state.scrap += enemy.boss ? 24 : 5;
     state.xp += enemy.boss ? 80 : 20; state.score += enemy.boss ? 500 : 100;
     while (state.xp >= state.level * 40 && state.level < 10) {
@@ -198,7 +206,7 @@ export async function createZombieSimulation(saved) {
   }
   function reload() {
     if (state.inBus || state.reload || state.magazine === 12 || !state.ammo) return false;
-    state.reload = 1.25; return true;
+    state.reload = 1.25; emit("reload", ""); return true;
   }
   function melee() {
     if (state.inBus || state.meleeCooldown > 0) return;
@@ -274,6 +282,7 @@ export async function createZombieSimulation(saved) {
           enemy.attack = enemy.boss ? 1.15 : 1.35;
           if (state.inBus) state.busHealth -= enemy.boss ? 16 : 6;
           else { state.health -= enemy.boss ? 20 : 8; state.damageFlash = 0.2; }
+          emit("hurt", "", { x: p.x, z: p.z });
         }
         continue;
       }

@@ -1,7 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { createZombieSimulation, normalizeCheckpoint, STOPS, STEP } from "../src/zombie-world.mjs";
+import { createZombieSimulation, normalizeCheckpoint, makeRoad, STOPS, STEP } from "../src/zombie-world.mjs";
+import { SOUND_LENGTHS, makeSoundBuffer, spatialMix, createRouteAudio } from "../src/zombie-audio.mjs";
 
 function teleport(sim, actor, x, z, y = 0.95) {
   actor.body.setTranslation({ x, y, z }, true);
@@ -28,7 +29,7 @@ test("all three stops create colliding worlds with distinct encounters and loot"
     const sim = await createZombieSimulation({ version: 1, stopIndex: i });
     try {
       assert.equal(sim.state.enemies.length, STOPS[i].enemies);
-      assert.equal(sim.state.loot.length, 3);
+      assert.equal(sim.state.loot.length, 5);
       assert.equal(sim.state.enemies.filter(e => e.boss).length, i === 2 ? 1 : 0);
       assert.equal(sim.checkpoint().stopIndex, i);
       assert.equal(sim.bus.body.translation().z, STOPS[i].z + 8);
@@ -193,7 +194,100 @@ test("new game stays lazy-loaded and is copied by both existing web/app builds",
   assert.match(html, /data-start-game="dead-route-3d"/);
   assert.match(html, /function isThreeGame[\s\S]*?dead-route-3d/);
   assert.match(html, /async function startZombieGame[\s\S]*?requireDesktopGameplay\(\)/);
-  assert.match(html, /import\(`\.\/assets\/zombie-game.js\?v=route-1&attempt=/);
+  assert.match(html, /import\(`\.\/assets\/zombie-game.js\?v=route-2&attempt=/);
   for (const script of ["scripts/prepare-vercel.mjs", "scripts/prepare-tauri.mjs", "scripts/serve.mjs"]) assert.match(read(script), /assets\/zombie-game.js/);
   assert.match(read("service-worker.js"), /LAZY_ASSETS = \[.*zombie-game.js/);
+});
+
+test("twelve distinct buildings have real walls and wide, unobstructed doorways", () => {
+  const road = makeRoad();
+  assert.equal(road.buildings.length, 12);
+  assert.equal(new Set(road.buildings.map(b => b.kind)).size, 12);
+  for (const b of road.buildings) {
+    const walls = road.walls.filter(w => w.buildingId === b.id);
+    assert.equal(walls.length, 5);
+    assert.ok(Math.abs(b.x) - b.w / 2 > 9, "Driving lane stays clear");
+    assert.ok(!walls.some(w => Math.abs(b.x - w.x) < w.w / 2 && Math.abs(b.z + b.d / 2 - w.z) < w.d / 2));
+  }
+});
+
+test("new side buildings can be entered and their bonus loot only pays once", async () => {
+  const sim = await createZombieSimulation();
+  try {
+    for (const enemy of sim.state.enemies) { enemy.hp = 0; enemy.collider.setEnabled(false); }
+    teleport(sim, sim.player, -20, -21);
+    tick(sim, 1.2, { z: -1 });
+    assert.ok(sim.player.body.translation().z < -28);
+    assert.equal(sim.prompt().action, "spares");
+    sim.interact(); assert.equal(sim.state.scrap, 8);
+    sim.interact(); assert.equal(sim.state.scrap, 8);
+    teleport(sim, sim.player, 20, -29); sim.interact();
+    assert.equal(sim.state.ammo, 84);
+    sim.interact(); assert.equal(sim.state.ammo, 84);
+    teleport(sim, sim.player, -13, -28); tick(sim, 0.8, { x: -1 });
+    assert.ok(sim.player.body.translation().x > -14.5, "New side wall blocks movement");
+  } finally { sim.dispose(); }
+});
+
+const sampleContext = {
+  sampleRate: 22050,
+  createBuffer: (channels, length, rate) => { const data = new Float32Array(length); return { length, duration: length / rate, getChannelData: () => data }; }
+};
+test("all thirteen original effects are bounded, non-silent PCM without clicks at their ends", () => {
+  for (const name of Object.keys(SOUND_LENGTHS)) {
+    const data = makeSoundBuffer(sampleContext, name).getChannelData(0);
+    let energy = 0;
+    for (const value of data) { assert.ok(Number.isFinite(value) && Math.abs(value) <= 0.901); energy += value * value; }
+    assert.ok(Math.sqrt(energy / data.length) > 0.001, `${name} is audible`);
+    assert.ok(Math.abs(data[0]) < 0.001 && Math.abs(data.at(-1)) < 0.01, name);
+  }
+  assert.throws(() => makeSoundBuffer(sampleContext, "invalid"));
+});
+
+test("positional zombie sound attenuates with distance and follows camera orientation", () => {
+  const listener = { x: 0, z: 0 };
+  assert.equal(spatialMix({ x: 40, z: 0 }, listener).gain, 0);
+  assert.ok(spatialMix({ x: 5, z: 0 }, listener).pan > 0);
+  assert.ok(spatialMix({ x: -5, z: 0 }, listener).pan < 0);
+  assert.ok(Math.abs(spatialMix({ x: 5, z: 0 }, listener, Math.PI / 2).pan) < 0.01);
+  assert.equal(spatialMix(listener, listener).gain, 1);
+});
+
+class FakeAudioContext {
+  constructor() { this.state = "suspended"; this.sampleRate = sampleContext.sampleRate; this.currentTime = 0; this.destination = {}; this.nodes = []; }
+  param() { return { value: 0, cancelScheduledValues() {}, setTargetAtTime(value) { this.value = value; } }; }
+  node() { const node = { connect() {}, disconnect() {}, start() {}, stop() { this.stopped = true; }, gain: this.param(), pan: this.param(), playbackRate: this.param(), threshold: this.param(), ratio: this.param() }; this.nodes.push(node); return node; }
+  createBuffer(...args) { return sampleContext.createBuffer(...args); }
+  createGain() { return this.node(); }
+  createDynamicsCompressor() { return this.node(); }
+  createBufferSource() { return this.node(); }
+  createStereoPanner() { return this.node(); }
+  async resume() { this.state = "running"; }
+  async suspend() { this.state = "suspended"; }
+  async close() { this.state = "closed"; }
+}
+
+test("audio caps voices, reuses buffers, pauses, resumes, mutes and disposes", async () => {
+  const context = new FakeAudioContext();
+  const sound = createRouteAudio({ contextFactory: () => context });
+  await sound.unlock(); assert.equal(sound.snapshot().state, "running");
+  for (let i = 0; i < 25; i++) sound.play("shot");
+  assert.equal(sound.snapshot().voices, 16); assert.equal(sound.snapshot().buffers, 3);
+  sound.setMuted(true); assert.equal(sound.snapshot().voices, 0); assert.equal(sound.play("shot"), false);
+  sound.setMuted(false); await sound.unlock(); assert.equal(sound.play("shot"), true);
+  sound.setPaused(true); assert.equal(context.state, "suspended"); assert.equal(sound.snapshot().voices, 0);
+  sound.setPaused(false); await sound.unlock(); assert.equal(context.state, "running");
+  sound.dispose(); sound.dispose(); assert.equal(context.state, "closed"); assert.equal(sound.snapshot().buffers, 0);
+  await sound.unlock(); assert.equal(context.state, "closed");
+});
+
+test("zero volume and failed audio startup do not block play or later retries", async () => {
+  let attempts = 0;
+  const silent = createRouteAudio({ volume: 0, contextFactory: () => { attempts++; throw new Error("blocked"); } });
+  await silent.unlock(); assert.equal(attempts, 0); silent.dispose();
+  const sound = createRouteAudio({ contextFactory: () => { if (++attempts === 1) throw new Error("blocked"); return new FakeAudioContext(); } });
+  await sound.unlock(); assert.equal(sound.snapshot().state, "idle");
+  await sound.unlock(); assert.equal(sound.snapshot().state, "running"); sound.dispose();
+  const canceled = createRouteAudio({ contextFactory: () => { throw new Error("Must not initialize after disposal"); } });
+  const pending = canceled.unlock(); canceled.dispose(); await pending; assert.equal(canceled.snapshot().state, "idle");
 });
