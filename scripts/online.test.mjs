@@ -6,6 +6,7 @@ import test from "node:test";
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
 const source = scripts.join("\n");
+const musicCatalog = new Script(source.match(/const musicPackCatalog = (\[[^]*?\n      \]);/)[1]).runInNewContext();
 function load(names, values = {}) {
   const context = createContext({
     ONLINE_MAX_PLAYERS: 5,
@@ -81,7 +82,7 @@ function musicTestContext(extra = {}) {
   ], {
     gameSettings: { volume: 70, sound: "on", language: "en", customMusicUrl: "https://example.com/saved.mp3", customMusicList: ["https://example.com/saved.mp3"] },
     selectedMusicPack: "", musicSelect: { value: "none" }, settingsMessage: {}, startSettingsMessage: {},
-    musicPackCatalog: [{ value: "drift-phonk", label: "Drift Phonk" }], allShopItems: [],
+    musicPackCatalog: musicCatalog, allShopItems: [], builtInMusicAudio: null, builtInMusicPlayPending: null,
     currentAccount: null, currentUserData: null, musicTimer: 123, musicUnlocked: true,
     musicContext: { state: "running", currentTime: 10, resume() { throw new Error("Muted music must not resume"); } },
     musicGain: { gain: { cancelScheduledValues() {}, setTargetAtTime(value) { gainTargets.push(value); } } },
@@ -91,6 +92,7 @@ function musicTestContext(extra = {}) {
     settingsStorageKey: "snake-settings", localStorage: { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) },
     currentText: key => ({ noMusic: "None", standardMusic: "Game Soundtrack" })[key],
     applyPlayerStyleControls() {}, applyGameSettingsControls() {}, draw() {},
+    clearLocalMusicSelection() {}, renderCustomMusicLists() {}, customMusicUrlInput: {}, startCustomMusicUrlInput: {},
     getGameVolume: () => 0.7, clearTimeout() {},
     patchCurrentUser: async patch => { patches.push(patch); },
     normalizeVolume: value => Number(value), normalizeGraphicsQuality: value => value || "normal",
@@ -109,7 +111,7 @@ test("both music selectors expose free None with a distinct label", () => {
   assert.equal(ctx.ownsMusicPack("none"), true);
   assert.equal(ctx.normalizeMusicPack("none"), "none");
   assert.equal(ctx.getBuiltInMusicLabel("none"), "None");
-  assert.equal(ctx.getBuiltInMusicLabel(""), "Game Soundtrack");
+  assert.equal(ctx.getBuiltInMusicLabel(""), "Neon Cartridge");
   assert.equal(ctx.normalizeMusicPack("unknown"), "");
 });
 
@@ -121,6 +123,7 @@ test("None stops every background music source and does not mute game volume", (
   assert.equal(ctx.gameSettings.volume, 70);
   assert.equal(ctx.gameSettings.sound, "on");
   assert.equal(ctx.gameSettings.customMusicList.length, 1);
+  assert.equal(ctx.gameSettings.customMusicUrl, "https://example.com/saved.mp3");
   assert.equal(ctx.musicTimer, null);
   assert.equal(ctx.customMusicAudio.paused, true);
   assert.equal(ctx.loadingMusicAudio.paused, true);
@@ -144,15 +147,16 @@ test("None survives settings changes and reloads; a music pack enables playback 
   const saved = ctx.getStoredGameSettings();
   assert.equal(saved.musicDisabled, true);
   assert.equal(saved.volume, 55);
-  assert.match(source, /let selectedMusicPack = gameSettings\.musicDisabled \? "none" : ""/);
-  assert.match(source, /selectedMusicPack = gameSettings\.musicDisabled \? "none" : currentUserData\.equipped\.music/);
+  assert.match(source, /let selectedMusicPack = gameSettings\.musicDisabled \? "none" : gameSettings\.musicPack/);
+  assert.match(source, /selectedMusicPack = gameSettings\.musicDisabled \? "none" : normalizeMusicPack\(currentUserData\.equipped\.music\)/);
   let resumed = 0;
   ctx.syncBackgroundMusic = () => { if (!ctx.isMusicDisabled()) resumed++; };
-  for (const pack of ["drift-phonk", ""]) {
+  for (const pack of ["neon-coin-slot", ""]) {
     ctx.musicSelect.value = pack;
     ctx.updateMusicPack();
     assert.equal(ctx.selectedMusicPack, pack);
     assert.equal(ctx.getStoredGameSettings().musicDisabled, false);
+    assert.equal(ctx.getStoredGameSettings().musicPack, pack);
   }
   assert.equal(resumed, 2);
 });
@@ -165,6 +169,134 @@ test("signed-in users can save None and an account None also blocks playback", (
   assert.equal(ctx.isMusicDisabled(), true);
   ctx.unlockBackgroundMusic();
   assert.equal(ctx.musicTimer, null);
+});
+
+test("playlist has three unique bundled MP3s in both builds and no retired choices", () => {
+  assert.equal(musicCatalog.length, 3);
+  assert.equal(new Set(musicCatalog.map(track => track.src)).size, 3);
+  const builds = ["prepare-vercel.mjs", "prepare-tauri.mjs", "serve.mjs"].map(file => readFileSync(new URL(file, import.meta.url), "utf8"));
+  const worker = readFileSync(new URL("../service-worker.js", import.meta.url), "utf8");
+  for (const track of musicCatalog) {
+    const bytes = readFileSync(new URL(`../${track.src}`, import.meta.url));
+    assert.ok(bytes.byteLength > 1000000);
+    assert.ok(bytes.subarray(0, 3).toString() === "ID3" || bytes[0] === 255);
+    for (const script of [...builds, worker]) assert.ok(script.includes(track.src.replace(/^\.\//, "")));
+  }
+  for (const id of ["startMusicSelect", "musicSelect"]) {
+    const select = html.match(new RegExp(`<select id="${id}"[^>]*>([^]*?)</select>`))[1];
+    assert.doesNotMatch(select, /value="(?:retro|chiptune|premium|boss)"/);
+  }
+  const { ctx } = musicTestContext();
+  assert.equal(ctx.normalizeMusicPack("drift-phonk"), "");
+  assert.equal(ctx.normalizeMusicPack("retro"), "neon-coin-slot");
+  assert.equal(ctx.normalizeMusicPack("boss"), "continue-countdown");
+  assert.equal(ctx.normalizeMusicPack("none"), "none");
+});
+
+class TrackAudio {
+  dataset = {}; paused = true; currentTime = 0; plays = 0;
+  play() { this.plays++; this.paused = false; return Promise.resolve(); }
+  pause() { this.paused = true; }
+}
+
+test("recorded tracks loop, keep their position on sync, switch and pause for None", async () => {
+  const { ctx } = musicTestContext({ Audio: TrackAudio, musicTimer: null });
+  ctx.getMusicContext = () => { throw new Error("Recorded tracks must not start the synth"); };
+  ctx.startBackgroundMusic();
+  const audio = ctx.builtInMusicAudio;
+  assert.equal(audio.src, "./assets/music/neon-cartridge.mp3");
+  assert.equal(audio.loop, true);
+  assert.equal(audio.preload, "none");
+  assert.equal(audio.volume, 0.7);
+  audio.currentTime = 25;
+  ctx.startBackgroundMusic();
+  assert.equal(audio.plays, 1);
+  assert.equal(audio.currentTime, 25);
+  ctx.getGameVolume = () => 0.35;
+  ctx.startBackgroundMusic();
+  assert.equal(audio.volume, 0.35);
+  ctx.musicSelect.value = "neon-coin-slot";
+  ctx.localMusicObjectUrl = "";
+  ctx.isApprovedCustomMusic = () => false;
+  ctx.updateMusicPack();
+  assert.equal(ctx.builtInMusicAudio, audio);
+  assert.equal(audio.src, "./assets/music/neon-coin-slot.mp3");
+  assert.equal(ctx.customMusicAudio.paused, true);
+  assert.equal(ctx.gameSettings.customMusicUrl, "");
+  assert.equal(ctx.gameSettings.customMusicList.length, 1);
+  ctx.musicSelect.value = "none";
+  ctx.updateMusicPack();
+  assert.equal(audio.paused, true);
+  assert.equal(ctx.builtInMusicPlayPending, null);
+  assert.equal(ctx.musicTimer, null);
+  await new Promise(setImmediate);
+});
+
+test("failed or interrupted track playback can retry without resurrecting music after None", async () => {
+  let rejectPlay;
+  class PendingAudio extends TrackAudio {
+    play() { this.plays++; return new Promise((resolve, reject) => { rejectPlay = reject; }); }
+  }
+  const { ctx } = musicTestContext({ Audio: PendingAudio });
+  ctx.startBackgroundMusic();
+  ctx.startBackgroundMusic();
+  assert.equal(ctx.builtInMusicAudio.plays, 1);
+  rejectPlay(new Error("Decode failed"));
+  await new Promise(setImmediate);
+  assert.match(ctx.settingsMessage.textContent, /Could not play Neon Cartridge/);
+  assert.equal(ctx.builtInMusicPlayPending, null);
+  ctx.startBackgroundMusic();
+  assert.equal(ctx.builtInMusicAudio.plays, 2);
+  ctx.updateMusicPack();
+  const message = ctx.settingsMessage.textContent;
+  rejectPlay(new Error("Late failure"));
+  await new Promise(setImmediate);
+  assert.equal(ctx.settingsMessage.textContent, message);
+  assert.equal(ctx.builtInMusicAudio.paused, true);
+});
+
+function musicWorkerContext(extra = {}) {
+  const context = createContext({
+    Request, Response, Headers, URL,
+    self: { addEventListener() {}, registration: { scope: "https://example.com/minigamesworld/" } },
+    ...extra
+  });
+  new Script(readFileSync(new URL("../service-worker.js", import.meta.url), "utf8")).runInContext(context);
+  return context;
+}
+
+test("cached MP3s support byte ranges and reject invalid ranges", async () => {
+  const ctx = musicWorkerContext();
+  const response = () => new Response(new Uint8Array([0, 1, 2, 3, 4, 5]), { headers: { "content-type": "audio/mpeg" } });
+  for (const [range, expected] of [["bytes=1-3", [1, 2, 3]], ["bytes=4-", [4, 5]], ["bytes=-2", [4, 5]], ["bytes=3-50", [3, 4, 5]]]) {
+    const result = await ctx.musicRangeResponse(response(), range);
+    assert.equal(result.status, 206);
+    assert.deepEqual([...new Uint8Array(await result.arrayBuffer())], expected);
+    assert.equal(result.headers.get("content-length"), String(expected.length));
+    assert.equal(result.headers.get("content-type"), "audio/mpeg");
+  }
+  for (const range of ["bytes=10-", "bytes=4-1", "bytes=-0", "bytes=-", "invalid"]) {
+    const result = await ctx.musicRangeResponse(response(), range);
+    assert.equal(result.status, 416);
+    assert.equal(result.headers.get("content-range"), "bytes */6");
+  }
+  assert.equal((await ctx.musicRangeResponse(response(), null)).status, 200);
+});
+
+test("first track play caches a complete file and later ranges work offline", async () => {
+  const files = new Map(); let requests = 0;
+  const ctx = musicWorkerContext({
+    caches: { open: async () => ({ match: async key => files.get(key)?.clone(), put: async (key, response) => { files.set(key, response); } }) },
+    fetch: async () => { requests++; return new Response(new Uint8Array([1, 2, 3, 4])); }
+  });
+  const url = "https://example.com/minigamesworld/assets/music/neon-cartridge.mp3";
+  const first = await ctx.loadMusic(new Request(url, { headers: { range: "bytes=0-1" } }));
+  assert.equal(first.status, 206);
+  assert.equal(files.get(url).status, 200);
+  ctx.fetch = async () => { throw new Error("Offline"); };
+  const offline = await ctx.loadMusic(new Request(url, { headers: { range: "bytes=2-3" } }));
+  assert.deepEqual([...new Uint8Array(await offline.arrayBuffer())], [3, 4]);
+  assert.equal(requests, 1);
 });
 
 test("particle motion and lifetime are consistent at 30 and 60 FPS", () => {

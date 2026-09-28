@@ -6,6 +6,12 @@ MiniGameWorld is a browser game collection with a Windows desktop installer wrap
 
 Open the web app from the deployed site or GitHub Pages/Vercel deployment for this repo.
 
+### Music
+
+The music selector now plays the supplied Coin Slot Reaper / Treblo MP3 files: **Neon Cartridge** (default), **Neon Coin Slot**, and **Continue? 9... 8... 7...**. The duplicate `Neon Cartridge (1)` download is included only once. Original files are stored in `assets/music/` and copied by both web and desktop build scripts.
+
+**None** still disables music without muting game sounds and stays selected after reload. Track selections are also saved. Selecting a track stops the current custom/local selection without deleting saved music entries. Tracks loop, follow the existing volume control, and are cached individually on first play for offline web-app playback, including seeking. Desktop builds bundle all three tracks; no installer configuration changes are needed.
+
 ## Windows App
 
 This repo includes a Tauri v2 wrapper that packages the current static web files into a Windows desktop app.

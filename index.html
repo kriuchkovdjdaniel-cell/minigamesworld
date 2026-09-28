@@ -9519,12 +9519,8 @@
               <option value="crown">Crown Glow Trail</option>
             </select>
             <select id="startMusicSelect" aria-label="Music pack">
-              <option value="">Game Soundtrack</option>
+              <option value="">Neon Cartridge</option>
               <option value="none">None</option>
-              <option value="retro">Pixel Bass Pack</option>
-              <option value="chiptune">Arcade Pulse Pack</option>
-              <option value="premium">Crystal VIP Pack</option>
-              <option value="boss">Boss Bass Pack</option>
             </select>
             <input class="custom-music-field" id="startCustomMusicUrlInput" type="url" maxlength="300" placeholder="Music URL: MP3/OGG/WAV, YouTube Music or Spotify">
             <input class="custom-music-field" id="startLocalMusicFileInput" type="file" accept="audio/*,.mp3,.ogg,.wav,.m4a,.aac" aria-label="Choose local music file">
@@ -9768,12 +9764,8 @@
             <label>
               Music
               <select id="musicSelect">
-                <option value="">Game Soundtrack</option>
+                <option value="">Neon Cartridge</option>
                 <option value="none">None</option>
-                <option value="retro">Pixel Bass Pack</option>
-                <option value="chiptune">Arcade Pulse Pack</option>
-                <option value="premium">Crystal VIP Pack</option>
-                <option value="boss">Boss Bass Pack</option>
               </select>
             </label>
             <label class="custom-music-field">
@@ -10461,7 +10453,9 @@
       let musicTimer = null;
       let musicStep = 0;
       let musicUnlocked = false;
-      let selectedMusicPack = gameSettings.musicDisabled ? "none" : "";
+      let selectedMusicPack = gameSettings.musicDisabled ? "none" : gameSettings.musicPack || "";
+      let builtInMusicAudio = null;
+      let builtInMusicPlayPending = null;
       let customMusicAudio = null;
       let loadingMusicAudio = null;
       let loadingMusicTimer = null;
@@ -10546,43 +10540,9 @@
         { id: "music-boss", type: "music", value: "boss", name: "Boss Bass Pack", cost: 0, premium: true }
       ];
       const musicPackCatalog = [
-        { value: "drift-phonk", label: "Night Drift Phonk", mood: "phonk", wave: "square", speed: 0.58, octave: 0.72 },
-        { value: "midnight-phonk", label: "Midnight 808 Phonk", mood: "phonk", wave: "square", speed: 0.62, octave: 0.64 },
-        { value: "cowbell-phonk", label: "Cowbell Drive Phonk", mood: "phonk", wave: "square", speed: 0.54, octave: 0.78 },
-        { value: "arena-phonk", label: "Arena 808 Phonk", mood: "phonk", wave: "sawtooth", speed: 0.6, octave: 0.68 },
-        { value: "chill-menu", label: "Emerald Night Flow", mood: "soft", wave: "sine", speed: 1.18, octave: 0.75 },
-        { value: "loading-adventure", label: "Launch Runner", mood: "bright", wave: "triangle", speed: 0.95, octave: 1 },
-        { value: "snake-neon", label: "Serpent Neonline", mood: "neon", wave: "triangle", speed: 0.78, octave: 1.25 },
-        { value: "apple-happy", label: "Apple Bouncebeat", mood: "happy", wave: "sine", speed: 0.86, octave: 1.15 },
-        { value: "brick-retro", label: "Block Break Groove", mood: "retro", wave: "square", speed: 0.98, octave: 0.75 },
-        { value: "gem-speed", label: "Gemline Overdrive", mood: "speed", wave: "square", speed: 0.68, octave: 1.35 },
-        { value: "laser-tension", label: "Laser Noir", mood: "dark", wave: "sawtooth", speed: 0.72, octave: 0.72 },
-        { value: "rpg-fantasy", label: "Crystal Questline", mood: "fantasy", wave: "triangle", speed: 1.05, octave: 1 },
-        { value: "online-energy", label: "Battlewire Charge", mood: "energy", wave: "sawtooth", speed: 0.75, octave: 1 },
-        { value: "fire-boost", label: "Flame Circuit", mood: "fire", wave: "sawtooth", speed: 0.7, octave: 0.9 },
-        { value: "crystal-dreams", label: "Crystal Skyline", mood: "crystal", wave: "sine", speed: 1.12, octave: 1.3 },
-        { value: "cyber-night", label: "Cyber Alleyway", mood: "cyber", wave: "square", speed: 0.82, octave: 0.85 },
-        { value: "boss-fight", label: "Boss Pressureline", mood: "boss", wave: "sawtooth", speed: 0.66, octave: 0.65 },
-        { value: "golden-victory", label: "Gold Win Run", mood: "victory", wave: "triangle", speed: 0.9, octave: 1.2 },
-        { value: "space-rush", label: "Orbit Speedline", mood: "space", wave: "square", speed: 0.74, octave: 1.45 },
-        { value: "dark-arena", label: "Shadow Arena Bass", mood: "arena", wave: "sawtooth", speed: 0.8, octave: 0.7 },
-        { value: "rainbow-party", label: "Neon Party Rush", mood: "party", wave: "square", speed: 0.62, octave: 1.25 },
-        { value: "main-calm", label: "Menu Nightwave", mood: "soft", wave: "sine", speed: 1.22, octave: 0.9 },
-        { value: "main-epic", label: "Menu Hero Pulse", mood: "epic", wave: "triangle", speed: 0.88, octave: 0.95 },
-        { value: "main-funny", label: "Arcade Jumpbeat", mood: "funny", wave: "square", speed: 0.84, octave: 1.35 },
-        { value: "win-theme", label: "Champion Spark", mood: "victory", wave: "triangle", speed: 0.72, octave: 1.35 },
-        { value: "lose-theme", label: "Dark Reset", mood: "dark", wave: "sine", speed: 1.18, octave: 0.58 },
-        { value: "battle-pass-theme", label: "Season Engine", mood: "epic", wave: "sawtooth", speed: 0.76, octave: 0.95 },
-        { value: "emerald-pulse", label: "Emerald Voltage", mood: "neon", wave: "triangle", speed: 0.72, octave: 1.08 },
-        { value: "midnight-drive", label: "Midnight Motor", mood: "cyber", wave: "sawtooth", speed: 0.78, octave: 0.92 },
-        { value: "pixel-quest", label: "Pixel Adventureline", mood: "fantasy", wave: "square", speed: 0.92, octave: 1.05 },
-        { value: "arcade-stadium", label: "Stadium Thunder", mood: "energy", wave: "triangle", speed: 0.7, octave: 1.18 },
-        { value: "deep-space", label: "Deep Orbit Signal", mood: "space", wave: "sine", speed: 1.02, octave: 0.86 },
-        { value: "coin-carnival", label: "Coin Parade", mood: "party", wave: "square", speed: 0.66, octave: 1.22 },
-        { value: "royal-dungeon", label: "Royal Dungeon Bass", mood: "arena", wave: "sawtooth", speed: 0.86, octave: 0.78 },
-        { value: "crystal-lullaby", label: "Crystal Sleep Mode", mood: "crystal", wave: "sine", speed: 1.18, octave: 1.22 },
-        { value: "final-boss", label: "Final Bossline", mood: "boss", wave: "sawtooth", speed: 0.62, octave: 0.72 },
-        { value: "sunset-arcade", label: "Sunset Speedrun", mood: "victory", wave: "triangle", speed: 0.82, octave: 1.12 }
+        { value: "", label: "Neon Cartridge", src: "./assets/music/neon-cartridge.mp3" },
+        { value: "neon-coin-slot", label: "Neon Coin Slot", src: "./assets/music/neon-coin-slot.mp3" },
+        { value: "continue-countdown", label: "Continue? 9... 8... 7...", src: "./assets/music/continue-countdown.mp3" }
       ];
       const allShopItems = [...shopItems, ...premiumItems];
       const battlePassRewards = [
@@ -11378,6 +11338,7 @@
             controls: storedSettings?.controls || "all",
             graphicsQuality: normalizeGraphicsQuality(storedSettings?.graphicsQuality),
             musicDisabled: storedSettings?.musicDisabled === true,
+            musicPack: typeof storedSettings?.musicPack === "string" ? storedSettings.musicPack : "",
             customMusicUrl: storedSettings?.customMusicUrl || "",
             customMusicList: normalizeMusicList(storedSettings?.customMusicList),
             approvedCustomMusicList: normalizeApprovedMusicList(storedSettings?.approvedCustomMusicList)
@@ -11392,6 +11353,7 @@
             controls: "all",
             graphicsQuality: "normal",
             musicDisabled: false,
+            musicPack: "",
             customMusicUrl: "",
             customMusicList: [],
             approvedCustomMusicList: []
@@ -11476,13 +11438,14 @@
         setText(deleteCustomMusicButton, "deleteMusic");
         setText(startResetRecordButton, "resetRecord");
         setText(resetRecordButton, "resetRecord");
-        setOptionText(startMusicSelect, "", currentText("standardMusic"));
-        setOptionText(musicSelect, "", currentText("standardMusic"));
+        setOptionText(startMusicSelect, "", getBuiltInMusicLabel(""));
+        setOptionText(musicSelect, "", getBuiltInMusicLabel(""));
         setOptionText(startMusicSelect, "none", currentText("noMusic"));
         setOptionText(musicSelect, "none", currentText("noMusic"));
       }
 
       function applyPlayerStyleControls() {
+        selectedMusicPack = normalizeMusicPack(selectedMusicPack);
         skinSelect.value = playerStyle.skin;
         colorSelect.value = playerStyle.color;
         trailSelect.value = playerStyle.trail || "";
@@ -11493,7 +11456,7 @@
         startMusicSelect.value = selectedMusicPack;
       }
 
-      function populateGeneratedMusicOptions() {
+      function populateMusicOptions() {
         [startMusicSelect, musicSelect].forEach((select) => {
           const existingValues = new Set([...select.options].map((option) => option.value));
           musicPackCatalog.forEach((pack) => {
@@ -11511,15 +11474,16 @@
       }
 
       function isBuiltInMusicPack(pack) {
-        return Boolean(pack) && (
-          musicPackCatalog.some((item) => item.value === pack) ||
-          allShopItems.some((item) => item.type === "music" && item.value === pack)
-        );
+        return musicPackCatalog.some((item) => item.value === pack);
       }
 
       function normalizeMusicPack(pack) {
         const value = String(pack || "");
-        return value === "none" || isBuiltInMusicPack(value) ? value : "";
+        if (value === "none" || isBuiltInMusicPack(value)) return value;
+        // Preserve old account pack IDs without keeping the synthesized playlist.
+        if (value === "retro" || value === "chiptune") return "neon-coin-slot";
+        if (value === "boss") return "continue-countdown";
+        return "";
       }
 
       function getBuiltInMusicLabel(pack) {
@@ -11527,13 +11491,7 @@
 
         if (value === "none") return currentText("noMusic");
 
-        if (!value) {
-          return currentText("standardMusic") || "Game Soundtrack";
-        }
-
-        return musicPackCatalog.find((item) => item.value === value)?.label ||
-          allShopItems.find((item) => item.type === "music" && item.value === value)?.name ||
-          value;
+        return musicPackCatalog.find((item) => item.value === value)?.label || musicPackCatalog[0].label;
       }
 
       function ownsMusicPack(pack) {
@@ -11663,6 +11621,15 @@
 
         selectedMusicPack = pack;
         gameSettings.musicDisabled = pack === "none";
+        gameSettings.musicPack = normalizeMusicPack(pack);
+        if (pack !== "none") {
+          clearLocalMusicSelection();
+          gameSettings.customMusicUrl = "";
+          stopCustomMusic();
+          customMusicUrlInput.value = "";
+          startCustomMusicUrlInput.value = "";
+          renderCustomMusicLists();
+        }
         saveGameSettings();
         if (currentAccount?.username) {
           patchCurrentUser({
@@ -11689,6 +11656,7 @@
           controls: controlsSelect.value,
           graphicsQuality: normalizeGraphicsQuality(graphicsQualitySelect.value),
           musicDisabled: gameSettings.musicDisabled === true,
+          musicPack: gameSettings.musicPack || "",
           customMusicUrl: gameSettings.customMusicUrl || "",
           customMusicList: normalizeMusicList(gameSettings.customMusicList),
           approvedCustomMusicList: normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)
@@ -12886,144 +12854,40 @@
       }
 
       function startBackgroundMusic() {
-        if (isMusicDisabled()) {
+        if (isMusicDisabled() || !musicUnlocked || getGameVolume() <= 0) {
           stopBackgroundMusic();
           return;
         }
-        if (!musicUnlocked || getGameVolume() <= 0 || musicTimer) {
-          if (musicUnlocked && musicContext?.state === "suspended") {
-            resumeMusicContextSafely();
-          }
-          return;
+
+        const track = musicPackCatalog.find((item) => item.value === normalizeMusicPack(selectedMusicPack)) || musicPackCatalog[0];
+        if (!builtInMusicAudio) {
+          builtInMusicAudio = new Audio();
+          builtInMusicAudio.loop = true;
+          builtInMusicAudio.preload = "none";
         }
-
-        const audioContext = getMusicContext();
-
-        if (!audioContext) {
-          return;
+        if (builtInMusicAudio.dataset.sourceUrl !== track.src) {
+          builtInMusicPlayPending = null;
+          builtInMusicAudio.pause();
+          builtInMusicAudio.src = track.src;
+          builtInMusicAudio.dataset.sourceUrl = track.src;
         }
+        builtInMusicAudio.volume = getGameVolume();
+        if (!builtInMusicAudio.paused || builtInMusicPlayPending) return;
 
-        resumeMusicContextSafely(audioContext);
-
-        const tickMusic = () => {
-          if (isMusicDisabled() || getGameVolume() <= 0) {
-            stopBackgroundMusic();
-            return;
-          }
-
-          const pattern = getMusicPattern();
-          const melody = pattern.melody;
-          const bass = pattern.bass;
-          const step = musicStep;
-          const delaySeconds = pattern.delay / 1000;
-          const note = melody[step % melody.length];
-          const bassNote = bass[Math.floor(step / 4) % bass.length];
-          const mood = pattern.mood || "neon";
-          const softMood = softMusicMoods.has(mood);
-          const leadDuration = Math.min(0.58, delaySeconds * (softMood ? 2.05 : 1.65));
-          const chordDuration = Math.min(1.15, delaySeconds * 4.6);
-          const shouldPlayLead = !softMood || step % 2 === 0;
-
-          if (phonkMusicMoods.has(mood)) {
-            if (note && step % 2 === 0) {
-              playPhonkCowbell(note, Math.min(0.19, delaySeconds * 0.82), 0.086);
-            }
-
-            if (note && step % 8 === 5) {
-              playPhonkCowbell(getMusicHarmonyNote(note, mood, step), Math.min(0.16, delaySeconds * 0.72), 0.054, {
-                offset: delaySeconds * 0.36
-              });
-            }
-
-            if (bassNote && (step % 4 === 0 || step % 8 === 3)) {
-              playPhonkBass(bassNote, Math.min(0.5, delaySeconds * 2.25), step % 8 === 3 ? 0.095 : 0.135);
-            }
-
-            if (bassNote && step % 16 === 0) {
-              playMusicChord(
-                bassNote * 2,
-                [0, 3, 7],
-                Math.min(0.55, delaySeconds * 2.6),
-                "triangle",
-                0.022,
-                {
-                  mood,
-                  role: "chord",
-                  offset: delaySeconds * 0.12,
-                  filter: 820,
-                  attack: 0.035,
-                  release: 0.24
-                }
-              );
-            }
-          } else {
-            if (note && shouldPlayLead) {
-              playMusicTone(note, leadDuration, pattern.wave, softMood ? 0.088 : 0.112, {
-                mood,
-                role: "lead",
-                filter: ["boss", "dark", "arena"].includes(mood) ? 1100 : softMood ? 1500 : 1850,
-                q: 0.52,
-                release: 0.16
-              });
-
-              if (step % (softMood ? 8 : 4) === 0) {
-                playMusicTone(getMusicHarmonyNote(note, mood, step), leadDuration * 0.9, pattern.wave, 0.03, {
-                  mood,
-                  role: "lead",
-                  offset: delaySeconds * 0.25,
-                  filter: softMood ? 1450 : 1650,
-                  detune: 4,
-                  release: 0.18
-                });
-              }
-
-              if (["crystal", "fantasy", "space", "victory", "party"].includes(mood) && step % 8 === 1) {
-                playMusicTone(note * 1.5, Math.min(0.28, delaySeconds * 0.95), "sine", 0.018, {
-                  mood,
-                  role: "lead",
-                  offset: delaySeconds * 0.55,
-                  filter: 2200,
-                  attack: 0.018,
-                  release: 0.14
-                });
-              }
-            }
-
-            if (step % 4 === 0 && bassNote) {
-              playMusicTone(bassNote, Math.min(0.78, delaySeconds * 3.4), "sine", ["boss", "arena"].includes(mood) ? 0.13 : 0.1, {
-                mood,
-                role: "bass",
-                filter: 620,
-                attack: 0.018,
-                release: 0.2
-              });
-              playMusicChord(
-                bassNote * 2,
-                getMusicChordIntervals(mood, step),
-                chordDuration,
-                "triangle",
-                softMood ? 0.038 : 0.032,
-                {
-                  mood,
-                  role: "chord",
-                  offset: delaySeconds * 0.08,
-                  filter: ["boss", "dark", "arena"].includes(mood) ? 850 : 1400,
-                  attack: 0.045,
-                  release: 0.28
-                }
-              );
-            }
-          }
-
-          playMusicDrumPattern(mood, step, delaySeconds);
-          musicStep += 1;
-          musicTimer = setTimeout(tickMusic, pattern.delay);
-        };
-
-        tickMusic();
+        const attempt = builtInMusicAudio.play();
+        builtInMusicPlayPending = attempt;
+        attempt.catch((error) => {
+          if (builtInMusicPlayPending !== attempt || isMusicDisabled() || error?.name === "AbortError") return;
+          settingsMessage.textContent = `Could not play ${track.label}. Select it again to retry.`;
+          startSettingsMessage.textContent = settingsMessage.textContent;
+        }).finally(() => {
+          if (builtInMusicPlayPending === attempt) builtInMusicPlayPending = null;
+        });
       }
 
       function stopBackgroundMusic() {
+        builtInMusicPlayPending = null;
+        builtInMusicAudio?.pause();
         clearTimeout(musicTimer);
         musicTimer = null;
         if (musicGain && musicContext?.state !== "closed") {
@@ -13239,7 +13103,7 @@
           };
           pixelSkinPalette = normalizeCustomPalette(playerStyle.customPalette);
           customRgbColors = normalizeCustomColors(playerStyle.customColors);
-          selectedMusicPack = gameSettings.musicDisabled ? "none" : currentUserData.equipped.music || "";
+          selectedMusicPack = gameSettings.musicDisabled ? "none" : normalizeMusicPack(currentUserData.equipped.music);
           savePlayerStyle();
           applyPlayerStyleControls();
           stopBackgroundMusic();
@@ -17010,8 +16874,9 @@
           patch[item.type] = item.value;
         }
         if (item.type === "music") {
-          selectedMusicPack = item.value;
+          selectedMusicPack = normalizeMusicPack(item.value);
           gameSettings.musicDisabled = false;
+          gameSettings.musicPack = selectedMusicPack;
           saveGameSettings();
           stopBackgroundMusic();
           syncBackgroundMusic();
@@ -23107,7 +22972,7 @@
       });
 
       refreshStoredAccountRole();
-      populateGeneratedMusicOptions();
+      populateMusicOptions();
       applyPlayerStyleControls();
       applyGameSettingsControls();
       watchTopNotificationSource(statusEl);
