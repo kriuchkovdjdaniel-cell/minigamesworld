@@ -9520,6 +9520,7 @@
             </select>
             <select id="startMusicSelect" aria-label="Music pack">
               <option value="">Game Soundtrack</option>
+              <option value="none">None</option>
               <option value="retro">Pixel Bass Pack</option>
               <option value="chiptune">Arcade Pulse Pack</option>
               <option value="premium">Crystal VIP Pack</option>
@@ -9768,6 +9769,7 @@
               Music
               <select id="musicSelect">
                 <option value="">Game Soundtrack</option>
+                <option value="none">None</option>
                 <option value="retro">Pixel Bass Pack</option>
                 <option value="chiptune">Arcade Pulse Pack</option>
                 <option value="premium">Crystal VIP Pack</option>
@@ -10459,7 +10461,7 @@
       let musicTimer = null;
       let musicStep = 0;
       let musicUnlocked = false;
-      let selectedMusicPack = "";
+      let selectedMusicPack = gameSettings.musicDisabled ? "none" : "";
       let customMusicAudio = null;
       let loadingMusicAudio = null;
       let loadingMusicTimer = null;
@@ -10703,11 +10705,13 @@
           saveMusic: "Save Music",
           deleteMusic: "Delete Music",
           standardMusic: "Game Soundtrack",
+          noMusic: "None",
           musicUrl: "Music URL: MP3/OGG/WAV, YouTube Music or Spotify",
           savedMusic: "Saved music list",
           selected: "selected"
         },
         ru: {
+          noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u044b\u043a\u0438",
           play: "Играть",
           games: "Игры",
           profile: "Профиль",
@@ -10753,6 +10757,7 @@
           selected: "выбрано"
         },
         uk: {
+          noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u0438\u043a\u0438",
           play: "Грати",
           games: "Ігри",
           profile: "Профіль",
@@ -11178,7 +11183,7 @@
       }
 
       function startLoadingMusic() {
-        if (!loadingMusicReady || loadingMusicStopped || getGameVolume() <= 0) {
+        if (isMusicDisabled() || !loadingMusicReady || loadingMusicStopped || getGameVolume() <= 0) {
           return;
         }
 
@@ -11372,6 +11377,7 @@
             fieldSize: storedSettings?.fieldSize || "normal",
             controls: storedSettings?.controls || "all",
             graphicsQuality: normalizeGraphicsQuality(storedSettings?.graphicsQuality),
+            musicDisabled: storedSettings?.musicDisabled === true,
             customMusicUrl: storedSettings?.customMusicUrl || "",
             customMusicList: normalizeMusicList(storedSettings?.customMusicList),
             approvedCustomMusicList: normalizeApprovedMusicList(storedSettings?.approvedCustomMusicList)
@@ -11385,6 +11391,7 @@
             fieldSize: "normal",
             controls: "all",
             graphicsQuality: "normal",
+            musicDisabled: false,
             customMusicUrl: "",
             customMusicList: [],
             approvedCustomMusicList: []
@@ -11471,6 +11478,8 @@
         setText(resetRecordButton, "resetRecord");
         setOptionText(startMusicSelect, "", currentText("standardMusic"));
         setOptionText(musicSelect, "", currentText("standardMusic"));
+        setOptionText(startMusicSelect, "none", currentText("noMusic"));
+        setOptionText(musicSelect, "none", currentText("noMusic"));
       }
 
       function applyPlayerStyleControls() {
@@ -11510,11 +11519,13 @@
 
       function normalizeMusicPack(pack) {
         const value = String(pack || "");
-        return isBuiltInMusicPack(value) ? value : "";
+        return value === "none" || isBuiltInMusicPack(value) ? value : "";
       }
 
       function getBuiltInMusicLabel(pack) {
         const value = normalizeMusicPack(pack);
+
+        if (value === "none") return currentText("noMusic");
 
         if (!value) {
           return currentText("standardMusic") || "Game Soundtrack";
@@ -11526,7 +11537,7 @@
       }
 
       function ownsMusicPack(pack) {
-        if (!pack) {
+        if (!pack || pack === "none") {
           return true;
         }
 
@@ -11651,6 +11662,8 @@
         }
 
         selectedMusicPack = pack;
+        gameSettings.musicDisabled = pack === "none";
+        saveGameSettings();
         if (currentAccount?.username) {
           patchCurrentUser({
             "equipped/music": selectedMusicPack
@@ -11675,6 +11688,7 @@
           fieldSize: fieldSizeSelect.value,
           controls: controlsSelect.value,
           graphicsQuality: normalizeGraphicsQuality(graphicsQualitySelect.value),
+          musicDisabled: gameSettings.musicDisabled === true,
           customMusicUrl: gameSettings.customMusicUrl || "",
           customMusicList: normalizeMusicList(gameSettings.customMusicList),
           approvedCustomMusicList: normalizeApprovedMusicList(gameSettings.approvedCustomMusicList)
@@ -12278,6 +12292,7 @@
       }
 
       function getMusicContext() {
+        if (isMusicDisabled()) return null;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
         if (!AudioContextClass) {
@@ -12835,7 +12850,7 @@
         const volume = getGameVolume();
         const approved = url === localMusicObjectUrl || isApprovedCustomMusic(url);
 
-        if (!musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !approved) {
+        if (isMusicDisabled() || !musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !approved) {
           stopCustomMusic();
           return false;
         }
@@ -12871,6 +12886,10 @@
       }
 
       function startBackgroundMusic() {
+        if (isMusicDisabled()) {
+          stopBackgroundMusic();
+          return;
+        }
         if (!musicUnlocked || getGameVolume() <= 0 || musicTimer) {
           if (musicUnlocked && musicContext?.state === "suspended") {
             resumeMusicContextSafely();
@@ -12887,7 +12906,7 @@
         resumeMusicContextSafely(audioContext);
 
         const tickMusic = () => {
-          if (getGameVolume() <= 0) {
+          if (isMusicDisabled() || getGameVolume() <= 0) {
             stopBackgroundMusic();
             return;
           }
@@ -13007,9 +13026,23 @@
       function stopBackgroundMusic() {
         clearTimeout(musicTimer);
         musicTimer = null;
+        if (musicGain && musicContext?.state !== "closed") {
+          musicGain.gain.cancelScheduledValues(musicContext.currentTime);
+          musicGain.gain.setTargetAtTime(0, musicContext.currentTime, 0.015);
+        }
+      }
+
+      function isMusicDisabled() {
+        return gameSettings.musicDisabled === true || selectedMusicPack === "none";
       }
 
       function syncBackgroundMusic() {
+        if (isMusicDisabled()) {
+          stopBackgroundMusic();
+          stopCustomMusic();
+          stopLoadingMusic();
+          return;
+        }
         const customUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
         const customPlaying = syncCustomMusic();
 
@@ -13032,6 +13065,10 @@
 
       function unlockBackgroundMusic() {
         musicUnlocked = true;
+        if (isMusicDisabled()) {
+          syncBackgroundMusic();
+          return;
+        }
         if (musicContext?.state === "suspended") {
           resumeMusicContextSafely();
         }
@@ -13202,7 +13239,7 @@
           };
           pixelSkinPalette = normalizeCustomPalette(playerStyle.customPalette);
           customRgbColors = normalizeCustomColors(playerStyle.customColors);
-          selectedMusicPack = currentUserData.equipped.music || "";
+          selectedMusicPack = gameSettings.musicDisabled ? "none" : currentUserData.equipped.music || "";
           savePlayerStyle();
           applyPlayerStyleControls();
           stopBackgroundMusic();
@@ -16974,6 +17011,8 @@
         }
         if (item.type === "music") {
           selectedMusicPack = item.value;
+          gameSettings.musicDisabled = false;
+          saveGameSettings();
           stopBackgroundMusic();
           syncBackgroundMusic();
         }

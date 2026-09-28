@@ -71,6 +71,102 @@ test("removed directional pad has no dangling translation or event bindings", ()
   assert.doesNotMatch(html, /data-direction|aria-label="Touch controls"|"board pad"/);
 });
 
+function musicTestContext(extra = {}) {
+  const stored = new Map(), patches = [], gainTargets = [];
+  const ctx = load([
+    "isMusicDisabled", "ownsMusicPack", "isBuiltInMusicPack", "normalizeMusicPack", "getBuiltInMusicLabel",
+    "updateMusicPack", "stopBackgroundMusic", "stopCustomMusic", "stopLoadingMusic", "syncBackgroundMusic",
+    "syncCustomMusic", "startBackgroundMusic", "unlockBackgroundMusic", "startLoadingMusic", "getMusicContext",
+    "saveGameSettings", "getStoredGameSettings", "updateGameSettings"
+  ], {
+    gameSettings: { volume: 70, sound: "on", language: "en", customMusicUrl: "https://example.com/saved.mp3", customMusicList: ["https://example.com/saved.mp3"] },
+    selectedMusicPack: "", musicSelect: { value: "none" }, settingsMessage: {}, startSettingsMessage: {},
+    musicPackCatalog: [{ value: "drift-phonk", label: "Drift Phonk" }], allShopItems: [],
+    currentAccount: null, currentUserData: null, musicTimer: 123, musicUnlocked: true,
+    musicContext: { state: "running", currentTime: 10, resume() { throw new Error("Muted music must not resume"); } },
+    musicGain: { gain: { cancelScheduledValues() {}, setTargetAtTime(value) { gainTargets.push(value); } } },
+    customMusicAudio: { paused: false, pause() { this.paused = true; }, play() { throw new Error("Muted custom music must not play"); } },
+    localMusicObjectUrl: "blob:local-test", loadingMusicTimer: 456, loadingMusicReady: true, loadingMusicStopped: false,
+    loadingMusicAudio: { paused: false, currentTime: 12, pause() { this.paused = true; }, play() { throw new Error("Muted loading music must not play"); } },
+    settingsStorageKey: "snake-settings", localStorage: { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) },
+    currentText: key => ({ noMusic: "None", standardMusic: "Game Soundtrack" })[key],
+    applyPlayerStyleControls() {}, applyGameSettingsControls() {}, draw() {},
+    getGameVolume: () => 0.7, clearTimeout() {},
+    patchCurrentUser: async patch => { patches.push(patch); },
+    normalizeVolume: value => Number(value), normalizeGraphicsQuality: value => value || "normal",
+    normalizeMusicList: list => Array.isArray(list) ? list : [], normalizeApprovedMusicList: list => Array.isArray(list) ? list : [],
+    ...extra
+  });
+  return { ctx, stored, patches, gainTargets };
+}
+
+test("both music selectors expose free None with a distinct label", () => {
+  for (const id of ["startMusicSelect", "musicSelect"]) {
+    const select = html.match(new RegExp(`<select id="${id}"[^>]*>([^]*?)</select>`));
+    assert.match(select[1], /<option value="none">None<\/option>/);
+  }
+  const { ctx } = musicTestContext();
+  assert.equal(ctx.ownsMusicPack("none"), true);
+  assert.equal(ctx.normalizeMusicPack("none"), "none");
+  assert.equal(ctx.getBuiltInMusicLabel("none"), "None");
+  assert.equal(ctx.getBuiltInMusicLabel(""), "Game Soundtrack");
+  assert.equal(ctx.normalizeMusicPack("unknown"), "");
+});
+
+test("None stops every background music source and does not mute game volume", () => {
+  const { ctx, gainTargets } = musicTestContext();
+  ctx.updateMusicPack();
+  assert.equal(ctx.selectedMusicPack, "none");
+  assert.equal(ctx.gameSettings.musicDisabled, true);
+  assert.equal(ctx.gameSettings.volume, 70);
+  assert.equal(ctx.gameSettings.sound, "on");
+  assert.equal(ctx.gameSettings.customMusicList.length, 1);
+  assert.equal(ctx.musicTimer, null);
+  assert.equal(ctx.customMusicAudio.paused, true);
+  assert.equal(ctx.loadingMusicAudio.paused, true);
+  assert.equal(ctx.loadingMusicAudio.currentTime, 0);
+  assert.equal(gainTargets.at(-1), 0);
+  ctx.startBackgroundMusic();
+  ctx.startLoadingMusic();
+  ctx.unlockBackgroundMusic();
+  assert.equal(ctx.syncCustomMusic(), false);
+  assert.equal(ctx.getMusicContext(), null);
+  assert.equal(ctx.musicTimer, null);
+});
+
+test("None survives settings changes and reloads; a music pack enables playback again", () => {
+  const { ctx } = musicTestContext({
+    soundSelect: { value: "55" }, languageSelect: { value: "uk" }, themeSelect: { value: "forest" },
+    fieldSizeSelect: { value: "normal" }, controlsSelect: { value: "all" }, graphicsQualitySelect: { value: "low" }
+  });
+  ctx.updateMusicPack();
+  ctx.updateGameSettings();
+  const saved = ctx.getStoredGameSettings();
+  assert.equal(saved.musicDisabled, true);
+  assert.equal(saved.volume, 55);
+  assert.match(source, /let selectedMusicPack = gameSettings\.musicDisabled \? "none" : ""/);
+  assert.match(source, /selectedMusicPack = gameSettings\.musicDisabled \? "none" : currentUserData\.equipped\.music/);
+  let resumed = 0;
+  ctx.syncBackgroundMusic = () => { if (!ctx.isMusicDisabled()) resumed++; };
+  for (const pack of ["drift-phonk", ""]) {
+    ctx.musicSelect.value = pack;
+    ctx.updateMusicPack();
+    assert.equal(ctx.selectedMusicPack, pack);
+    assert.equal(ctx.getStoredGameSettings().musicDisabled, false);
+  }
+  assert.equal(resumed, 2);
+});
+
+test("signed-in users can save None and an account None also blocks playback", () => {
+  const { ctx, patches } = musicTestContext({ currentAccount: { username: "tester" }, currentUserData: {} });
+  ctx.updateMusicPack();
+  assert.equal(patches[0]["equipped/music"], "none");
+  ctx.gameSettings.musicDisabled = false;
+  assert.equal(ctx.isMusicDisabled(), true);
+  ctx.unlockBackgroundMusic();
+  assert.equal(ctx.musicTimer, null);
+});
+
 test("particle motion and lifetime are consistent at 30 and 60 FPS", () => {
   const simulate = (steps) => {
     const ctx = effectsContext();
