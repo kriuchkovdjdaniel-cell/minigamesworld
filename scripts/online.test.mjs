@@ -111,7 +111,7 @@ test("both music selectors expose free None with a distinct label", () => {
   assert.equal(ctx.ownsMusicPack("none"), true);
   assert.equal(ctx.normalizeMusicPack("none"), "none");
   assert.equal(ctx.getBuiltInMusicLabel("none"), "None");
-  assert.equal(ctx.getBuiltInMusicLabel(""), "Neon Cartridge");
+  assert.equal(ctx.getBuiltInMusicLabel(""), "Neon Afterburn");
   assert.equal(ctx.normalizeMusicPack("unknown"), "");
 });
 
@@ -247,7 +247,7 @@ test("failed or interrupted track playback can retry without resurrecting music 
   assert.equal(ctx.builtInMusicAudio.plays, 1);
   rejectPlay(new Error("Decode failed"));
   await new Promise(setImmediate);
-  assert.match(ctx.settingsMessage.textContent, /Could not play Neon Cartridge/);
+  assert.match(ctx.settingsMessage.textContent, /Could not play Neon Afterburn/);
   assert.equal(ctx.builtInMusicPlayPending, null);
   ctx.startBackgroundMusic();
   assert.equal(ctx.builtInMusicAudio.plays, 2);

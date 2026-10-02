@@ -8,9 +8,16 @@ Open the web app from the deployed site or GitHub Pages/Vercel deployment for th
 
 ### Music
 
-The music selector now plays the supplied Coin Slot Reaper / Treblo MP3 files: **Neon Cartridge** (default), **Neon Coin Slot**, and **Continue? 9... 8... 7...**. The duplicate `Neon Cartridge (1)` download is included only once. Original files are stored in `assets/music/` and copied by both web and desktop build scripts.
+Both music selectors use these display names for the supplied Coin Slot Reaper / Treblo and minigamesworld phonks / Treblo files:
 
-The supplied minigamesworld phonks / Treblo tracks **Blox Fruits Drift**, **Skibidi Drift**, and **Neon Arcade Drift** are also available in both selectors.
+- **Neon Afterburn** (default): Neon Cartridge
+- **Midnight Jackpot**: Neon Coin Slot
+- **Final Credit**: Continue? 9... 8... 7...
+- **Phantom Seas**: Blox Fruits Drift
+- **Chaos Engine**: SKIBIDI DRIFT
+- **Arcade Overdrive**: Neon Arcade Drift
+
+Only display names change; audio, file metadata, track IDs, and saved selections stay unchanged. The duplicate `Neon Cartridge (1)` download is included only once. Original files are stored in `assets/music/` and copied by both web and desktop build scripts.
 
 **None** still disables music without muting game sounds and stays selected after reload. Track selections are also saved. Selecting a track stops the current custom/local selection without deleting saved music entries. Tracks loop, follow the existing volume control, and are cached individually on first play for offline web-app playback, including seeking. Desktop builds bundle all six tracks; no installer configuration changes are needed.
 
