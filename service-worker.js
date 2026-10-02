@@ -1,4 +1,4 @@
-const CACHE_NAME = "minigameworld-v10";
+const CACHE_NAME = "minigameworld-v11";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -13,7 +13,10 @@ const LAZY_ASSETS = ["./assets/three-games.js", "./assets/zombie-game.js"];
 const MUSIC_ASSETS = [
   "./assets/music/neon-cartridge.mp3",
   "./assets/music/neon-coin-slot.mp3",
-  "./assets/music/continue-countdown.mp3"
+  "./assets/music/continue-countdown.mp3",
+  "./assets/music/blox-fruits-drift.mp3",
+  "./assets/music/skibidi-drift.mp3",
+  "./assets/music/neon-arcade-drift.mp3"
 ];
 
 async function musicRangeResponse(response, range) {

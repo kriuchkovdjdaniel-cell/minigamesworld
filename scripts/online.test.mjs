@@ -171,9 +171,9 @@ test("signed-in users can save None and an account None also blocks playback", (
   assert.equal(ctx.musicTimer, null);
 });
 
-test("playlist has three unique bundled MP3s in both builds and no retired choices", () => {
-  assert.equal(musicCatalog.length, 3);
-  assert.equal(new Set(musicCatalog.map(track => track.src)).size, 3);
+test("playlist has six unique bundled MP3s in both builds and no retired choices", () => {
+  assert.equal(musicCatalog.length, 6);
+  assert.equal(new Set(musicCatalog.map(track => track.src)).size, 6);
   const builds = ["prepare-vercel.mjs", "prepare-tauri.mjs", "serve.mjs"].map(file => readFileSync(new URL(file, import.meta.url), "utf8"));
   const worker = readFileSync(new URL("../service-worker.js", import.meta.url), "utf8");
   for (const track of musicCatalog) {
@@ -191,6 +191,10 @@ test("playlist has three unique bundled MP3s in both builds and no retired choic
   assert.equal(ctx.normalizeMusicPack("retro"), "neon-coin-slot");
   assert.equal(ctx.normalizeMusicPack("boss"), "continue-countdown");
   assert.equal(ctx.normalizeMusicPack("none"), "none");
+  for (const value of ["blox-fruits-drift", "skibidi-drift", "neon-arcade-drift"]) {
+    assert.equal(ctx.normalizeMusicPack(value), value);
+    assert.equal(ctx.ownsMusicPack(value), true);
+  }
 });
 
 class TrackAudio {
