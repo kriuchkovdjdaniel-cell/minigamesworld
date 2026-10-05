@@ -78,19 +78,20 @@ function musicTestContext(extra = {}) {
     "isMusicDisabled", "ownsMusicPack", "isBuiltInMusicPack", "normalizeMusicPack", "getBuiltInMusicLabel",
     "updateMusicPack", "stopBackgroundMusic", "stopCustomMusic", "stopLoadingMusic", "syncBackgroundMusic",
     "syncCustomMusic", "startBackgroundMusic", "unlockBackgroundMusic", "startLoadingMusic", "getMusicContext",
-    "saveGameSettings", "getStoredGameSettings", "updateGameSettings"
+    "saveGameSettings", "getStoredGameSettings", "updateGameSettings", "toggleMusicPlayback", "reportMusicPlaybackError"
   ], {
     gameSettings: { volume: 70, sound: "on", language: "en", customMusicUrl: "https://example.com/saved.mp3", customMusicList: ["https://example.com/saved.mp3"] },
     selectedMusicPack: "", musicSelect: { value: "none" }, settingsMessage: {}, startSettingsMessage: {},
     musicPackCatalog: musicCatalog, allShopItems: [], builtInMusicAudio: null, builtInMusicPlayPending: null,
     currentAccount: null, currentUserData: null, musicTimer: 123, musicUnlocked: true,
+    musicManuallyPaused: false, musicPlaybackError: "", updateMusicPlaybackControls() {}, bindMusicPlaybackEvents() {},
     musicContext: { state: "running", currentTime: 10, resume() { throw new Error("Muted music must not resume"); } },
     musicGain: { gain: { cancelScheduledValues() {}, setTargetAtTime(value) { gainTargets.push(value); } } },
     customMusicAudio: { paused: false, pause() { this.paused = true; }, play() { throw new Error("Muted custom music must not play"); } },
     localMusicObjectUrl: "blob:local-test", loadingMusicTimer: 456, loadingMusicReady: true, loadingMusicStopped: false,
     loadingMusicAudio: { paused: false, currentTime: 12, pause() { this.paused = true; }, play() { throw new Error("Muted loading music must not play"); } },
     settingsStorageKey: "snake-settings", localStorage: { getItem: key => stored.get(key), setItem: (key, value) => stored.set(key, value) },
-    currentText: key => ({ noMusic: "None", standardMusic: "Game Soundtrack" })[key],
+    currentText: key => ({ noMusic: "None", standardMusic: "Game Soundtrack", playMusic: "Play Music" })[key],
     applyPlayerStyleControls() {}, applyGameSettingsControls() {}, draw() {},
     clearLocalMusicSelection() {}, renderCustomMusicLists() {}, customMusicUrlInput: {}, startCustomMusicUrlInput: {},
     getGameVolume: () => 0.7, clearTimeout() {},
@@ -259,6 +260,95 @@ test("failed or interrupted track playback can retry without resurrecting music 
   assert.equal(ctx.builtInMusicAudio.paused, true);
 });
 
+test("music transport works on web, pauses until explicitly resumed, and preserves None", async () => {
+  const { ctx } = musicTestContext({
+    Audio: TrackAudio, musicUnlocked: false, localMusicObjectUrl: "", isApprovedCustomMusic: () => false,
+    gameSettings: { volume: 70, customMusicUrl: "" },
+    canPlayGames() { throw new Error("Music must not check the gameplay gate"); }
+  });
+  ctx.customMusicAudio.paused = true;
+  ctx.toggleMusicPlayback();
+  assert.equal(ctx.musicUnlocked, true);
+  assert.equal(ctx.builtInMusicAudio.paused, false);
+  await new Promise(setImmediate);
+  ctx.builtInMusicAudio.currentTime = 12;
+  ctx.toggleMusicPlayback();
+  assert.equal(ctx.musicManuallyPaused, true);
+  assert.equal(ctx.builtInMusicAudio.paused, true);
+  ctx.unlockBackgroundMusic();
+  ctx.syncBackgroundMusic();
+  ctx.startBackgroundMusic();
+  assert.equal(ctx.builtInMusicAudio.plays, 1);
+  ctx.toggleMusicPlayback();
+  assert.equal(ctx.builtInMusicAudio.plays, 2);
+  assert.equal(ctx.builtInMusicAudio.currentTime, 12);
+  ctx.updateMusicPack();
+  ctx.toggleMusicPlayback();
+  assert.equal(ctx.isMusicDisabled(), true);
+  assert.equal(ctx.builtInMusicAudio.paused, true);
+  assert.equal(ctx.gameSettings.volume, 70);
+});
+
+test("a blocked autoplay can be retried directly from Play Music", async () => {
+  class BlockedAudio extends TrackAudio {
+    play() {
+      if (!this.plays++) return Promise.reject(Object.assign(new Error("Blocked"), { name: "NotAllowedError" }));
+      this.paused = false;
+      return Promise.resolve();
+    }
+  }
+  const { ctx } = musicTestContext({
+    Audio: BlockedAudio, localMusicObjectUrl: "", isApprovedCustomMusic: () => false,
+    gameSettings: { volume: 70, customMusicUrl: "" }
+  });
+  ctx.customMusicAudio.paused = true;
+  ctx.startBackgroundMusic();
+  await new Promise(setImmediate);
+  assert.match(ctx.musicPlaybackError, /Audio was blocked\. Press Play Music/);
+  ctx.toggleMusicPlayback();
+  await new Promise(setImmediate);
+  assert.equal(ctx.builtInMusicAudio.paused, false);
+  assert.equal(ctx.musicPlaybackError, "");
+});
+
+test("both settings transport controls reflect None, muted volume and playback errors", () => {
+  const controls = Array.from({ length: 2 }, () => {
+    const span = {}, status = {};
+    const button = { dataset: {}, querySelector: () => span };
+    return { button, span, status, querySelector: selector => selector === "button" ? button : status };
+  });
+  const ctx = load(["updateMusicPlaybackControls"], {
+    document: { querySelectorAll: () => controls }, selectedMusicPack: "none",
+    isMusicDisabled: () => true, getGameVolume: () => 0.7, currentText: key => key,
+    getBuiltInMusicLabel: () => "Neon Afterburn", localMusicFileName: "",
+    gameSettings: {}, localMusicObjectUrl: "",
+    customMusicAudio: null, builtInMusicAudio: null, builtInMusicPlayPending: null,
+    musicManuallyPaused: false, musicPlaybackError: ""
+  });
+  ctx.updateMusicPlaybackControls();
+  for (const c of controls) { assert.equal(c.button.disabled, true); assert.equal(c.status.textContent, "musicOff"); }
+  ctx.isMusicDisabled = () => false;
+  ctx.getGameVolume = () => 0;
+  ctx.updateMusicPlaybackControls();
+  assert.match(controls[0].status.textContent, /^musicMuted/);
+  ctx.getGameVolume = () => 0.7;
+  ctx.builtInMusicAudio = { paused: false, readyState: 4 };
+  ctx.updateMusicPlaybackControls();
+  assert.equal(controls[0].button.dataset.playing, "true");
+  assert.equal(controls[1].span.textContent, "pauseMusic");
+  ctx.musicPlaybackError = "Playback failed";
+  ctx.updateMusicPlaybackControls();
+  assert.equal(controls[0].status.textContent, "Playback failed");
+  assert.equal(controls[0].span.textContent, "playMusic");
+  ctx.musicPlaybackError = "";
+  ctx.musicManuallyPaused = true;
+  ctx.localMusicObjectUrl = "blob:test";
+  ctx.localMusicFileName = "My song.mp3";
+  ctx.customMusicAudio = { paused: true, dataset: { sourceUrl: "blob:test" } };
+  ctx.updateMusicPlaybackControls();
+  assert.equal(controls[0].status.textContent, "musicPaused: My song.mp3");
+});
+
 function musicWorkerContext(extra = {}) {
   const context = createContext({
     Request, Response, Headers, URL,
@@ -288,19 +378,65 @@ test("cached MP3s support byte ranges and reject invalid ranges", async () => {
 });
 
 test("first track play caches a complete file and later ranges work offline", async () => {
-  const files = new Map(); let requests = 0;
+  const files = new Map(), background = []; let requests = 0;
   const ctx = musicWorkerContext({
     caches: { open: async () => ({ match: async key => files.get(key)?.clone(), put: async (key, response) => { files.set(key, response); } }) },
-    fetch: async () => { requests++; return new Response(new Uint8Array([1, 2, 3, 4])); }
+    fetch: async request => {
+      requests++;
+      assert.equal(request.headers.get("range"), "bytes=0-");
+      return new Response(new Uint8Array([1, 2, 3, 4]), { status: 206, headers: { "content-range": "bytes 0-3/4" } });
+    }
   });
   const url = "https://example.com/minigamesworld/assets/music/neon-cartridge.mp3";
-  const first = await ctx.loadMusic(new Request(url, { headers: { range: "bytes=0-1" } }));
+  const first = await ctx.loadMusic(new Request(url, { headers: { range: "bytes=0-" } }), task => background.push(task));
+  await Promise.all(background);
   assert.equal(first.status, 206);
   assert.equal(files.get(url).status, 200);
   ctx.fetch = async () => { throw new Error("Offline"); };
   const offline = await ctx.loadMusic(new Request(url, { headers: { range: "bytes=2-3" } }));
   assert.deepEqual([...new Uint8Array(await offline.arrayBuffer())], [3, 4]);
   assert.equal(requests, 1);
+});
+
+test("uncached music streams before cache writes finish and retains partial ranges", async () => {
+  let finishCache;
+  const gate = new Promise(resolve => { finishCache = resolve; });
+  const background = [];
+  const ctx = musicWorkerContext({
+    caches: { open: async () => ({ match: async () => null, put: async () => gate }) },
+    fetch: async () => new Response(new Uint8Array([1, 2, 3, 4]))
+  });
+  const request = new Request("https://example.com/minigamesworld/assets/music/neon-cartridge.mp3");
+  let timer;
+  try {
+    const response = await Promise.race([
+      ctx.loadMusic(request, task => background.push(task)),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Playback waited for caching")), 1000); })
+    ]);
+    assert.equal(response.status, 200);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [1, 2, 3, 4]);
+    assert.equal(background.length, 1);
+  } finally { clearTimeout(timer); finishCache(); }
+  await Promise.all(background);
+  ctx.fetch = async () => new Response(new Uint8Array([3, 4]), { status: 206, headers: { "content-range": "bytes 2-3/4" } });
+  const partial = await ctx.loadMusic(request, task => background.push(task));
+  assert.equal(partial.status, 206);
+  assert.equal(partial.headers.get("content-range"), "bytes 2-3/4");
+  assert.equal(background.length, 1, "Do not cache a partial file as a complete track");
+});
+
+test("storage errors do not prevent online music playback", async () => {
+  for (const failing of ["open", "match", "put"]) {
+    const fail = async () => { throw new Error("Storage unavailable"); };
+    const background = [];
+    const ctx = musicWorkerContext({
+      caches: { open: failing === "open" ? fail : async () => ({ match: failing === "match" ? fail : async () => null, put: fail }) },
+      fetch: async () => new Response(new Uint8Array([1, 2]))
+    });
+    const response = await ctx.loadMusic(new Request("https://example.com/music.mp3"), task => background.push(task));
+    assert.equal(response.status, 200);
+    await Promise.all(background);
+  }
 });
 
 test("particle motion and lifetime are consistent at 30 and 60 FPS", () => {

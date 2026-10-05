@@ -9073,6 +9073,13 @@
         #threeGameHost .zombie-map { display: none; }
         #threeGameHost .zombie-notice { top: 140px; }
       }
+      .music-playback-controls { display: grid; grid-column: 1 / -1; gap: 8px; min-width: 0; }
+      .music-playback-controls button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; }
+      .music-playback-controls svg { width: 20px; height: 20px; flex: 0 0 20px; }
+      .music-playback-controls .music-pause-icon,
+      .music-playback-controls [data-playing="true"] .music-play-icon { display: none; }
+      .music-playback-controls [data-playing="true"] .music-pause-icon { display: block; }
+      .music-playback-status { margin: 0; color: #bdcbd1; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
     </style>
   </head>
   <body>
@@ -9522,6 +9529,15 @@
               <option value="">Neon Afterburn</option>
               <option value="none">None</option>
             </select>
+            <div class="music-playback-controls">
+              <button type="button" id="startMusicPlaybackButton" data-playing="false">
+                <!-- Lucide Play / Pause icons (ISC). -->
+                <svg class="music-play-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+                <svg class="music-pause-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></svg>
+                <span>Play Music</span>
+              </button>
+              <p class="music-playback-status" role="status" aria-live="polite"></p>
+            </div>
             <input class="custom-music-field" id="startCustomMusicUrlInput" type="url" maxlength="300" placeholder="Music URL: MP3/OGG/WAV, YouTube Music or Spotify">
             <input class="custom-music-field" id="startLocalMusicFileInput" type="file" accept="audio/*,.mp3,.ogg,.wav,.m4a,.aac" aria-label="Choose local music file">
             <select class="custom-music-field" id="startCustomMusicListSelect" aria-label="Saved music list">
@@ -9768,6 +9784,14 @@
                 <option value="none">None</option>
               </select>
             </label>
+            <div class="music-playback-controls">
+              <button type="button" id="musicPlaybackButton" data-playing="false">
+                <svg class="music-play-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>
+                <svg class="music-pause-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="14" y="3" width="5" height="18" rx="1"/><rect x="5" y="3" width="5" height="18" rx="1"/></svg>
+                <span>Play Music</span>
+              </button>
+              <p class="music-playback-status" role="status" aria-live="polite"></p>
+            </div>
             <label class="custom-music-field">
               Music URL
               <input id="customMusicUrlInput" type="url" maxlength="300" placeholder="MP3/OGG/WAV, YouTube Music or Spotify">
@@ -10453,6 +10477,8 @@
       let musicTimer = null;
       let musicStep = 0;
       let musicUnlocked = false;
+      let musicManuallyPaused = false;
+      let musicPlaybackError = "";
       let selectedMusicPack = gameSettings.musicDisabled ? "none" : gameSettings.musicPack || "";
       let builtInMusicAudio = null;
       let builtInMusicPlayPending = null;
@@ -10669,12 +10695,28 @@
           deleteMusic: "Delete Music",
           standardMusic: "Game Soundtrack",
           noMusic: "None",
+          playMusic: "Play Music",
+          pauseMusic: "Pause Music",
+          musicOff: "Music off",
+          musicMuted: "Volume is muted",
+          musicLoading: "Loading",
+          musicPlaying: "Playing",
+          musicPaused: "Paused",
+          musicReady: "Ready",
           musicUrl: "Music URL: MP3/OGG/WAV, YouTube Music or Spotify",
           savedMusic: "Saved music list",
           selected: "selected"
         },
         ru: {
           noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u044b\u043a\u0438",
+          playMusic: "\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043c\u0443\u0437\u044b\u043a\u0443",
+          pauseMusic: "\u041f\u0430\u0443\u0437\u0430",
+          musicOff: "\u041c\u0443\u0437\u044b\u043a\u0430 \u0432\u044b\u043a\u043b\u044e\u0447\u0435\u043d\u0430",
+          musicMuted: "\u0417\u0432\u0443\u043a \u0432\u044b\u043a\u043b\u044e\u0447\u0435\u043d",
+          musicLoading: "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430",
+          musicPlaying: "\u0418\u0433\u0440\u0430\u0435\u0442",
+          musicPaused: "\u041f\u0430\u0443\u0437\u0430",
+          musicReady: "\u0413\u043e\u0442\u043e\u0432\u043e",
           play: "Играть",
           games: "Игры",
           profile: "Профиль",
@@ -10721,6 +10763,14 @@
         },
         uk: {
           noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u0438\u043a\u0438",
+          playMusic: "\u0423\u0432\u0456\u043c\u043a\u043d\u0443\u0442\u0438 \u043c\u0443\u0437\u0438\u043a\u0443",
+          pauseMusic: "\u041f\u0430\u0443\u0437\u0430",
+          musicOff: "\u041c\u0443\u0437\u0438\u043a\u0443 \u0432\u0438\u043c\u043a\u043d\u0435\u043d\u043e",
+          musicMuted: "\u0417\u0432\u0443\u043a \u0432\u0438\u043c\u043a\u043d\u0435\u043d\u043e",
+          musicLoading: "\u0417\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0435\u043d\u043d\u044f",
+          musicPlaying: "\u0413\u0440\u0430\u0454",
+          musicPaused: "\u041f\u0430\u0443\u0437\u0430",
+          musicReady: "\u0413\u043e\u0442\u043e\u0432\u043e",
           play: "Грати",
           games: "Ігри",
           profile: "Профіль",
@@ -11146,7 +11196,7 @@
       }
 
       function startLoadingMusic() {
-        if (isMusicDisabled() || !loadingMusicReady || loadingMusicStopped || getGameVolume() <= 0) {
+        if (isMusicDisabled() || musicManuallyPaused || !loadingMusicReady || loadingMusicStopped || getGameVolume() <= 0) {
           return;
         }
 
@@ -11445,6 +11495,7 @@
         setOptionText(musicSelect, "", getBuiltInMusicLabel(""));
         setOptionText(startMusicSelect, "none", currentText("noMusic"));
         setOptionText(musicSelect, "none", currentText("noMusic"));
+        updateMusicPlaybackControls();
       }
 
       function applyPlayerStyleControls() {
@@ -11457,6 +11508,7 @@
         startTrailSelect.value = playerStyle.trail || "";
         musicSelect.value = selectedMusicPack;
         startMusicSelect.value = selectedMusicPack;
+        updateMusicPlaybackControls();
       }
 
       function populateMusicOptions() {
@@ -11623,6 +11675,9 @@
         }
 
         selectedMusicPack = pack;
+        musicUnlocked = true;
+        musicManuallyPaused = false;
+        musicPlaybackError = "";
         gameSettings.musicDisabled = pack === "none";
         gameSettings.musicPack = normalizeMusicPack(pack);
         if (pack !== "none") {
@@ -12263,7 +12318,7 @@
       }
 
       function getMusicContext() {
-        if (isMusicDisabled()) return null;
+        if (isMusicDisabled() || musicManuallyPaused) return null;
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
         if (!AudioContextClass) {
@@ -12816,12 +12871,70 @@
         customMusicAudio.pause();
       }
 
+      function updateMusicPlaybackControls() {
+        const off = isMusicDisabled();
+        const customUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
+        const customSelected = customUrl && customMusicAudio?.dataset.sourceUrl === customUrl;
+        const audio = customSelected ? customMusicAudio : builtInMusicAudio;
+        const active = !off && !musicManuallyPaused && !musicPlaybackError && Boolean(builtInMusicPlayPending || audio?.paused === false);
+        const label = currentText(active ? "pauseMusic" : "playMusic");
+        const track = customSelected ? (localMusicFileName || "Custom music") : getBuiltInMusicLabel(selectedMusicPack);
+        const state = off ? "musicOff" : getGameVolume() <= 0 ? "musicMuted"
+          : active ? (audio?.readyState < 3 ? "musicLoading" : "musicPlaying")
+          : musicManuallyPaused ? "musicPaused" : "musicReady";
+        const status = off ? currentText(state) : musicPlaybackError || `${currentText(state)}: ${track}`;
+        document.querySelectorAll(".music-playback-controls").forEach((controls) => {
+          const button = controls.querySelector("button");
+          button.disabled = off;
+          button.dataset.playing = String(active);
+          button.title = label;
+          button.querySelector("span").textContent = label;
+          controls.querySelector(".music-playback-status").textContent = status;
+        });
+      }
+
+      function toggleMusicPlayback() {
+        if (isMusicDisabled()) return;
+        const active = !musicManuallyPaused && !musicPlaybackError
+          && (builtInMusicPlayPending || builtInMusicAudio?.paused === false || customMusicAudio?.paused === false);
+        musicManuallyPaused = Boolean(active);
+        musicPlaybackError = "";
+        // Call play synchronously from this gesture so browsers can unlock audio.
+        musicUnlocked = true;
+        syncBackgroundMusic();
+      }
+
+      function reportMusicPlaybackError(label, error) {
+        if (isMusicDisabled() || musicManuallyPaused || error?.name === "AbortError") return;
+        musicPlaybackError = error?.name === "NotAllowedError"
+          ? `Audio was blocked. Press ${currentText("playMusic")} to retry.`
+          : `Could not play ${label}. Check your connection and press ${currentText("playMusic")} to retry.`;
+        settingsMessage.textContent = musicPlaybackError;
+        startSettingsMessage.textContent = musicPlaybackError;
+        updateMusicPlaybackControls();
+      }
+
+      function bindMusicPlaybackEvents(audio) {
+        audio.addEventListener("playing", () => {
+          musicPlaybackError = "";
+          updateMusicPlaybackControls();
+        });
+        ["pause", "waiting", "canplay", "ended"].forEach((event) => audio.addEventListener(event, updateMusicPlaybackControls));
+        audio.addEventListener("error", () => {
+          const customUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
+          if (audio === customMusicAudio && audio.dataset.sourceUrl !== customUrl) return;
+          if (audio === builtInMusicAudio && customMusicAudio?.paused === false) return;
+          const label = audio === builtInMusicAudio ? getBuiltInMusicLabel(selectedMusicPack) : localMusicFileName || "custom music";
+          reportMusicPlaybackError(label, audio.error);
+        });
+      }
+
       function syncCustomMusic() {
         const url = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
         const volume = getGameVolume();
         const approved = url === localMusicObjectUrl || isApprovedCustomMusic(url);
 
-        if (isMusicDisabled() || !musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !approved) {
+        if (isMusicDisabled() || musicManuallyPaused || !musicUnlocked || !url || volume <= 0 || !isDirectAudioUrl(url) || !approved) {
           stopCustomMusic();
           return false;
         }
@@ -12830,6 +12943,7 @@
           customMusicAudio = new Audio();
           customMusicAudio.loop = true;
           customMusicAudio.preload = "auto";
+          bindMusicPlaybackEvents(customMusicAudio);
         }
 
         if (customMusicAudio.dataset.sourceUrl !== url) {
@@ -12838,11 +12952,10 @@
         }
 
         customMusicAudio.volume = Math.min(1, volume);
-        customMusicAudio.play().catch(() => {
-          settingsMessage.textContent = localMusicFileName
-            ? `Could not play ${localMusicFileName}. Try another audio file.`
-            : "Custom music could not play. Use a direct MP3/OGG/WAV link.";
-          startSettingsMessage.textContent = settingsMessage.textContent;
+        if (customMusicAudio.error) customMusicAudio.load();
+        if (customMusicAudio.paused) customMusicAudio.play().catch((error) => {
+          const selectedUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
+          if (selectedUrl === url && customMusicAudio.dataset.sourceUrl === url) reportMusicPlaybackError(localMusicFileName || "custom music", error);
         });
         return true;
       }
@@ -12857,7 +12970,7 @@
       }
 
       function startBackgroundMusic() {
-        if (isMusicDisabled() || !musicUnlocked || getGameVolume() <= 0) {
+        if (isMusicDisabled() || musicManuallyPaused || !musicUnlocked || getGameVolume() <= 0) {
           stopBackgroundMusic();
           return;
         }
@@ -12867,6 +12980,7 @@
           builtInMusicAudio = new Audio();
           builtInMusicAudio.loop = true;
           builtInMusicAudio.preload = "none";
+          bindMusicPlaybackEvents(builtInMusicAudio);
         }
         if (builtInMusicAudio.dataset.sourceUrl !== track.src) {
           builtInMusicPlayPending = null;
@@ -12875,16 +12989,21 @@
           builtInMusicAudio.dataset.sourceUrl = track.src;
         }
         builtInMusicAudio.volume = getGameVolume();
+        if (builtInMusicAudio.error) {
+          builtInMusicPlayPending = null;
+          builtInMusicAudio.load();
+        }
         if (!builtInMusicAudio.paused || builtInMusicPlayPending) return;
 
         const attempt = builtInMusicAudio.play();
         builtInMusicPlayPending = attempt;
+        updateMusicPlaybackControls();
         attempt.catch((error) => {
-          if (builtInMusicPlayPending !== attempt || isMusicDisabled() || error?.name === "AbortError") return;
-          settingsMessage.textContent = `Could not play ${track.label}. Select it again to retry.`;
-          startSettingsMessage.textContent = settingsMessage.textContent;
+          if (builtInMusicPlayPending !== attempt) return;
+          reportMusicPlaybackError(track.label, error);
         }).finally(() => {
           if (builtInMusicPlayPending === attempt) builtInMusicPlayPending = null;
+          updateMusicPlaybackControls();
         });
       }
 
@@ -12904,10 +13023,11 @@
       }
 
       function syncBackgroundMusic() {
-        if (isMusicDisabled()) {
+        if (isMusicDisabled() || musicManuallyPaused) {
           stopBackgroundMusic();
           stopCustomMusic();
           stopLoadingMusic();
+          updateMusicPlaybackControls();
           return;
         }
         const customUrl = localMusicObjectUrl || (gameSettings.customMusicUrl || "").trim();
@@ -12915,6 +13035,7 @@
 
         if (customPlaying) {
           stopBackgroundMusic();
+          updateMusicPlaybackControls();
           return;
         }
 
@@ -12928,11 +13049,12 @@
         } else {
           stopBackgroundMusic();
         }
+        updateMusicPlaybackControls();
       }
 
       function unlockBackgroundMusic() {
         musicUnlocked = true;
-        if (isMusicDisabled()) {
+        if (isMusicDisabled() || musicManuallyPaused) {
           syncBackgroundMusic();
           return;
         }
@@ -22510,7 +22632,7 @@
         }
 
         try {
-          await navigator.serviceWorker.register("service-worker.js");
+          await navigator.serviceWorker.register("service-worker.js", { updateViaCache: "none" });
         } catch {
           startStatus.textContent = "Offline install is not available here.";
         }
@@ -22587,8 +22709,11 @@
           togglePause();
         }
       });
-      document.addEventListener("pointerdown", unlockBackgroundMusic, { once: true });
-      document.addEventListener("keydown", unlockBackgroundMusic, { once: true });
+      const unlockMusicFromGesture = (event) => {
+        if (!event.target.closest?.(".music-playback-controls")) unlockBackgroundMusic();
+      };
+      document.addEventListener("pointerdown", unlockMusicFromGesture, { once: true });
+      document.addEventListener("keydown", unlockMusicFromGesture, { once: true });
       document.addEventListener("pointerdown", startLoadingMusic);
       document.addEventListener("keydown", startLoadingMusic);
       document.addEventListener("visibilitychange", () => {
@@ -22819,6 +22944,8 @@
         select.addEventListener("change", updatePlayerStyleFromStart);
       });
       startMusicSelect.addEventListener("change", updateMusicPackFromStart);
+      document.getElementById("startMusicPlaybackButton").addEventListener("click", toggleMusicPlayback);
+      document.getElementById("musicPlaybackButton").addEventListener("click", toggleMusicPlayback);
       startResetRecordButton.addEventListener("click", resetRecordFromStart);
       startLoginButton.addEventListener("click", loginFromStart);
       startRegisterButton.addEventListener("click", registerFromStart);

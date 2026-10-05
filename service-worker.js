@@ -1,4 +1,4 @@
-const CACHE_NAME = "minigameworld-v12";
+const CACHE_NAME = "minigameworld-v13";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -41,16 +41,34 @@ async function musicRangeResponse(response, range) {
   return new Response(bytes.slice(start, end + 1), { status: 206, headers });
 }
 
-async function loadMusic(request) {
+async function loadMusic(request, defer = () => {}) {
   const url = new URL(request.url); url.search = "";
-  const cache = await caches.open(CACHE_NAME);
-  let response = await cache.match(url.href);
-  if (!response) {
-    // Store one complete track on first play; partial responses cannot be cached.
-    response = await fetch(url.href);
-    if (response.status === 200) await cache.put(url.href, response.clone()).catch(() => {});
+  let cache;
+  try {
+    cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(url.href);
+    if (cached) return musicRangeResponse(cached, request.headers.get("range"));
+  } catch {
+    // Storage can be unavailable or full; online playback must still work.
+    cache = null;
   }
-  return musicRangeResponse(response, request.headers.get("range"));
+  const response = await fetch(request);
+  if (cache) {
+    const range = /^bytes 0-(\d+)\/(\d+)$/.exec(response.headers.get("content-range") || "");
+    const completeRange = response.status === 206 && range && Number(range[1]) + 1 === Number(range[2]);
+    if (response.status === 200 || completeRange) {
+      let stored = response.clone();
+      if (completeRange) {
+        const headers = new Headers(stored.headers);
+        headers.delete("content-range");
+        headers.delete("content-encoding");
+        stored = new Response(stored.body, { status: 200, headers });
+      }
+      // Do not wait for cache.put to consume the entire MP3 before returning its stream.
+      defer(cache.put(url.href, stored).catch(() => {}));
+    }
+  }
+  return response;
 }
 
 self.addEventListener("install", (event) => {
@@ -79,7 +97,10 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (MUSIC_ASSETS.some((path) => new URL(path, self.registration.scope).pathname === requestUrl.pathname)) {
-    event.respondWith(loadMusic(event.request));
+    const background = [];
+    const response = loadMusic(event.request, (task) => background.push(task));
+    event.respondWith(response);
+    event.waitUntil(response.then(() => Promise.all(background)).catch(() => {}));
     return;
   }
 
