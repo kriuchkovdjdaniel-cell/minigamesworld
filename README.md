@@ -4,6 +4,12 @@ MiniGameWorld is a browser game collection with a Windows desktop installer wrap
 
 ## Web Version
 
+### Skin Studio
+
+Skin Studio has a canvas workspace with pencil, fill, eyedropper, accessory eraser, mirrored brushes, undo/redo, flips, rotation, zoom, and PNG export. A lazy-loaded Three.js cube displays the actual indexed texture and selected accessory. Its preview renders on demand; optional rotation stops when Studio is hidden. Devices without WebGL retain a flat preview and the drawing tools.
+
+Skins remain opaque 64x64 indexed textures, including when editing on a 16x16 or 32x32 brush grid. Accessories remain 16x16 with optional transparency; custom accessory editing and saving still require VIP/Premium. Existing account storage and game appearance formats are unchanged. Guest drafts survive moving between hub sections during the session; account saves require signing in. Failed saves keep drafts and failed equips do not change the local appearance.
+
 Open the web app from the deployed site or GitHub Pages/Vercel deployment for this repo.
 
 ### Music

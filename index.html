@@ -9081,6 +9081,7 @@
       .music-playback-controls [data-playing="true"] .music-pause-icon { display: block; }
       .music-playback-status { margin: 0; color: #bdcbd1; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
     </style>
+    <link rel="stylesheet" href="assets/skin-studio.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -10886,6 +10887,48 @@
       let accessoryDirty = false;
       let selectedAccessoryColor = transparentAccessoryColor;
       let accessoryPainting = false;
+      let skinStudioEditor = null;
+      let skinStudioLoad = null;
+      let skinStudioSaving = false;
+
+      async function ensureSkinStudioEditor() {
+        if (skinStudioEditor) { skinStudioEditor.refresh(); return; }
+        if (skinStudioLoad) return skinStudioLoad;
+        skinStudioLoad = import("./assets/skin-studio.js").then(({ mountSkinStudio }) => {
+          skinStudioEditor = mountSkinStudio(startSkinStudioMenu, {
+            read: () => ({
+              owner: getUserKeyFromAccount() || "guest", signedIn: Boolean(currentAccount?.username),
+              skin: getPixelSkinDraft(), accessory: getAccessoryDraft(), palette: [...pixelSkinPalette],
+              color: selectedPixelColor, resolution: selectedSkinStudioSize,
+              access: hasAccessoryStudioAccess(), kind: skinAccessorySelect.value,
+              dirty: pixelSkinDirty || accessoryDirty
+            }),
+            write: (mode, value) => {
+              if (mode === "skin" && sanitizePixelSkin64(value)) {
+                pixelSkinDraft = value; pixelSkinDraftOwner = getUserKeyFromAccount() || "guest"; pixelSkinDirty = true;
+              } else if (mode === "accessory" && hasAccessoryStudioAccess() && sanitizeAccessory16(value)) {
+                accessoryDraft = value; accessoryDraftOwner = getUserKeyFromAccount() || "guest"; accessoryDirty = true;
+                skinAccessorySelect.value = "custom";
+              }
+            },
+            color: (value) => { selectedPixelColor = value; setRgbPickerColor(pixelSkinPalette[value]); renderPixelPalette(); },
+            blank: (mode) => mode === "skin" ? makeDefaultPixelSkin64() : makeEmptyAccessory16(),
+            message: setSkinStudioMessage
+          });
+        }).catch(() => {
+          setSkinStudioMessage("Studio upgrade could not load. The classic editor is available; reopen to retry.");
+        }).finally(() => { skinStudioLoad = null; });
+        return skinStudioLoad;
+      }
+
+      async function runSkinStudioAction(action) {
+        if (skinStudioSaving) return;
+        skinStudioSaving = true;
+        skinStudioEditor?.setBusy(true);
+        try { await action(); }
+        catch { setSkinStudioMessage("Could not save changes. Your draft is still here. Please retry."); }
+        finally { skinStudioSaving = false; skinStudioEditor?.setBusy(false); }
+      }
 
       function startGame(gameName, unlockMusic = true) {
         if (unlockMusic !== false && !requireDesktopGameplay(`Install the MiniGameWorld desktop app to play ${games[gameName]?.title || "minigames"}.`)) {
@@ -15545,10 +15588,6 @@
 
       async function openSkinStudioFromStart() {
         showStartSection("skinStudio");
-        await renderSkinStudioMenu();
-        profileMessage.textContent = "Skin Studio opened. Draw pixels, save, then equip Custom 64x64.";
-        skinStudioMessage.textContent = profileMessage.textContent;
-        showTopNotification("Skin Studio opened.");
       }
 
       function updateStartGameShowcase() {
@@ -15788,12 +15827,14 @@
           <button type="button" class="${index === selectedPixelColor ? "selected" : ""}" data-pixel-color="${index}" style="background:${color}" aria-label="Pixel color ${index}"></button>
         `).join("");
         renderRgbPaletteEditor();
+        skinStudioEditor?.refresh();
       }
 
       function renderPixelSkinGrid(user, forceReload = false) {
         pixelSkinDraft = syncPixelSkinDraft(user, forceReload);
         renderPixelPalette();
         updateCubeSkinPreview();
+        if (skinStudioEditor) { skinStudioEditor.refresh(); return; }
         pixelSkinGrid.style.gridTemplateColumns = `repeat(${selectedSkinStudioSize}, minmax(0, 1fr))`;
         pixelSkinGrid.setAttribute("aria-label", `${selectedSkinStudioSize} by ${selectedSkinStudioSize} pixel skin editor`);
         pixelSkinGrid.innerHTML = Array.from({ length: selectedSkinStudioSize * selectedSkinStudioSize }, (_, index) => {
@@ -15809,6 +15850,7 @@
       }
 
       function updateCubeSkinPreview() {
+        if (skinStudioEditor) { skinStudioEditor.refresh(); return; }
         const studio = document.getElementById("cubeSkinStudio");
         const draft = getPixelSkinDraft();
 
@@ -15852,6 +15894,7 @@
 
       function renderAccessoryGrid(user = currentUserData, forceReload = false) {
         accessoryDraft = syncAccessoryDraft(user, forceReload);
+        if (skinStudioEditor) { skinStudioEditor.refresh(); return; }
         renderAccessoryPalette();
         accessoryGrid.innerHTML = Array.from(accessoryDraft, (value, index) => `
           <button type="button" class="pixel-cell accessory-cell" data-accessory-index="${index}" style="background:${getAccessoryPaletteColor(value)}"></button>
@@ -15881,6 +15924,7 @@
       }
 
       function updateAccessoryPreview() {
+        if (skinStudioEditor) { skinStudioEditor.refresh(); return; }
         if (!cubeAccessoryPreview) {
           return;
         }
@@ -16259,24 +16303,39 @@
 
       async function renderSkinStudioMenu() {
         skinStudioSizeSelect.value = String(selectedSkinStudioSize);
+        const owner = getUserKeyFromAccount() || "guest";
+        const selectedAccessory = skinAccessorySelect.value;
+        const preserveAccessory = accessoryDraftOwner === owner;
 
         if (!currentAccount?.username) {
           syncRgbPickerToSelectedPaletteSlot();
-          renderPixelSkinGrid(null, true);
-          skinAccessorySelect.value = playerStyle.accessory || "";
-          renderAccessoryControls(null, true);
-          skinStudioMessage.textContent = "Log in to save and equip your 64x64 cube skin.";
+          renderPixelSkinGrid(null);
+          skinAccessorySelect.value = preserveAccessory ? normalizeAccessory(selectedAccessory, null) : playerStyle.accessory || "";
+          renderAccessoryControls(null);
+          skinStudioMessage.textContent = "Guest draft. Sign in to save to your profile.";
+          await ensureSkinStudioEditor();
           return;
         }
 
-        const user = await refreshCurrentUserData();
+        syncRgbPickerToSelectedPaletteSlot();
+        renderPixelSkinGrid(currentUserData);
+        renderAccessoryControls(currentUserData);
+        await ensureSkinStudioEditor();
+        let user;
+        try { user = await refreshCurrentUserData(); }
+        catch {
+          if (owner === (getUserKeyFromAccount() || "guest")) setSkinStudioMessage("Offline draft. Account data could not be refreshed.");
+          return;
+        }
+        if (owner !== (getUserKeyFromAccount() || "guest")) return;
         syncRgbPickerToSelectedPaletteSlot();
         renderPixelSkinGrid(user);
-        skinAccessorySelect.value = playerStyle.accessory || user.equipped?.accessory || "";
+        skinAccessorySelect.value = preserveAccessory ? normalizeAccessory(selectedAccessory, user) : playerStyle.accessory || user?.equipped?.accessory || "";
         renderAccessoryControls(user);
-        skinStudioMessage.textContent = user.pixelSkin64
+        skinStudioMessage.textContent = user?.pixelSkin64
           ? "Saved cube skin loaded."
-          : "Draw pixels, save, then equip Custom 64x64 from Settings.";
+          : "New cube skin.";
+        await ensureSkinStudioEditor();
       }
 
       function setSkinStudioMessage(message) {
@@ -17154,7 +17213,7 @@
         selectedSkinStudioSize = skinStudioSizes.includes(nextSize) ? nextSize : 64;
         skinStudioSizeSelect.value = String(selectedSkinStudioSize);
         renderPixelSkinGrid(currentUserData);
-        setSkinStudioMessage(`${selectedSkinStudioSize} x ${selectedSkinStudioSize} editor size selected. Saves still stay fair 64x64.`);
+        setSkinStudioMessage(`${selectedSkinStudioSize} x ${selectedSkinStudioSize} brush grid. Saved texture: 64 x 64.`);
       }
 
       function handleAccessorySelectChange() {
@@ -17268,18 +17327,18 @@
           return;
         }
 
-        playerStyle = {
-          ...playerStyle,
-          skin: "custom64",
-          pixelSkin64: skin
-        };
-        savePlayerStyle();
         await patchCurrentUser({
           pixelSkin64: skin,
           "ownedItems/skin-custom64": true,
           "equipped/skin": "custom64",
           skin: "custom64"
         });
+        playerStyle = {
+          ...playerStyle,
+          skin: "custom64",
+          pixelSkin64: skin
+        };
+        savePlayerStyle();
         applyPlayerStyleControls();
         draw();
         pixelSkinDraft = skin;
@@ -17352,22 +17411,22 @@
           return;
         }
 
+        await patchCurrentUser({
+          "equipped/accessory": accessory,
+          accessory,
+          ...(accessory === "custom"
+            ? {
+                customAccessory16: customAccessory,
+                "ownedItems/accessory-custom": true
+              }
+              : {})
+        });
         playerStyle = {
           ...playerStyle,
           accessory,
           customAccessory16: accessory === "custom" ? customAccessory : sanitizeAccessory16(user.customAccessory16 || playerStyle.customAccessory16 || "")
         };
         savePlayerStyle();
-        await patchCurrentUser({
-          "equipped/accessory": accessory,
-          accessory,
-          ...(accessory === "custom"
-            ? {
-                customAccessory16: playerStyle.customAccessory16,
-                "ownedItems/accessory-custom": true
-              }
-            : {})
-        });
 
         const player = onlineState?.playersState?.[onlinePlayerSlot];
         if (player) {
@@ -22888,11 +22947,11 @@
       accessoryGrid.addEventListener("pointerdown", startAccessoryPaint);
       accessoryGrid.addEventListener("pointerover", continueAccessoryPaint);
       window.addEventListener("pointerup", stopAccessoryPaint);
-      savePixelSkinButton.addEventListener("click", savePixelSkin);
-      equipPixelSkinButton.addEventListener("click", equipPixelSkin);
+      savePixelSkinButton.addEventListener("click", () => runSkinStudioAction(savePixelSkin));
+      equipPixelSkinButton.addEventListener("click", () => runSkinStudioAction(equipPixelSkin));
       clearPixelSkinButton.addEventListener("click", clearPixelSkin);
-      saveAccessoryButton.addEventListener("click", saveAccessory);
-      equipAccessoryButton.addEventListener("click", equipAccessory);
+      saveAccessoryButton.addEventListener("click", () => runSkinStudioAction(saveAccessory));
+      equipAccessoryButton.addEventListener("click", () => runSkinStudioAction(equipAccessory));
       clearAccessoryButton.addEventListener("click", clearAccessory);
       createClanButton.addEventListener("click", createClanFromProfile);
       joinClanButton.addEventListener("click", joinClanFromProfile);
