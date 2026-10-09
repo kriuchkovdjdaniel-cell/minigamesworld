@@ -71,14 +71,21 @@ body[data-runtime] #startSkinStudioMenu:has(.studio-remade) { padding: 0 18px 18
 #startSkinStudioMenu .studio-remade #rgbPaletteEditor { padding: 12px 0 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
 #startSkinStudioMenu .studio-remade .rgb-editor-head { align-items: center; gap: 8px; margin-bottom: 12px; }
 #startSkinStudioMenu .studio-remade .rgb-editor-head strong,
-#startSkinStudioMenu .studio-remade .rgb-value-panel #rgbModeSelect,
-#startSkinStudioMenu .studio-remade .rgb-color-libraries { display: none; }
+#startSkinStudioMenu .studio-remade .rgb-value-panel #rgbModeSelect { display: none; }
 #startSkinStudioMenu .studio-remade .rgb-editor-head span { font-size: 11px; }
 #startSkinStudioMenu .studio-remade .rgb-editor-head button { font-size: 11px; padding: 7px; }
 #startSkinStudioMenu .studio-remade .rgb-editor-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 #startSkinStudioMenu .studio-remade .rgb-picker-zone { height: 150px; min-height: 0; }
 #startSkinStudioMenu .studio-remade .rgb-color-map { min-height: 150px; height: 150px; border-radius: 4px; touch-action: none; }
-#startSkinStudioMenu .studio-remade .rgb-brightness-slider { width: 18px !important; height: 150px !important; }
+#startSkinStudioMenu .studio-remade .rgb-brightness-slider { width: 24px !important; height: 150px !important; transform: none; writing-mode: vertical-lr; direction: rtl; touch-action: none; }
+#startSkinStudioMenu .studio-remade .rgb-color-map { background: linear-gradient(to bottom, transparent, #fff), linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+#startSkinStudioMenu .studio-remade .rgb-color-map::after { background: #000; opacity: var(--picker-darkness, 0); }
+#startSkinStudioMenu .studio-remade #rgbColorCursor { z-index: 1; }
+#startSkinStudioMenu .studio-remade .rgb-color-libraries { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+#startSkinStudioMenu .studio-remade .rgb-color-libraries strong { font: 500 12px/1.4 Inter, system-ui, sans-serif; color: #b6c6bf; }
+#startSkinStudioMenu .studio-remade .rgb-color-dots { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
+#startSkinStudioMenu .studio-remade .rgb-color-dots button { min-width: 0; width: 100%; min-height: 0; height: auto; aspect-ratio: 1; padding: 0; border-radius: 4px; }
+#startSkinStudioMenu .studio-remade #addRgbCustomColorButton { width: 28px; min-height: 28px; height: 28px; padding: 0; border-radius: 4px; }
 #startSkinStudioMenu .studio-remade .rgb-value-panel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-width: 0; }
 #startSkinStudioMenu .studio-remade .rgb-preview-row,
 #startSkinStudioMenu .studio-remade #saveRgbColorButton { grid-column: 1 / -1; }

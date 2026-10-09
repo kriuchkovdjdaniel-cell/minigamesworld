@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Script, createContext } from "node:vm";
 import { paintStroke, fillPixels, transformPixels, createHistory } from "../src/skin-studio-model.mjs";
+import { createCustomAccessory } from "../src/skin-studio-accessory.mjs";
+import { Color, Matrix4 } from "three";
 
 test("fast strokes interpolate every pixel without introducing holes or changing skin size", () => {
   const result = paintStroke("0".repeat(4096), 64, [0, 0], [63, 63], "2");
@@ -107,4 +109,126 @@ test("custom accessory saving still requires VIP or Premium", async () => {
   const context = createContext({ currentAccount: { username: "tester" }, refreshCurrentUserData: async () => ({}), hasAccessoryStudioAccess: () => false, patchCurrentUser: async () => { writes++; }, setSkinStudioMessage: value => { message = value; } });
   loadFunction("saveAccessory", context); await context.saveAccessory();
   assert.equal(writes, 0); assert.match(message, /VIP or Premium/);
+});
+
+const palette = ["#04130f", "#f8fafc", "#5eead4", "#22c55e", "#facc15", "#8b5cf6", "#fb7185", "#38bdf8"];
+const disposeAccessory = mesh => { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); };
+
+test("a fully painted accessory is solid, bounded, and rests on the cube instead of intersecting it", () => {
+  const mesh = createCustomAccessory("7".repeat(256), palette);
+  assert.equal(mesh.count, 256);
+  const { min, max } = mesh.boundingBox;
+  assert.ok(Math.abs(min.y - 1) < 1e-6);
+  assert.ok(max.y <= 2.361 && min.x >= -0.681 && max.x <= 0.681);
+  assert.ok(max.z - min.z > 0.27);
+  const color = new Color(); mesh.getColorAt(0, color);
+  assert.equal(color.getHexString(), "38bdf8");
+  disposeAccessory(mesh);
+});
+
+test("transparent padding does not float, enlarge or offset sparse accessories", () => {
+  const pixels = Array(256).fill("."); pixels[0] = "2"; pixels[16] = "4";
+  const mesh = createCustomAccessory(pixels.join(""), palette);
+  assert.equal(mesh.count, 2);
+  assert.ok(Math.abs(mesh.boundingBox.min.y - 1) < 1e-6);
+  assert.ok(Math.abs(mesh.boundingBox.min.x + mesh.boundingBox.max.x) < 1e-6);
+  const top = new Matrix4(), bottom = new Matrix4();
+  mesh.getMatrixAt(0, top); mesh.getMatrixAt(1, bottom);
+  assert.ok(top.elements[13] > bottom.elements[13]);
+  assert.ok(mesh.boundingBox.max.y < 1.18);
+  disposeAccessory(mesh);
+  assert.equal(createCustomAccessory(".".repeat(256), palette), null);
+});
+
+test("accessory holes remain empty and palette edits reach the solid preview", () => {
+  const pixels = "7777" + ".".repeat(248) + "7777";
+  const changedPalette = [...palette]; changedPalette[7] = "#ff2080";
+  const mesh = createCustomAccessory(pixels, changedPalette);
+  assert.equal(mesh.count, 8);
+  const color = new Color(); mesh.getColorAt(7, color);
+  assert.equal(color.getHexString(), "ff2080");
+  disposeAccessory(mesh);
+});
+
+function paletteContext(patchCurrentUser) {
+  const renders = [];
+  const context = createContext({
+    currentAccount: { username: "tester" }, currentUserData: {},
+    getUserKeyFromAccount: () => "tester", patchCurrentUser,
+    pixelSkinPalette: [...palette], customRgbColors: [],
+    playerStyle: { customPalette: [...palette] }, onlineState: null, onlinePlayerSlot: "",
+    normalizeCustomPalette: value => [...value], normalizeCustomColors: value => [...new Set(value)].slice(0, 24),
+    savePlayerStyle: () => renders.push("save"), renderPixelSkinGrid: () => renders.push("skin"),
+    renderAccessoryControls: () => renders.push("accessory"), draw: () => renders.push("draw")
+  });
+  loadFunction("persistStudioPalette", context);
+  return { context, renders };
+}
+
+test("failed palette saves leave existing skin/accessory colors and custom swatches unchanged", async () => {
+  const { context, renders } = paletteContext(async () => { throw new Error("Offline"); });
+  await assert.rejects(context.persistStudioPalette(palette.map(() => "#ff0000"), ["#ff0000"]), /Offline/);
+  assert.deepEqual(context.pixelSkinPalette, palette);
+  assert.deepEqual(context.playerStyle.customPalette, palette);
+  assert.deepEqual(context.customRgbColors, []); assert.deepEqual(renders, []);
+});
+
+test("accepted palette saves update both editors and persist only after cloud acceptance", async () => {
+  let accept;
+  const { context, renders } = paletteContext(() => new Promise(resolve => { accept = resolve; }));
+  const changed = [...palette]; changed[7] = "#ee8844";
+  const pending = context.persistStudioPalette(changed, ["#ee8844"]);
+  assert.deepEqual(context.pixelSkinPalette, palette); assert.deepEqual(renders, []);
+  accept(); await pending;
+  assert.deepEqual(context.pixelSkinPalette, changed);
+  assert.deepEqual(context.customRgbColors, ["#ee8844"]);
+  assert.deepEqual(renders, ["save", "skin", "accessory", "draw"]);
+});
+
+test("guest palettes stay usable without a network or account", async () => {
+  const { context, renders } = paletteContext(() => { throw new Error("Guest must not write to cloud"); });
+  context.currentAccount = null; context.getUserKeyFromAccount = () => "";
+  await context.persistStudioPalette(palette, ["#123456"]);
+  assert.deepEqual(context.customRgbColors, ["#123456"]);
+  assert.deepEqual(renders, ["save", "skin", "accessory", "draw"]);
+});
+
+test("a late palette save cannot replace a different account's local colors", async () => {
+  let accept;
+  const { context, renders } = paletteContext(() => new Promise(resolve => { accept = resolve; }));
+  const pending = context.persistStudioPalette(palette.map(() => "#000000"), []);
+  context.getUserKeyFromAccount = () => "another-player";
+  accept(); await assert.rejects(pending, /Account changed/);
+  assert.deepEqual(context.pixelSkinPalette, palette); assert.deepEqual(renders, []);
+});
+
+test("picker captures drags, releases cancellation, and escapes a black brightness value", () => {
+  const captures = new Set(); const moves = [];
+  const context = createContext({
+    rgbPickerPointer: null, selectedPaletteHsv: { h: 0, s: 0, v: 0 },
+    rgbColorMap: { setPointerCapture: id => captures.add(id), hasPointerCapture: id => captures.has(id), releasePointerCapture: id => captures.delete(id) },
+    updateRgbFromMapEvent: event => moves.push(event.pointerId)
+  });
+  for (const name of ["startRgbPicker", "continueRgbPicker", "stopRgbPicker"]) loadFunction(name, context);
+  context.startRgbPicker({ button: 0, pointerId: 1, preventDefault() {} });
+  assert.equal(context.selectedPaletteHsv.v, 1); assert.ok(captures.has(1));
+  context.continueRgbPicker({ pointerId: 2 }); context.stopRgbPicker({ pointerId: 2 });
+  assert.equal(context.rgbPickerPointer, 1); assert.deepEqual(moves, [1]);
+  context.continueRgbPicker({ pointerId: 1 }); context.stopRgbPicker({ pointerId: 1 });
+  assert.equal(context.rgbPickerPointer, null); assert.equal(captures.size, 0);
+  context.continueRgbPicker({ pointerId: 1 }); assert.deepEqual(moves, [1, 1]);
+});
+
+test("invalid hex entries never save the previous color by accident", async () => {
+  for (const name of ["saveRgbPaletteColor", "addRgbCustomColor"]) {
+    let message;
+    const context = createContext({
+      rgbHexInput: { value: "#zzzzzz" },
+      sanitizeHexColor: value => /^#[0-9a-f]{6}$/i.test(value) ? value : "",
+      setSkinStudioMessage: value => { message = value; },
+      persistStudioPalette: () => { throw new Error("Must not persist invalid color"); }
+    });
+    loadFunction(name, context); await context[name]();
+    assert.match(message, /valid RGB color/);
+  }
 });

@@ -10880,7 +10880,7 @@
       let selectedSkinStudioSize = 64;
       let selectedRgbColor = hexToRgb(pixelSkinPalette[selectedPixelColor] || defaultPixelSkinPalette[selectedPixelColor]);
       let selectedPaletteHsv = rgbToHsv(selectedRgbColor.r, selectedRgbColor.g, selectedRgbColor.b);
-      let rgbPickerPainting = false;
+      let rgbPickerPointer = null;
       let customRgbColors = normalizeCustomColors(playerStyle.customColors);
       let accessoryDraft = "";
       let accessoryDraftOwner = "";
@@ -15643,6 +15643,8 @@
         const cursorY = `${Math.max(0, Math.min(100, (1 - selectedPaletteHsv.s) * 100))}%`;
 
         rgbSelectedSlotLabel.textContent = `Palette slot ${selectedSlot}`;
+        saveRgbColorButton.textContent = `Apply to slot ${selectedSlot}`;
+        saveRgbColorButton.title = "Replace this color in both the skin and accessory";
         rgbColorPreview.style.background = hex;
         rgbHexInput.value = hex;
         rgbRedInput.value = selectedRgbColor.r;
@@ -15651,6 +15653,7 @@
         rgbBrightnessSlider.value = String(Math.round(selectedPaletteHsv.v * 100));
         rgbColorCursor.style.left = cursorX;
         rgbColorCursor.style.top = cursorY;
+        rgbColorMap.style.setProperty("--picker-darkness", String(1 - selectedPaletteHsv.v));
 
         rgbBasicColors.innerHTML = rgbBasicColorPalette.map((color) => `
           <button type="button" style="background:${color}" data-rgb-basic="${color}" aria-label="Pick ${color}"></button>
@@ -15658,7 +15661,7 @@
         rgbCustomColors.innerHTML = Array.from({ length: 24 }, (_, index) => {
           const color = customRgbColors[index] || "";
           return `
-            <button type="button" class="${color ? "" : "empty"}" ${color ? `style="background:${color}" data-rgb-custom="${color}"` : ""} aria-label="${color ? `Pick ${color}` : "Empty custom color"}"></button>
+            <button type="button" class="${color ? "" : "empty"}" ${color ? `style="background:${color}" data-rgb-custom="${color}"` : "disabled"} aria-label="${color ? `Pick ${color}` : "Empty custom color"}"></button>
           `;
         }).join("");
       }
@@ -15681,20 +15684,28 @@
       }
 
       function startRgbPicker(event) {
-        rgbPickerPainting = true;
+        if (event.button !== 0 || rgbPickerPointer !== null) return;
+        event.preventDefault();
+        rgbPickerPointer = event.pointerId;
+        rgbColorMap.setPointerCapture(event.pointerId);
+        // Black has no usable hue; a new hue gesture should reveal the chosen color.
+        if (selectedPaletteHsv.v === 0) selectedPaletteHsv.v = 1;
         updateRgbFromMapEvent(event);
       }
 
       function continueRgbPicker(event) {
-        if (!rgbPickerPainting) {
+        if (rgbPickerPointer !== event.pointerId) {
           return;
         }
 
         updateRgbFromMapEvent(event);
       }
 
-      function stopRgbPicker() {
-        rgbPickerPainting = false;
+      function stopRgbPicker(event) {
+        if (rgbPickerPointer === null || (event?.pointerId !== undefined && event.pointerId !== rgbPickerPointer)) return;
+        const pointer = rgbPickerPointer;
+        rgbPickerPointer = null;
+        if (rgbColorMap.hasPointerCapture(pointer)) rgbColorMap.releasePointerCapture(pointer);
       }
 
       function updateRgbBrightness() {
@@ -15734,97 +15745,62 @@
         setRgbPickerColor(color);
       }
 
+      async function persistStudioPalette(palette, colors) {
+        const owner = getUserKeyFromAccount();
+        const customPalette = normalizeCustomPalette(palette);
+        const customColors = normalizeCustomColors(colors);
+        if (currentAccount?.username) {
+          await patchCurrentUser({ customPalette, customColors });
+        }
+        if (getUserKeyFromAccount() !== owner) throw new Error("Account changed while saving palette");
+
+        pixelSkinPalette = customPalette;
+        customRgbColors = customColors;
+        playerStyle = { ...playerStyle, customPalette, customColors };
+        savePlayerStyle();
+
+        const player = onlineState?.playersState?.[onlinePlayerSlot];
+        if (player) {
+          player.customPalette = playerStyle.customPalette;
+          onlineLocalDirty = true;
+          syncOnlineState();
+        }
+
+        renderPixelSkinGrid(currentUserData);
+        renderAccessoryControls(currentUserData);
+        draw();
+      }
+
       async function saveRgbPaletteColor() {
-        const color = sanitizeHexColor(rgbToHex(selectedRgbColor));
+        const color = sanitizeHexColor(rgbHexInput.value);
         if (!color) {
           setSkinStudioMessage("Pick a valid RGB color first.");
           return;
         }
-
-        pixelSkinPalette[selectedPixelColor] = color;
-        playerStyle = {
-          ...playerStyle,
-          customPalette: normalizeCustomPalette(pixelSkinPalette),
-          customColors: normalizeCustomColors(customRgbColors)
-        };
-        savePlayerStyle();
-
-        if (currentAccount?.username) {
-          await patchCurrentUser({
-            customPalette: playerStyle.customPalette,
-            customColors: playerStyle.customColors
-          });
-        }
-
-        const player = onlineState?.playersState?.[onlinePlayerSlot];
-        if (player) {
-          player.customPalette = playerStyle.customPalette;
-          onlineLocalDirty = true;
-          syncOnlineState();
-        }
-
-        renderPixelSkinGrid(currentUserData);
-        renderAccessoryControls(currentUserData);
+        const slot = selectedPixelColor;
+        const palette = [...pixelSkinPalette];
+        palette[slot] = color;
+        await persistStudioPalette(palette, customRgbColors);
         setRgbPickerColor(color);
-        draw();
-        setSkinStudioMessage(`Palette slot ${selectedPixelColor + 1} saved as ${color}.`);
+        setSkinStudioMessage(`Palette slot ${slot + 1} saved as ${color}.`);
       }
 
       async function addRgbCustomColor() {
-        const color = sanitizeHexColor(rgbToHex(selectedRgbColor));
-        customRgbColors = normalizeCustomColors([color, ...customRgbColors]);
-        playerStyle = {
-          ...playerStyle,
-          customColors: customRgbColors,
-          customPalette: normalizeCustomPalette(pixelSkinPalette)
-        };
-        savePlayerStyle();
-
-        if (currentAccount?.username) {
-          await patchCurrentUser({
-            customColors: playerStyle.customColors,
-            customPalette: playerStyle.customPalette
-          });
-        }
-
-        renderRgbPaletteEditor();
+        const color = sanitizeHexColor(rgbHexInput.value);
+        if (!color) { setSkinStudioMessage("Pick a valid RGB color first."); return; }
+        await persistStudioPalette(pixelSkinPalette, [color, ...customRgbColors]);
         setSkinStudioMessage(`${color} added to custom colors.`);
       }
 
       async function resetRgbPalette() {
-        pixelSkinPalette = [...defaultPixelSkinPalette];
-        customRgbColors = [];
-        playerStyle = {
-          ...playerStyle,
-          customPalette: normalizeCustomPalette(pixelSkinPalette),
-          customColors: []
-        };
-        savePlayerStyle();
-
-        if (currentAccount?.username) {
-          await patchCurrentUser({
-            customPalette: playerStyle.customPalette,
-            customColors: playerStyle.customColors
-          });
-        }
-
-        const player = onlineState?.playersState?.[onlinePlayerSlot];
-        if (player) {
-          player.customPalette = playerStyle.customPalette;
-          onlineLocalDirty = true;
-          syncOnlineState();
-        }
-
+        await persistStudioPalette(defaultPixelSkinPalette, []);
         setRgbPickerColor(pixelSkinPalette[selectedPixelColor]);
-        renderPixelSkinGrid(currentUserData);
-        renderAccessoryControls(currentUserData);
-        draw();
         setSkinStudioMessage("RGB palette reset to default colors.");
       }
 
       function renderPixelPalette() {
         pixelPalette.innerHTML = pixelSkinPalette.map((color, index) => `
-          <button type="button" class="${index === selectedPixelColor ? "selected" : ""}" data-pixel-color="${index}" style="background:${color}" aria-label="Pixel color ${index}"></button>
+          <button type="button" class="${index === selectedPixelColor ? "selected" : ""}" data-pixel-color="${index}" style="background:${color}" aria-pressed="${index === selectedPixelColor}" aria-label="Palette slot ${index + 1}: ${color}" title="Slot ${index + 1}: ${color}"></button>
         `).join("");
         renderRgbPaletteEditor();
         skinStudioEditor?.refresh();
@@ -22927,7 +22903,10 @@
       pixelPalette.addEventListener("click", handlePixelPaletteClick);
       rgbColorMap.addEventListener("pointerdown", startRgbPicker);
       rgbColorMap.addEventListener("pointermove", continueRgbPicker);
+      rgbColorMap.addEventListener("pointercancel", stopRgbPicker);
+      rgbColorMap.addEventListener("lostpointercapture", stopRgbPicker);
       window.addEventListener("pointerup", stopRgbPicker);
+      window.addEventListener("blur", () => stopRgbPicker());
       rgbBrightnessSlider.addEventListener("input", updateRgbBrightness);
       rgbHexInput.addEventListener("input", updateRgbFromHexInput);
       rgbRedInput.addEventListener("input", updateRgbFromNumberInputs);
@@ -22935,9 +22914,9 @@
       rgbBlueInput.addEventListener("input", updateRgbFromNumberInputs);
       rgbBasicColors.addEventListener("click", handleRgbLibraryClick);
       rgbCustomColors.addEventListener("click", handleRgbLibraryClick);
-      saveRgbColorButton.addEventListener("click", saveRgbPaletteColor);
-      resetRgbPaletteButton.addEventListener("click", resetRgbPalette);
-      addRgbCustomColorButton.addEventListener("click", addRgbCustomColor);
+      saveRgbColorButton.addEventListener("click", () => runSkinStudioAction(saveRgbPaletteColor));
+      resetRgbPaletteButton.addEventListener("click", () => runSkinStudioAction(resetRgbPalette));
+      addRgbCustomColorButton.addEventListener("click", () => runSkinStudioAction(addRgbCustomColor));
       pixelSkinGrid.addEventListener("pointerdown", startPixelSkinPaint);
       pixelSkinGrid.addEventListener("pointerover", continuePixelSkinPaint);
       window.addEventListener("pointerup", stopPixelSkinPaint);

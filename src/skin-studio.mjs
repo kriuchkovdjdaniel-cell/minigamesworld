@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createElement, Pencil, PaintBucket, Pipette, Eraser, Undo2, Redo2, Grid2X2, FlipHorizontal2, FlipVertical2, RotateCw, RotateCcw, Download, Trash2, Box, Save, Check, LockKeyhole } from "lucide";
 import { paintStroke, fillPixels, transformPixels, createHistory } from "./skin-studio-model.mjs";
+import { createCustomAccessory } from "./skin-studio-accessory.mjs";
 import "./skin-studio.css";
 
 const icons = { pencil: Pencil, fill: PaintBucket, pick: Pipette, erase: Eraser, undo: Undo2, redo: Redo2, grid: Grid2X2, "flip-h": FlipHorizontal2, "flip-v": FlipVertical2, rotate: RotateCw, camera: RotateCcw, export: Download, reset: Trash2, cube: Box, save: Save, equip: Check, lock: LockKeyhole };
@@ -53,7 +54,6 @@ export function mountSkinStudio(menu, api) {
   const history = { skin: createHistory(), accessory: createHistory() };
   const canvas = $("[data-paint]"), ctx = canvas.getContext("2d");
   const textureCanvas = document.createElement("canvas"); textureCanvas.width = textureCanvas.height = 64;
-  const accessoryCanvas = document.createElement("canvas"); accessoryCanvas.width = accessoryCanvas.height = 16;
   const abort = new AbortController(), signal = abort.signal;
   const on = (node, name, fn, options = {}) => node.addEventListener(name, fn, { ...options, signal });
   const data = () => api.read()[mode];
@@ -73,7 +73,7 @@ export function mountSkinStudio(menu, api) {
     }
   };
 
-  let renderer, scene, camera, orbit, cube, accessoryGroup, texture, accessoryTexture, previewFrame = 0;
+  let renderer, scene, camera, orbit, cube, accessoryGroup, texture, previewFrame = 0;
   const preview = $(".ss-preview"), previewCache = { skin: "", accessory: "", palette: "", kind: "" };
   const drawPreview = () => { if (renderer && menu.classList.contains("open") && !document.hidden) renderer.render(scene, camera); };
   const schedulePreview = () => {
@@ -86,12 +86,12 @@ export function mountSkinStudio(menu, api) {
       if ($("[data-spin]").checked) schedulePreview();
     });
   };
-  const disposeGroup = group => { while (group.children.length) { const child = group.children[0]; group.remove(child); child.geometry?.dispose(); child.material?.dispose(); } };
+  const disposeGroup = group => { while (group.children.length) { const child = group.children[0]; group.remove(child); child.dispose?.(); child.geometry?.dispose(); child.material?.dispose(); } };
   const updatePreview = state => {
     const palette = state.palette.join();
     if (previewCache.skin !== state.skin || previewCache.palette !== palette) { renderPixels(textureCanvas, state.skin, state.palette, 64); if (texture) texture.needsUpdate = true; }
-    if (previewCache.accessory !== state.accessory || previewCache.palette !== palette) { renderPixels(accessoryCanvas, state.accessory, state.palette, 16); if (accessoryTexture) accessoryTexture.needsUpdate = true; }
-    if (renderer && previewCache.kind !== state.kind) {
+    const customChanged = state.kind === "custom" && (previewCache.accessory !== state.accessory || previewCache.palette !== palette);
+    if (renderer && (previewCache.kind !== state.kind || customChanged)) {
       disposeGroup(accessoryGroup);
       const mesh = (geometry, color, position, rotation = [0, 0, 0]) => {
         const object = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.15 }));
@@ -105,8 +105,8 @@ export function mountSkinStudio(menu, api) {
       else if (state.kind === "headphones") { mesh(new THREE.TorusGeometry(1.1, 0.1, 6, 24, Math.PI), "#9b8cc7", [0, 0.15, 0]); for (const x of [-1.08, 1.08]) mesh(new THREE.BoxGeometry(0.28, 0.65, 0.7), "#b0a3d4", [x, 0.15, 0]); }
       else if (state.kind === "wings") for (const direction of [-1, 1]) mesh(new THREE.BoxGeometry(0.85, 1.35, 0.14), "#a6d0dc", [direction * 1.3, 0.25, -0.6], [0, 0, direction * -0.5]);
       else if (state.kind === "custom") {
-        const accessory = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 2.3), new THREE.MeshStandardMaterial({ map: accessoryTexture, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide }));
-        accessory.position.set(0, 1.7, 0.1); accessoryGroup.add(accessory);
+        const accessory = createCustomAccessory(state.accessory, state.palette);
+        if (accessory) accessoryGroup.add(accessory);
       }
     }
     Object.assign(previewCache, { skin: state.skin, accessory: state.accessory, palette, kind: state.kind });
@@ -121,8 +121,8 @@ export function mountSkinStudio(menu, api) {
     scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(38, 1, 0.1, 50); camera.position.set(4, 3, 5);
     scene.add(new THREE.HemisphereLight(0xeaf7ff, 0x53615b, 2.5));
     const key = new THREE.DirectionalLight(0xffffff, 3); key.position.set(3, 5, 4); scene.add(key);
-    texture = new THREE.CanvasTexture(textureCanvas); accessoryTexture = new THREE.CanvasTexture(accessoryCanvas);
-    for (const item of [texture, accessoryTexture]) { item.magFilter = item.minFilter = THREE.NearestFilter; item.colorSpace = THREE.SRGBColorSpace; item.generateMipmaps = false; }
+    texture = new THREE.CanvasTexture(textureCanvas);
+    texture.magFilter = texture.minFilter = THREE.NearestFilter; texture.colorSpace = THREE.SRGBColorSpace; texture.generateMipmaps = false;
     cube = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshStandardMaterial({ map: texture, roughness: 0.78 })); scene.add(cube);
     accessoryGroup = new THREE.Group(); scene.add(accessoryGroup);
     const floor = new THREE.GridHelper(8, 16, 0x35534c, 0x26352f); floor.position.y = -1.12; scene.add(floor);
@@ -225,6 +225,6 @@ export function mountSkinStudio(menu, api) {
   return {
     refresh,
     setBusy(value) { finishStroke(); busy = value; root.classList.toggle("ss-busy", value); refresh(); },
-    dispose() { disposed = true; abort.abort(); resize.disconnect(); visibility.disconnect(); cancelAnimationFrame(drawingFrame); cancelAnimationFrame(previewFrame); orbit?.dispose(); if (scene) scene.traverse(object => { object.geometry?.dispose(); object.material?.dispose(); }); texture?.dispose(); accessoryTexture?.dispose(); renderer?.dispose(); }
+    dispose() { disposed = true; abort.abort(); resize.disconnect(); visibility.disconnect(); cancelAnimationFrame(drawingFrame); cancelAnimationFrame(previewFrame); orbit?.dispose(); if (scene) scene.traverse(object => { if (object.isInstancedMesh) object.dispose(); object.geometry?.dispose(); object.material?.dispose(); }); texture?.dispose(); renderer?.dispose(); }
   };
 }
