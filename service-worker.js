@@ -1,4 +1,4 @@
-const CACHE_NAME = "minigameworld-v15";
+const CACHE_NAME = "minigameworld-v16";
 const APP_SHELL = [
   "./",
   "./index.html",

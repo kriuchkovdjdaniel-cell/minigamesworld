@@ -114,30 +114,43 @@ test("custom accessory saving still requires VIP or Premium", async () => {
 const palette = ["#04130f", "#f8fafc", "#5eead4", "#22c55e", "#facc15", "#8b5cf6", "#fb7185", "#38bdf8"];
 const disposeAccessory = mesh => { mesh.dispose(); mesh.geometry.dispose(); mesh.material.dispose(); };
 
-test("a fully painted accessory is solid, bounded, and rests on the cube instead of intersecting it", () => {
+test("a fully painted accessory lies flat over the cube with a short lower cap brim", () => {
   const mesh = createCustomAccessory("7".repeat(256), palette);
-  assert.equal(mesh.count, 256);
+  assert.equal(mesh.count, 264);
   const { min, max } = mesh.boundingBox;
   assert.ok(Math.abs(min.y - 1) < 1e-6);
-  assert.ok(max.y <= 2.361 && min.x >= -0.681 && max.x <= 0.681);
-  assert.ok(max.z - min.z > 0.27);
+  assert.ok(Math.abs(max.y - 1.16) < 1e-6);
+  assert.ok(Math.abs(min.x + 1.12) < 1e-6 && Math.abs(max.x - 1.12) < 1e-6);
+  assert.ok(Math.abs(min.z + 1.12) < 1e-6 && Math.abs(max.z - 1.54) < 1e-6);
+  const brim = new Matrix4(); mesh.getMatrixAt(256, brim);
+  assert.ok(Math.abs(brim.elements[5] - 0.08) < 1e-6);
   const color = new Color(); mesh.getColorAt(0, color);
   assert.equal(color.getHexString(), "38bdf8");
   disposeAccessory(mesh);
 });
 
-test("transparent padding does not float, enlarge or offset sparse accessories", () => {
+test("sparse cap pixels retain their top-view position without floating or turning upright", () => {
   const pixels = Array(256).fill("."); pixels[0] = "2"; pixels[16] = "4";
   const mesh = createCustomAccessory(pixels.join(""), palette);
   assert.equal(mesh.count, 2);
   assert.ok(Math.abs(mesh.boundingBox.min.y - 1) < 1e-6);
-  assert.ok(Math.abs(mesh.boundingBox.min.x + mesh.boundingBox.max.x) < 1e-6);
   const top = new Matrix4(), bottom = new Matrix4();
   mesh.getMatrixAt(0, top); mesh.getMatrixAt(1, bottom);
-  assert.ok(top.elements[13] > bottom.elements[13]);
+  assert.equal(top.elements[13], bottom.elements[13]);
+  assert.ok(top.elements[14] < bottom.elements[14]);
+  assert.ok(top.elements[12] < 0 && top.elements[14] < 0);
   assert.ok(mesh.boundingBox.max.y < 1.18);
   disposeAccessory(mesh);
   assert.equal(createCustomAccessory(".".repeat(256), palette), null);
+});
+
+test("cap brims follow the front-edge colors and never fill transparent pixels", () => {
+  const pixels = Array(256).fill("."); pixels[15 * 16 + 4] = "2"; pixels[15 * 16 + 11] = "7";
+  const mesh = createCustomAccessory(pixels.join(""), palette);
+  assert.equal(mesh.count, 4);
+  const color = new Color(); mesh.getColorAt(2, color); assert.equal(color.getHexString(), "5eead4");
+  mesh.getColorAt(3, color); assert.equal(color.getHexString(), "38bdf8");
+  disposeAccessory(mesh);
 });
 
 test("accessory holes remain empty and palette edits reach the solid preview", () => {
