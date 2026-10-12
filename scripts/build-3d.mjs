@@ -7,8 +7,9 @@ export async function build3d() {
   const root = fileURLToPath(new URL("..", import.meta.url));
   await build({
     absWorkingDir: root,
-    entryPoints: ["src/three-games.mjs", "src/zombie-game.mjs", "src/skin-studio.mjs"], outdir: "assets",
+    entryPoints: ["src/three-games.mjs", "src/zombie-game.mjs", "src/skin-studio.mjs", "src/arcade-games.mjs"], outdir: "assets",
     bundle: true, format: "esm", platform: "browser", target: "es2022",
+    external: ["../assets/gem-dash-3d.png", "../assets/laser-escape-3d.png"],
     minify: true, legalComments: "external"
   });
   const license = name => readFileSync(join(root, "node_modules", name, "LICENSE"), "utf8");
@@ -20,6 +21,7 @@ export async function build3d() {
     return `\n${name}\n${sections[1]}\n`;
   };
   appendFileSync(join(root, "assets/three-games.js.LEGAL.txt"), common);
+  appendFileSync(join(root, "assets/arcade-games.js.LEGAL.txt"), common);
   appendFileSync(join(root, "assets/skin-studio.js.LEGAL.txt"), ["three", "lucide"].map(name => `\n${name}\n${license(name)}\n`).join("\n"));
   appendFileSync(join(root, "assets/zombie-game.js.LEGAL.txt"), common + readmeLicense("pathfinding") + readmeLicense("heap") + "\nheap.js is Xueqiao Xu's JavaScript port of Python heapq, bundled and minified here without algorithm changes.\n");
 }

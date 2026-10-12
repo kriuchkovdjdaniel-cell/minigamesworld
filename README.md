@@ -112,3 +112,16 @@ An original solo zombie-survival RPG, inspired by the bus-and-scavenging premise
 Tests also cover new doors/walls, single-use bonus loot, sample bounds, positional audio, voice limits, mute, pause/resume, failed startup recovery and disposal. Browser audio checks measure the real Web Audio signal in an isolated test context; native Tauri and live Firebase remain outside local QA.
 
 `npm test` covers checkpoint validation, all encounters, collection limits, collision and wall-blocked bullets, shooting/reloading/melee, upgrades, zombie attacks, boarding/exit restrictions, locked routes, and a complete three-stop drive with checkpoint recovery. Combat fixtures use controlled positioning with real Rapier raycasts and AI. Browser checks use mock Firebase and an isolated app-runtime test context, never live player data.
+
+## Gem Dash and Laser Escape 3D
+
+Two previously 2D solo games now use a separate Three.js/Rapier arena engine. Crystal Isles 3D and Dead Route 3D retain their existing implementations.
+
+- **Gem Dash**: collect 12 gems, dodge moving guards, and return to the gate before time expires. Garden Vault, Sentinel Court, and Crystal Citadel increase patrol count/speed and shorten the timer.
+- **Laser Escape**: survive Reactor Hall, Crossfire, and Overload for 40, 50, and 60 seconds. Warning lines precede sweeps; later stages introduce overlapping and overhead lasers. Both games start each stage with three lives and a brief protection window after damage.
+- WASD/arrows move relative to the camera, Space jumps, right-drag rotates, and the wheel zooms. Escape pauses. Camera reset, fullscreen, restart, stage selection, Next Stage after a win, and Return to Games are available. Focus loss pauses; exiting frees graphics and physics resources.
+- Equipped colors, custom pixel skins, and custom cap accessories appear on the player. Quality controls pixel density and shadows. Static scenery is batched by material; both thumbnails are captures of the actual games.
+- Existing `dodger` and `laser-dodge` score keys remain intact. Best scores use local storage and the existing Firebase maximum transaction. Completed rounds use the existing reward/quest system. Account data, database rules, and online games are not redesigned.
+- The existing computer/app-only play restriction remains. Web and desktop builds include the shared UI, lazy arena bundle, styles, licenses, and thumbnails. Installed web apps cache the engine after first play; installed native apps need the new Windows release. Installer settings are unchanged, apart from the release version.
+
+`npm test` includes normal movement/jump completion of all Gem Dash stages, timed laser-jump survival, collision boundaries, patrol clearance, pickup limits, damage protection, stage timers, and cleanup. Browser QA checks desktop/narrow screenshots and canvas pixels, camera controls, pause/restart/stage switching, completion/defeat dialogs, failed loading/retry/cancellation, web/phone gates, and launching the two unchanged 3D games. End-state dialog fixtures use an isolated test bundle; Firebase uses mocks. Native Tauri UI and production Firebase writes are not covered by local browser QA.

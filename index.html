@@ -9082,6 +9082,7 @@
       .music-playback-status { margin: 0; color: #bdcbd1; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
     </style>
     <link rel="stylesheet" href="assets/skin-studio.css">
+    <link rel="stylesheet" href="assets/arcade-games.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -10222,7 +10223,7 @@
         dodger: {
           title: "Gem Dash",
           bestKey: "dodger-best",
-          help: "Move with WASD/arrows, collect gems, and dodge the red guards."
+          help: "Collect every gem in the 3D vault and return to the gate. WASD/arrows move, Space jumps."
         },
         "solo-pong": {
           title: "Brick Breaker",
@@ -10237,7 +10238,7 @@
         "laser-dodge": {
           title: "Laser Escape",
           bestKey: "laser-dodge-best",
-          help: "Move with WASD/arrows and dodge the lasers."
+          help: "Survive the 3D reactor lockdown. WASD/arrows move, Space jumps, right mouse rotates the camera."
         },
         "sigma-rpg": {
           title: "Crystal RPG",
@@ -10333,6 +10334,9 @@
       let threeGameLevelIndex = 0;
       let zombieGameModule = null;
       let zombieGameImportAttempt = 0;
+      let arcadeGameModule = null;
+      let arcadeGameImportAttempt = 0;
+      let arcadeGameLevelIndex = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
       let selectedStartMode = "solo";
@@ -10935,6 +10939,7 @@
           return;
         }
 
+        if (gameName === "dodger" || gameName === "laser-dodge") { startArcadeGame(gameName); return; }
         if (gameName === "dead-route-3d") { startZombieGame(); return; }
         if (gameName === "crystal-isles-3d") {
           startThreeGame();
@@ -10975,7 +10980,7 @@
       }
 
       function isThreeGame(gameName = currentGame) {
-        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d";
+        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge";
       }
 
       function disposeThreeGame() {
@@ -10986,6 +10991,62 @@
         threeGameHost.hidden = true;
         threeGameHost.replaceChildren();
         delete threeGameHost.dataset.game;
+      }
+
+      async function startArcadeGame(mode, levelIndex = 0) {
+        if (!["dodger", "laser-dodge"].includes(mode) || !requireDesktopGameplay()) return;
+        if (onlineRoomCode || roomJoinInFlight) {
+          showTopNotification("Leave your online room before starting a solo game.");
+          return;
+        }
+        disposeThreeGame();
+        const controller = new AbortController(), owner = getUserKeyFromAccount();
+        threeGameLoading = controller;
+        arcadeGameLevelIndex = Number.isInteger(levelIndex) && levelIndex >= 0 && levelIndex < 3 ? levelIndex : 0;
+        clearInterval(timer); clearInterval(waitingTimer); resetGameEffects();
+        currentGame = mode; score = 0; gameOver = paused = waitingToPlay = false;
+        unlockBackgroundMusic(); closeStartScreen(); hidePlayOverlay();
+        pauseMenu.classList.remove("open"); pauseMenu.setAttribute("aria-hidden", "true");
+        threeGameHost.hidden = false;
+        threeGameHost.innerHTML = `<div class="three-loading" role="status"><h2>${games[mode].title} 3D</h2><p>Loading arena...</p><button data-three-cancel>Return to Games</button></div>`;
+        threeGameHost.querySelector("button").focus();
+        const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
+        try {
+          const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+          const loading = arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`)
+            .then(module => { arcadeGameModule = module; return module; });
+          const { mountArcadeGame } = await Promise.race([loading, canceled]);
+          controller.signal.throwIfAborted();
+          let finished = false;
+          const mounting = mountArcadeGame(threeGameHost, {
+            mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(),
+            color: getTheme(playerStyle.color).head, pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "", palette: pixelSkinPalette,
+            accessory: playerStyle.accessory, accessoryPixels: playerStyle.customAccessory16,
+            onPause: value => { if (threeGameLoading === controller) paused = value; },
+            onPickup: () => playSound("eat"), onHit: () => playSound("gameover"),
+            onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
+            onRestart: () => startArcadeGame(mode, levelIndex), onLevelChange: next => startArcadeGame(mode, next),
+            onFinish: result => {
+              if (finished || threeGameLoading !== controller) return;
+              finished = true; gameOver = true; score = result.score;
+              try { if (score > getLocalBestScore(mode)) setLocalBestScore(mode, score); }
+              catch { showTopNotification("Best score could not be saved on this device."); }
+              if (owner && owner === getUserKeyFromAccount()) {
+                firebaseDb.ref(`users/${owner}/bestScores/${mode}`).transaction(previous => Math.max(Number(previous) || 0, result.score))
+                  .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
+                handleGameFinishedRewards(result.score, mode).catch(() => showTopNotification("Could not sync round rewards. Check your connection."));
+              }
+              publishProfilePresence(); playSound(result.won ? "eat" : "gameover");
+            }
+          });
+          const session = await Promise.race([mounting, canceled]);
+          if (controller.signal.aborted || threeGameLoading !== controller) { session.dispose(); return; }
+          threeGameSession = session; publishProfilePresence();
+        } catch (error) {
+          if (threeGameLoading !== controller) return;
+          threeGameHost.innerHTML = `<div class="three-loading" role="alert"><h2>Unable to open ${games[mode].title}</h2><p>${escapeHtml(error?.message || "Please retry.")}</p><button data-three-retry>Retry</button><button data-three-cancel>Return to Games</button></div>`;
+          threeGameHost.querySelector("button").focus();
+        } finally { clearTimeout(timeout); }
       }
 
       async function startZombieGame(fresh = false) {
@@ -13709,6 +13770,7 @@
       }
 
       function resetGame() {
+        if (currentGame === "dodger" || currentGame === "laser-dodge") { startArcadeGame(currentGame, arcadeGameLevelIndex); return; }
         if (currentGame === "dead-route-3d") { startZombieGame(); return; }
         if (currentGame === "crystal-isles-3d") { startThreeGame(); return; }
         const restartAfterDeath = gameOver;
@@ -15003,17 +15065,17 @@
         draw();
       }
 
-      async function handleGameFinishedRewards() {
+      async function handleGameFinishedRewards(runScore = score, runGame = currentGame) {
         if (!currentAccount?.username) {
           return;
         }
 
-        const earnedXp = 15 + Math.min(score * 2, 200);
-        const earnedCoins = 5 + Math.min(score, 75);
+        const earnedXp = 15 + Math.min(runScore * 2, 200);
+        const earnedCoins = 5 + Math.min(runScore, 75);
         await grantRewards({ xp: earnedXp, coins: earnedCoins, reason: "Game reward" });
         await addQuestProgress("play1", 1);
-        await addQuestProgress("score25", score);
-        if (currentGame.startsWith("online-")) {
+        await addQuestProgress("score25", runScore);
+        if (runGame.startsWith("online-")) {
           await addQuestProgress("online1", 1);
         }
         await checkScoreAchievements();
@@ -15522,10 +15584,10 @@
           "crystal-isles-3d": "3D platformer",
           snake: "Classic arcade",
           catcher: "Reaction",
-          dodger: "Survival",
+          dodger: "3D gem hunt",
           "solo-pong": "Brick breaker",
           "coin-rush": "Collector",
-          "laser-dodge": "Precision",
+          "laser-dodge": "3D survival",
           "sigma-rpg": "Adventure",
           "star-collector": "Score chase"
         };
@@ -22952,7 +23014,8 @@
       threeGameHost.addEventListener("click", (event) => {
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
         if (event.target.closest("[data-three-retry]")) {
-          if (currentGame === "dead-route-3d") startZombieGame();
+          if (currentGame === "dodger" || currentGame === "laser-dodge") startArcadeGame(currentGame, arcadeGameLevelIndex);
+          else if (currentGame === "dead-route-3d") startZombieGame();
           else startThreeGame(threeGameLevelIndex);
         }
       });
