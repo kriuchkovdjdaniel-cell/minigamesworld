@@ -1,0 +1,11 @@
+#threeGameHost[data-collection] { color: #f0f4ec; }
+#threeGameHost[data-collection="catcher"] .arcade-hud { background: #233c33ed; }
+#threeGameHost[data-collection] [data-action="dash"] { position: relative; }
+#threeGameHost[data-collection] [data-action="dash"] progress { position: absolute; bottom: 3px; left: 6px; width: calc(100% - 12px); height: 3px; accent-color: #b8d4a1; }
+body[data-runtime] :is(.game-thumb, .showcase-thumb)[data-game="catcher"] { background: #91b494 url("../assets/apple-drop-3d.png") center / cover no-repeat !important; }
+body[data-runtime] :is(.game-thumb, .showcase-thumb)[data-game="coin-rush"] { background: #88a9af url("../assets/coin-dash-3d.png") center / cover no-repeat !important; }
+:is([data-game="catcher"], [data-game="coin-rush"]) :is(.game-icon-large, .showcase-icon) { visibility: hidden; }
+@media (max-width: 700px) {
+  #threeGameHost[data-collection="coin-rush"] .arcade-tools button { width: 30px; height: 38px; padding: 5px; }
+  #threeGameHost[data-collection] .arcade-title strong { font-size: 18px; }
+}

@@ -9083,6 +9083,7 @@
     </style>
     <link rel="stylesheet" href="assets/skin-studio.css">
     <link rel="stylesheet" href="assets/arcade-games.css">
+    <link rel="stylesheet" href="assets/collection-games.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -10218,7 +10219,7 @@
         catcher: {
           title: "Apple Drop",
           bestKey: "catcher-best",
-          help: "Use Left/Right or A/D to catch apples."
+          help: "Catch falling apples and avoid rocks in the 3D orchard. WASD/arrows move; right-drag rotates the camera."
         },
         dodger: {
           title: "Gem Dash",
@@ -10233,7 +10234,7 @@
         "coin-rush": {
           title: "Coin Dash",
           bestKey: "coin-rush-best",
-          help: "Collect coins and avoid the red chaser."
+          help: "Collect every coin in the 3D harbor, then return to the gate. Shift dashes; right-drag rotates the camera."
         },
         "laser-dodge": {
           title: "Laser Escape",
@@ -10336,6 +10337,8 @@
       let zombieGameImportAttempt = 0;
       let arcadeGameModule = null;
       let arcadeGameImportAttempt = 0;
+      let collectionGameModule = null;
+      let collectionGameImportAttempt = 0;
       let arcadeGameLevelIndex = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
@@ -10939,7 +10942,7 @@
           return;
         }
 
-        if (gameName === "dodger" || gameName === "laser-dodge") { startArcadeGame(gameName); return; }
+        if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(gameName)) { startArcadeGame(gameName); return; }
         if (gameName === "dead-route-3d") { startZombieGame(); return; }
         if (gameName === "crystal-isles-3d") {
           startThreeGame();
@@ -10980,7 +10983,7 @@
       }
 
       function isThreeGame(gameName = currentGame) {
-        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge";
+        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge" || gameName === "catcher" || gameName === "coin-rush";
       }
 
       function disposeThreeGame() {
@@ -10994,7 +10997,7 @@
       }
 
       async function startArcadeGame(mode, levelIndex = 0) {
-        if (!["dodger", "laser-dodge"].includes(mode) || !requireDesktopGameplay()) return;
+        if (!["dodger", "laser-dodge", "catcher", "coin-rush"].includes(mode) || !requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting a solo game.");
           return;
@@ -11013,12 +11016,15 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loading = arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`)
-            .then(module => { arcadeGameModule = module; return module; });
-          const { mountArcadeGame } = await Promise.race([loading, canceled]);
+          const collection = mode === "catcher" || mode === "coin-rush";
+          const loading = collection
+            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
+            : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
+          const module = await Promise.race([loading, canceled]);
+          const mountGame = collection ? module.mountCollectionGame : module.mountArcadeGame;
           controller.signal.throwIfAborted();
           let finished = false;
-          const mounting = mountArcadeGame(threeGameHost, {
+          const mounting = mountGame(threeGameHost, {
             mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(),
             color: getTheme(playerStyle.color).head, pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "", palette: pixelSkinPalette,
             accessory: playerStyle.accessory, accessoryPixels: playerStyle.customAccessory16,
@@ -13770,7 +13776,7 @@
       }
 
       function resetGame() {
-        if (currentGame === "dodger" || currentGame === "laser-dodge") { startArcadeGame(currentGame, arcadeGameLevelIndex); return; }
+        if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) { startArcadeGame(currentGame, arcadeGameLevelIndex); return; }
         if (currentGame === "dead-route-3d") { startZombieGame(); return; }
         if (currentGame === "crystal-isles-3d") { startThreeGame(); return; }
         const restartAfterDeath = gameOver;
@@ -15583,10 +15589,10 @@
           "dead-route-3d": "3D survival RPG",
           "crystal-isles-3d": "3D platformer",
           snake: "Classic arcade",
-          catcher: "Reaction",
+          catcher: "3D orchard",
           dodger: "3D gem hunt",
           "solo-pong": "Brick breaker",
-          "coin-rush": "Collector",
+          "coin-rush": "3D chase",
           "laser-dodge": "3D survival",
           "sigma-rpg": "Adventure",
           "star-collector": "Score chase"
@@ -23014,7 +23020,7 @@
       threeGameHost.addEventListener("click", (event) => {
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
         if (event.target.closest("[data-three-retry]")) {
-          if (currentGame === "dodger" || currentGame === "laser-dodge") startArcadeGame(currentGame, arcadeGameLevelIndex);
+          if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) startArcadeGame(currentGame, arcadeGameLevelIndex);
           else if (currentGame === "dead-route-3d") startZombieGame();
           else startThreeGame(threeGameLevelIndex);
         }

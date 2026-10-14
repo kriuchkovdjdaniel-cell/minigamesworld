@@ -1,4 +1,4 @@
-const CACHE_NAME = "minigameworld-v17";
+const CACHE_NAME = "minigameworld-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,9 @@ const APP_SHELL = [
   "./loading-music.mp3",
   "./assets/skin-studio.css",
   "./assets/arcade-games.css",
+  "./assets/collection-games.css",
+  "./assets/apple-drop-3d.png",
+  "./assets/coin-dash-3d.png",
   "./assets/gem-dash-3d.png",
   "./assets/laser-escape-3d.png",
   "./assets/crystal-isles-3d.png",
@@ -16,6 +19,7 @@ const APP_SHELL = [
 const LAZY_ASSETS = ["./assets/three-games.js", "./assets/zombie-game.js"];
 const STUDIO_ASSETS = ["./assets/skin-studio.js"];
 const ARCADE_ASSETS = ["./assets/arcade-games.js"];
+const COLLECTION_ASSETS = ["./assets/collection-games.js"];
 const MUSIC_ASSETS = [
   "./assets/music/neon-cartridge.mp3",
   "./assets/music/neon-coin-slot.mp3",
@@ -110,7 +114,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  const shellUrls = [...APP_SHELL, ...LAZY_ASSETS, ...STUDIO_ASSETS, ...ARCADE_ASSETS].map((path) => new URL(path, self.registration.scope).pathname);
+  const shellUrls = [...APP_SHELL, ...LAZY_ASSETS, ...STUDIO_ASSETS, ...ARCADE_ASSETS, ...COLLECTION_ASSETS].map((path) => new URL(path, self.registration.scope).pathname);
   if (event.request.mode !== "navigate" && !shellUrls.includes(requestUrl.pathname)) return;
   const cacheKey = event.request.mode === "navigate" ? new URL("./index.html", self.registration.scope).href : event.request;
   const refresh = fetch(event.request).then(async (response) => {

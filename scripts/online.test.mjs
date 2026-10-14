@@ -535,7 +535,7 @@ test("scene changes clear stale particles, and hidden pages do not keep renderin
   ctx.spawnScoreBurst();
   ctx.spawnCoinFlame();
   ctx.draw();
-  ctx.currentGame = "coin-rush";
+  ctx.currentGame = "solo-pong";
   ctx.draw();
   assert.equal(ctx.scoreBursts.length + ctx.coinFlames.length, 0);
   assert.equal(ctx.pendingFrames(), 1);
@@ -549,7 +549,7 @@ test("scene changes clear stale particles, and hidden pages do not keep renderin
 });
 
 test("standalone 3D games do not schedule the legacy 2D renderer", () => {
-  for (const game of ["crystal-isles-3d", "dead-route-3d"]) {
+  for (const game of ["crystal-isles-3d", "dead-route-3d", "dodger", "laser-dodge", "catcher", "coin-rush"]) {
     let paints = 0;
     const ctx = effectsContext({ currentGame: game, paintGame: () => { paints++; } });
     ctx.draw(); ctx.renderGameFrame(1000);

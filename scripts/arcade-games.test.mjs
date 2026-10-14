@@ -139,6 +139,6 @@ test("converted games bypass the legacy canvas loop without changing the other 3
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   const context = createContext({ currentGame: "dodger" });
   new Script(html.match(/function isThreeGame\([^]*?^      }/m)[0]).runInContext(context);
-  for (const mode of ["dodger", "laser-dodge", "crystal-isles-3d", "dead-route-3d"]) assert.equal(context.isThreeGame(mode), true);
-  for (const mode of ["snake", "online-snake", "catcher"]) assert.equal(context.isThreeGame(mode), false);
+  for (const mode of ["dodger", "laser-dodge", "crystal-isles-3d", "dead-route-3d", "catcher", "coin-rush"]) assert.equal(context.isThreeGame(mode), true);
+  for (const mode of ["snake", "online-snake", "online-catcher"]) assert.equal(context.isThreeGame(mode), false);
 });
