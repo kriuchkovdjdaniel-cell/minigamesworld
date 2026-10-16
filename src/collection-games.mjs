@@ -1,11 +1,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Apple, Coins, Heart, Timer, ArrowRight, Zap } from "lucide";
+import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Apple, Coins, Heart, Timer, ArrowRight, Zap, Volume2, VolumeX } from "lucide";
 import { createCollectionSimulation, COLLECTION_LEVELS, STEP } from "./collection-world.mjs";
 import { createCollectionScene } from "./collection-scene.mjs";
+import { createCollectionAudio, createCollectionSoundTracker } from "./collection-audio.mjs";
 import "./collection-games.css";
 
-const icons = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, apple: Apple, coins: Coins, heart: Heart, timer: Timer, next: ArrowRight, dash: Zap };
+const icons = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, apple: Apple, coins: Coins, heart: Heart, timer: Timer, next: ArrowRight, dash: Zap, sound: Volume2 };
 const clock = value => `${Math.floor(Math.max(0, value) / 60)}:${String(Math.floor(Math.max(0, value) % 60)).padStart(2, "0")}`;
 
 export async function mountCollectionGame(host, options) {
@@ -24,7 +25,7 @@ export async function mountCollectionGame(host, options) {
   host.innerHTML = `<div class="arcade-hud">
     <div class="arcade-title"><span>${orchard ? "THE ORCHARD / HARVEST RUN" : "HARBOR DISTRICT / COIN RUN"}</span><strong>${level.title}</strong><small>${level.index + 1} / 3 &nbsp; ${level.name}</small></div>
     <div class="arcade-counters"><span title="Lives"><i data-icon="heart"></i><output data-lives>3</output></span><span title="Score"><i data-icon="${orchard ? "apple" : "coins"}"></i><output data-score>0</output></span><span title="Time remaining"><i data-icon="timer"></i><output data-time></output></span></div>
-    <div class="arcade-tools">${[...(orchard ? [] : ["dash"]), "camera", "fullscreen", "pause"].map(action => `<button data-action="${action}" title="${{ dash: "Dash (Shift)", camera: "Reset camera", fullscreen: "Fullscreen", pause: "Pause (Escape)" }[action]}" aria-label="${action}"><i data-icon="${action}"></i>${action === "dash" ? '<progress max="4" value="4" aria-label="Dash recharge"></progress>' : ""}</button>`).join("")}</div>
+    <div class="arcade-tools">${[...(orchard ? [] : ["dash"]), "sound", "camera", "fullscreen", "pause"].map(action => `<button data-action="${action}" title="${{ dash: "Dash (Shift)", sound: "Mute game effects (M)", camera: "Reset camera", fullscreen: "Fullscreen", pause: "Pause (Escape)" }[action]}" aria-label="${action}"><i data-icon="${action}"></i>${action === "dash" ? '<progress max="4" value="4" aria-label="Dash recharge"></progress>' : ""}</button>`).join("")}</div>
     </div><div class="arcade-objective"><span data-objective></span><progress data-progress max="${level.target}" value="0"></progress></div>
     <canvas class="arcade-map" width="140" height="140" aria-label="Area map"></canvas><p class="arcade-notice" role="status" aria-live="polite"></p>
     <dialog class="three-menu arcade-menu" aria-labelledby="collectionMenuTitle"><h2 id="collectionMenuTitle">Paused</h2><p data-result></p>
@@ -53,6 +54,20 @@ export async function mountCollectionGame(host, options) {
   const on = (target, type, callback, extra = {}) => target.addEventListener(type, callback, { ...extra, signal: abort.signal });
   let disposed = false, paused = false, ended = false, frameId = null, lastTime = null, accumulator = 0, jump = false, dash = false, cameraPointer = null;
   let previousCollected = 0, previousLives = 3, previousShield = 0, noticeUntil = 0;
+  const audio = createCollectionAudio({ volume: options.getVolume || options.volume });
+  const soundStep = createCollectionSoundTracker(level.mode, audio.play);
+  soundStep(sim.state, sim.body.translation());
+  try { audio.setMuted(localStorage.getItem("collection-effects-muted") === "true"); } catch {}
+  function updateSoundButton() {
+    const button = host.querySelector('[data-action="sound"]'), muted = audio.snapshot().muted;
+    button.replaceChildren(createElement(muted ? VolumeX : Volume2, { width: 19, height: 19, "aria-hidden": "true" }));
+    button.title = `${muted ? "Unmute" : "Mute"} game effects (M)`;
+    button.setAttribute("aria-label", button.title); button.setAttribute("aria-pressed", String(muted));
+  }
+  function toggleSound() {
+    const muted = !audio.snapshot().muted; audio.setMuted(muted); updateSoundButton();
+    try { localStorage.setItem("collection-effects-muted", String(muted)); } catch {}
+  }
   function releaseCamera() {
     if (cameraPointer === null) return;
     const id = cameraPointer; cameraPointer = null;
@@ -82,7 +97,9 @@ export async function mountCollectionGame(host, options) {
   }
   const schedule = () => { if (!disposed && !paused && !ended && frameId === null) frameId = requestAnimationFrame(frame); };
   function setPaused(value) {
-    if (disposed || ended) return;
+    if (disposed) return;
+    audio.setPaused(value);
+    if (ended) return;
     paused = value; keys.clear(); jump = dash = false; accumulator = 0; lastTime = null; releaseCamera(); controls.enabled = !value;
     if (value) { host.querySelector("h2").textContent = "Paused"; hud.result.textContent = `${level.name} / ${sim.state.score} points`; menu.showModal(); cancelAnimationFrame(frameId); frameId = null; }
     else { menu.close(); renderer.domElement.focus(); schedule(); }
@@ -94,7 +111,8 @@ export async function mountCollectionGame(host, options) {
     const x = Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft"));
     const z = Number(keys.has("KeyS") || keys.has("ArrowDown")) - Number(keys.has("KeyW") || keys.has("ArrowUp"));
     const yaw = controls.getAzimuthalAngle(), dx = x * Math.cos(yaw) + z * Math.sin(yaw), dz = z * Math.cos(yaw) - x * Math.sin(yaw);
-    while (accumulator >= STEP) { sim.step({ x: dx, z: dz, jump, dash }); jump = dash = false; accumulator -= STEP; }
+    while (accumulator >= STEP) { sim.step({ x: dx, z: dz, jump, dash }); soundStep(sim.state, sim.body.translation(), yaw); jump = dash = false; accumulator -= STEP; }
+    audio.sync();
     if (x || z) visuals.player.rotation.y = Math.atan2(-dx, -dz);
     render();
     if (sim.state.status === "playing") { schedule(); return; }
@@ -107,6 +125,8 @@ export async function mountCollectionGame(host, options) {
   }
   on(host, "click", event => {
     const action = event.target.closest("[data-action]")?.dataset.action;
+    if (action === "sound") { toggleSound(); renderer.domElement.focus(); }
+    else if (action) void audio.unlock();
     if (action === "pause") setPaused(true);
     if (action === "resume") setPaused(false);
     if (action === "camera") { resetCamera(); render(); renderer.domElement.focus(); }
@@ -117,6 +137,7 @@ export async function mountCollectionGame(host, options) {
     if (action === "level") { menu.close(); options.onLevelChange?.(Number(host.querySelector("select").value)); }
   });
   on(renderer.domElement, "pointerdown", event => {
+    if (!paused && !ended) void audio.unlock();
     if (event.pointerType !== "mouse") return;
     if (event.button !== 2 || paused || ended) { event.stopImmediatePropagation(); renderer.domElement.focus(); return; }
     cameraPointer = event.pointerId; renderer.domElement.style.cursor = "grabbing"; renderer.domElement.focus();
@@ -124,9 +145,12 @@ export async function mountCollectionGame(host, options) {
   on(renderer.domElement, "pointermove", event => { if (event.pointerType === "mouse" && !(event.buttons & 2)) releaseCamera(); }, { capture: true });
   on(window, "pointerup", event => { if (!(event.buttons & 2)) releaseCamera(); }); on(renderer.domElement, "pointercancel", releaseCamera); on(renderer.domElement, "lostpointercapture", releaseCamera);
   on(window, "keydown", event => {
-    if (event.target instanceof Element && event.target.closest("input,select,textarea,button") || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.target instanceof Element && event.target.closest("input,select,textarea") || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.code === "KeyM" && !event.repeat) { event.preventDefault(); toggleSound(); return; }
+    if (event.target instanceof Element && event.target.closest("button")) return;
     if (event.code === "Escape" && !menu.open) { event.preventDefault(); setPaused(true); return; }
     if (paused || ended) return;
+    void audio.unlock();
     if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "ShiftLeft", "ShiftRight"].includes(event.code)) {
       event.preventDefault(); keys.add(event.code); if (event.code === "Space" && !event.repeat) jump = true;
       if (event.code.startsWith("Shift") && !event.repeat) dash = true;
@@ -140,19 +164,20 @@ export async function mountCollectionGame(host, options) {
     renderer.setSize(width, height); camera.aspect = width / height;
     const compact = height <= 520, distance = Math.max(Math.hypot(25, 22) * (compact ? height / Math.max(150, height - 170) : 1), 18 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect));
     camera.position.sub(controls.target).multiplyScalar(distance / framingDistance).add(controls.target); framingDistance = distance;
-    controls.maxDistance = Math.max(45, distance * 1.3); camera.setViewOffset(width, height, 0, compact ? -75 : 0, width, height);
+    const offset = width <= 460 && height < 700 ? (compact ? -105 : -55) : compact ? -75 : 0;
+    controls.maxDistance = Math.max(45, distance * 1.3); camera.setViewOffset(width, height, 0, offset, width, height);
     scene.fog.near = Math.max(55, distance + 5); scene.fog.far = Math.max(140, distance + 100); camera.far = Math.max(200, distance + 120); camera.updateProjectionMatrix(); render();
   };
-  const observer = new ResizeObserver(resize); observer.observe(host); resize(); renderer.domElement.focus(); schedule();
+  const observer = new ResizeObserver(resize); observer.observe(host); resize(); updateSoundButton(); renderer.domElement.focus(); void audio.unlock(); schedule();
   return {
     pause: () => setPaused(true),
     snapshot: () => ({ mode: level.mode, levelIndex: level.index, status: sim.state.status, paused, elapsed: sim.state.elapsed, score: sim.state.score, lives: sim.state.lives,
       caught: sim.state.caught, missed: sim.state.missed, collected: sim.state.collected.size, cooldown: sim.state.cooldown, shield: sim.state.shield,
       drops: sim.state.drops.map(({ id, kind, phase, x, y, z }) => ({ id, kind, phase, x, y, z })), position: { ...sim.body.translation() },
-      camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle() }, drawCalls: renderer.info.render.calls }),
+      camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle() }, drawCalls: renderer.info.render.calls, audio: audio.snapshot() }),
     dispose() {
       if (disposed) return; disposed = true; cancelAnimationFrame(frameId); abort.abort(); observer.disconnect(); releaseCamera(); controls.dispose(); menu.close();
-      visuals.dispose(); sim.dispose(); renderer.dispose(); renderer.forceContextLoss(); delete host.dataset.collection; host.replaceChildren();
+      audio.dispose(); visuals.dispose(); sim.dispose(); renderer.dispose(); renderer.forceContextLoss(); delete host.dataset.collection; host.replaceChildren();
     }
   };
 }

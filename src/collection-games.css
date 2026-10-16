@@ -6,6 +6,14 @@ body[data-runtime] :is(.game-thumb, .showcase-thumb)[data-game="catcher"] { back
 body[data-runtime] :is(.game-thumb, .showcase-thumb)[data-game="coin-rush"] { background: #88a9af url("../assets/coin-dash-3d.png") center / cover no-repeat !important; }
 :is([data-game="catcher"], [data-game="coin-rush"]) :is(.game-icon-large, .showcase-icon) { visibility: hidden; }
 @media (max-width: 700px) {
-  #threeGameHost[data-collection="coin-rush"] .arcade-tools button { width: 30px; height: 38px; padding: 5px; }
+  #threeGameHost[data-collection] .arcade-tools button { width: 30px; height: 38px; padding: 5px; }
   #threeGameHost[data-collection] .arcade-title strong { font-size: 18px; }
+}
+@media (max-width: 460px) {
+  #threeGameHost[data-collection] .arcade-hud { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px; }
+  #threeGameHost[data-collection] .arcade-title { grid-row: 1; gap: 2px; }
+  #threeGameHost[data-collection] .arcade-counters { grid-row: 2; gap: 18px; }
+  #threeGameHost[data-collection] .arcade-tools { grid-row: 3; grid-column: 1; justify-content: center; }
+  #threeGameHost[data-collection] .arcade-tools button { width: 40px; }
+  #threeGameHost[data-collection] .arcade-objective { top: 174px; }
 }

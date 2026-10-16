@@ -11018,18 +11018,18 @@
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
           const collection = mode === "catcher" || mode === "coin-rush";
           const loading = collection
-            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
+            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=sound-1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
             : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           const mountGame = collection ? module.mountCollectionGame : module.mountArcadeGame;
           controller.signal.throwIfAborted();
           let finished = false;
           const mounting = mountGame(threeGameHost, {
-            mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(),
+            mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
             color: getTheme(playerStyle.color).head, pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "", palette: pixelSkinPalette,
             accessory: playerStyle.accessory, accessoryPixels: playerStyle.customAccessory16,
             onPause: value => { if (threeGameLoading === controller) paused = value; },
-            onPickup: () => playSound("eat"), onHit: () => playSound("gameover"),
+            onPickup: collection ? undefined : () => playSound("eat"), onHit: collection ? undefined : () => playSound("gameover"),
             onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
             onRestart: () => startArcadeGame(mode, levelIndex), onLevelChange: next => startArcadeGame(mode, next),
             onFinish: result => {
@@ -11042,7 +11042,7 @@
                   .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
                 handleGameFinishedRewards(result.score, mode).catch(() => showTopNotification("Could not sync round rewards. Check your connection."));
               }
-              publishProfilePresence(); playSound(result.won ? "eat" : "gameover");
+              publishProfilePresence(); if (!collection) playSound(result.won ? "eat" : "gameover");
             }
           });
           const session = await Promise.race([mounting, canceled]);

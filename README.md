@@ -137,3 +137,11 @@ Two more existing solo games now use Three.js rendering and Rapier physics. Crys
 - Both distribution builds include the separate, lazy-loaded collection engine, styles, licenses and actual-gameplay thumbnails. Installed web apps cache it after first play; native installations need the new Windows release. Only the release version changes in the installer configuration.
 
 `npm test` covers normal movement completion of all six stages, falling-object physics, bounded object cleanup, collisions, damage protection, chaser navigation, shields, dash recharge, one-time pickups, locked exits, and fresh restarts. Browser QA verifies desktop/narrow screenshots and canvas pixels, movement and pickups, right-drag/release, pause/restart/stage switching, results dialogs, load failure/retry/cancellation, unavailable graphics, offline loading, existing runtime gates, and all four unchanged 3D games. Result-dialog fixtures use an isolated QA bundle and Firebase uses mocks; native Tauri UI and live cloud writes are not part of local browser QA.
+
+### Collection Game Sound
+
+Apple Drop and Coin Dash include original offline Web Audio effects for footsteps, jumping/landing, apple catches, missed fruit, rock warnings, coin pickups, damage, dash/recharge, shields, the exit gate, and stage results. Rock warnings are positioned relative to the camera. These replace the old generic collection-game beeps without changing the other games or music selections, including None.
+
+The speaker button or M toggles effects for these two games; the choice is saved on this device. Effects also follow the existing master volume. Pause/tab switching stops active effects and suspends audio; resume never replays missed sounds. Exit/restart closes the old context. Samples are cached, voices are capped at 12, and blocked or unavailable audio does not interrupt gameplay. The shared bundle includes all sound synthesis, with no new audio downloads.
+
+Audio regression tests cover bounded PCM samples, real-physics event triggers, repeat prevention, volume/mute, voice limits, pause/resume, startup failures, and disposal. Browser QA measures the real Web Audio output with music disabled and checks the mute button and narrow toolbar layout.
