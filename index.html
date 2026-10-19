@@ -9084,6 +9084,7 @@
     <link rel="stylesheet" href="assets/skin-studio.css">
     <link rel="stylesheet" href="assets/arcade-games.css">
     <link rel="stylesheet" href="assets/collection-games.css">
+    <link rel="stylesheet" href="assets/online-bomb.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -9188,7 +9189,7 @@
             <button type="button" data-start-online-game="online-soccer">Online Soccer</button>
             <button type="button" data-start-online-game="online-maze">Online Maze</button>
             <button type="button" data-start-online-game="online-battle">Online Battle</button>
-            <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag</button>
+            <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag 3D</button>
           </div>
           <div class="online-room-panel" id="gamesRoomFinderPanel">
             <h3>Online Room</h3>
@@ -9834,7 +9835,7 @@
           <button type="button" data-online-game="online-soccer">Online Soccer</button>
           <button type="button" data-online-game="online-maze">Online Maze</button>
           <button type="button" data-online-game="online-battle">Online Battle</button>
-          <button type="button" data-online-game="online-bomb-tag">Online Bomb Tag</button>
+          <button type="button" data-online-game="online-bomb-tag">Online Bomb Tag 3D</button>
           <button type="button" id="createRoom">Create Room</button>
           <div class="room-form">
             <input id="roomCodeInput" type="text" maxlength="8" placeholder="Room code" aria-label="Room code">
@@ -10292,9 +10293,9 @@
           help: "Take the power orb, then touch your friend."
         },
         "online-bomb-tag": {
-          title: "Online Bomb Tag",
+          title: "Online Bomb Tag 3D",
           bestKey: "online-bomb-tag-best",
-          help: "Pass the bomb before it explodes. Survive to score."
+          help: "Pass the bomb before it explodes. WASD/arrows move; right-drag rotates the camera."
         }
       };
       const onlineGameNames = {
@@ -10306,7 +10307,7 @@
         "online-soccer": "Online Soccer",
         "online-maze": "Online Maze",
         "online-battle": "Online Battle",
-        "online-bomb-tag": "Online Bomb Tag"
+        "online-bomb-tag": "Online Bomb Tag 3D"
       };
       const startGameMeta = {
         "dead-route-3d": { display: "Dead Route 3D", creator: "MiniGameWorld Studio" },
@@ -10326,7 +10327,7 @@
         "online-soccer": { display: "Online Soccer", creator: "MiniGameWorld Online" },
         "online-maze": { display: "Online Maze", creator: "MiniGameWorld Online" },
         "online-battle": { display: "Online Battle", creator: "MiniGameWorld Online" },
-        "online-bomb-tag": { display: "Online Bomb Tag", creator: "MiniGameWorld Online" }
+        "online-bomb-tag": { display: "Online Bomb Tag 3D", creator: "MiniGameWorld Online" }
       };
 
       let currentGame = "snake";
@@ -10339,6 +10340,8 @@
       let arcadeGameImportAttempt = 0;
       let collectionGameModule = null;
       let collectionGameImportAttempt = 0;
+      let onlineBombModule = null;
+      let onlineBombImportAttempt = 0;
       let arcadeGameLevelIndex = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
@@ -10983,7 +10986,7 @@
       }
 
       function isThreeGame(gameName = currentGame) {
-        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge" || gameName === "catcher" || gameName === "coin-rush";
+        return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge" || gameName === "catcher" || gameName === "coin-rush" || gameName === "online-bomb-tag";
       }
 
       function disposeThreeGame() {
@@ -10994,6 +10997,52 @@
         threeGameHost.hidden = true;
         threeGameHost.replaceChildren();
         delete threeGameHost.dataset.game;
+      }
+
+      async function startOnlineBomb3D() {
+        if (currentGame !== "online-bomb-tag" || !onlineRoomCode || !canPlayGames()) return;
+        const code = onlineRoomCode;
+        disposeThreeGame(); resetGameEffects();
+        const controller = new AbortController();
+        threeGameLoading = controller;
+        const ownsRoom = () => threeGameLoading === controller && onlineRoomCode === code && currentGame === "online-bomb-tag";
+        paused = true; onlineMove = { x: 0, y: 0 };
+        closeStartScreen(); hidePlayOverlay();
+        threeGameHost.hidden = false;
+        const fail = error => {
+          if (!ownsRoom()) return;
+          threeGameSession?.dispose(); threeGameSession = null;
+          paused = true; onlineMove = { x: 0, y: 0 };
+          threeGameHost.innerHTML = `<div class="three-loading" role="alert"><h2>Online Bomb Tag 3D</h2><p>${escapeHtml(error?.message || "Graphics stopped. Please retry.")}</p><button data-three-retry>Retry</button><button data-three-cancel>Leave Room</button></div>`;
+          threeGameHost.querySelector("button").focus();
+        };
+        threeGameHost.innerHTML = '<div class="three-loading" role="status"><h2>Online Bomb Tag 3D</h2><p>Loading arena...</p><button data-three-cancel>Leave Room</button></div>';
+        threeGameHost.querySelector("button").focus();
+        const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
+        try {
+          const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=1&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
+          const module = await Promise.race([loading, canceled]);
+          controller.signal.throwIfAborted();
+          if (!ownsRoom()) return;
+          threeGameSession = module.mountOnlineBomb(threeGameHost, {
+            signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
+            read: () => ({ width: canvas.width, height: canvas.height, code, local: onlinePlayerSlot, spectating: onlineSpectating,
+              players: getOnlinePlayerEntries().map(([slot, player]) => ({ ...player, slot, headColor: getTheme(player.color).head, totalScore: getPlayerTotalScore(player) })),
+              bomb: onlineState?.bomb, chat: onlineState?.chat, canChat: Boolean(currentAccount?.username), chatStatus: chatMessage.textContent }),
+            move: movement => { if (ownsRoom()) onlineMove = !onlineSpectating && !waitingToPlay ? movement : { x: 0, y: 0 }; },
+            onMenu: value => { if (ownsRoom()) paused = value; }, fullscreen: toggleGameFullscreen,
+            leave: async () => { if (ownsRoom()) await returnToMainMenu(); },
+            chat: async text => {
+              if (!ownsRoom()) return false;
+              chatInput.value = text; await sendRoomChat();
+              return ownsRoom() && !chatMessage.textContent && !chatInput.value;
+            },
+            graphicsLost: () => fail(new Error("Graphics were interrupted. Retry to reconnect the 3D view."))
+          });
+          paused = false;
+        } catch (error) { fail(error); }
+        finally { clearTimeout(timeout); }
       }
 
       async function startArcadeGame(mode, levelIndex = 0) {
@@ -15308,6 +15357,7 @@
       }
 
       function showMainMenu() {
+        if (currentGame === "online-bomb-tag" && onlineRoomCode) { void returnToMainMenu(); return; }
         if (threeGameLoading || threeGameSession) {
           disposeThreeGame();
           currentGame = "snake";
@@ -15582,6 +15632,7 @@
 
       function getStartGameGenre(gameName, isOnline) {
         if (isOnline) {
+          if (gameName === "online-bomb-tag") return "3D / 2-5 players";
           return "Online room";
         }
 
@@ -20952,6 +21003,7 @@
         });
         drawOnlineGame();
         timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
+        if (gameName === "online-bomb-tag") void startOnlineBomb3D();
       }
 
       async function spectateOnlineRoom(code) {
@@ -20968,6 +21020,8 @@
         }
 
         const gameName = room.game || "online-snake";
+        if (gameName === "online-bomb-tag" && !requireDesktopGameplay()) return;
+        disposeThreeGame();
         clearInterval(timer);
         clearInterval(waitingTimer);
         unsubscribeFromRoom();
@@ -21017,6 +21071,7 @@
 
         drawOnlineGame();
         timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
+        if (gameName === "online-bomb-tag") void startOnlineBomb3D();
       }
 
       function prepareOnlineState(room, gameName, slot) {
@@ -21240,6 +21295,7 @@
       }
 
       function waitForSecondPlayer(code, gameName, room) {
+        disposeThreeGame();
         clearInterval(timer);
         clearInterval(waitingTimer);
         unsubscribeFromRoom();
@@ -21292,9 +21348,11 @@
             });
           }
         });
+        if (gameName === "online-bomb-tag" && waitingToPlay) void startOnlineBomb3D();
       }
 
       async function leaveOnlineRoom() {
+        if (currentGame === "online-bomb-tag") disposeThreeGame();
         if (!onlineRoomCode) {
           startGame("snake");
           return;
@@ -23020,7 +23078,8 @@
       threeGameHost.addEventListener("click", (event) => {
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
         if (event.target.closest("[data-three-retry]")) {
-          if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) startArcadeGame(currentGame, arcadeGameLevelIndex);
+          if (currentGame === "online-bomb-tag") startOnlineBomb3D();
+          else if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) startArcadeGame(currentGame, arcadeGameLevelIndex);
           else if (currentGame === "dead-route-3d") startZombieGame();
           else startThreeGame(threeGameLevelIndex);
         }
