@@ -9080,6 +9080,44 @@
       .music-playback-controls [data-playing="true"] .music-play-icon { display: none; }
       .music-playback-controls [data-playing="true"] .music-pause-icon { display: block; }
       .music-playback-status { margin: 0; color: #bdcbd1; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+      body[data-runtime] #startGamesMenu.open { grid-template-rows: repeat(4, auto); }
+      body[data-runtime] #startGamesMenu > #gameLibrary { grid-column: 1; grid-row: 3 / span 2; min-width: 0; }
+      #gameLibrary [hidden] { display: none !important; }
+      #gameLibrary .library-heading { display: flex; align-items: center; gap: 12px; min-height: 44px; margin-bottom: 16px; }
+      #gameLibrary h3 { margin: 0; font: 700 20px/1.3 Arial, sans-serif; color: #e9edf5; text-align: left; text-transform: none; overflow-wrap: anywhere; }
+      #gameLibrary h3::before, #gameLibrary h3::after { display: none; }
+      #gameLibrary .library-heading > span { margin-left: auto; color: #b0c0cc; font: 14px Arial, sans-serif; white-space: nowrap; }
+      body[data-runtime] #gameLibrary #gameFolderBack { flex: 0 0 40px; width: 40px; height: 40px; min-height: 40px; padding: 9px; border: 1px solid #476171; border-radius: 6px; background: #172a35; color: #d5e7eb; box-shadow: none; }
+      #gameFolderBack::before, #gameFolderBack::after { display: none; }
+      #gameFolders { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+      body[data-runtime] #gameLibrary .game-folder { display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 14px; min-height: 132px; padding: 22px; border: 1px solid #46675e; border-radius: 8px; background: #142c28; color: #d7eae3; text-align: left; text-transform: none; text-shadow: none; box-shadow: none; transform: none; letter-spacing: 0; }
+      body[data-runtime] #gameLibrary .game-folder[data-game-folder="2d"] { background: #292638; border-color: #625777; color: #e2dbef; }
+      #gameLibrary .game-folder::before, #gameLibrary .game-folder::after { display: none; }
+      #gameLibrary .game-folder svg { width: 46px; height: 46px; color: #91cbb9; }
+      #gameLibrary .game-folder[data-game-folder="2d"] svg { color: #b6a7d5; }
+      #gameLibrary .game-folder strong { display: block; font: 700 22px/1.3 Arial, sans-serif; overflow-wrap: anywhere; }
+      #gameLibrary .game-folder small { display: block; margin-top: 8px; color: #b4c1c8; font: 14px/1.3 Arial, sans-serif; }
+      body[data-runtime] #gameLibrary .game-folder:hover { border-color: #9bc5b9; background: #1d3731; }
+      body[data-runtime] #gameLibrary .game-folder[data-game-folder="2d"]:hover { border-color: #b8a2d3; background: #353044; }
+      body[data-runtime] #gameLibrary .game-folder:active { transform: translateY(1px); }
+      #gameLibrary :is(.game-folder, #gameFolderBack):focus-visible { outline: 2px solid #c3dedd; outline-offset: 3px; }
+      #gameLibrary .library-group-title { margin: 20px 0 12px; font-size: 16px; color: #bacad1; }
+      body[data-runtime] #gameLibrary .game-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(155px, 100%), 1fr)); gap: 14px; margin: 0; }
+      #gameLibraryEmpty { padding: 24px 0; text-align: center; }
+      #gameLibraryEmpty p { margin: 0 0 14px; color: #b4c1c8; font: 15px/1.5 Arial, sans-serif; }
+      @media (max-width: 1120px) {
+        body[data-runtime] #startGamesMenu.open { grid-template-rows: repeat(5, auto); }
+        body[data-runtime] #startGamesMenu > #gameLibrary { grid-row: 3; }
+        body[data-runtime] #startGamesMenu > #gamesRoomFinderPanel { grid-row: 4; }
+        body[data-runtime] #startGamesMenu > .mgw-dashboard-side { grid-row: 5; }
+      }
+      @media (max-width: 500px) {
+        #gameFolders { gap: 10px; }
+        body[data-runtime] #gameLibrary .game-folder { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px; min-height: 160px; }
+        #gameLibrary .game-folder strong { font-size: 18px; }
+        #gameLibrary .game-folder svg { width: 36px; height: 36px; }
+        body[data-runtime] #gameLibrary .game-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      }
     </style>
     <link rel="stylesheet" href="assets/skin-studio.css">
     <link rel="stylesheet" href="assets/arcade-games.css">
@@ -9167,8 +9205,28 @@
               <button type="button" class="showcase-play-button" id="startShowcaseAction">Play</button>
             </div>
           </div>
-          <h3>Games</h3>
-          <div class="game-card-grid">
+          <section id="gameLibrary" aria-labelledby="gameLibraryTitle">
+            <div class="library-heading">
+              <button type="button" id="gameFolderBack" title="All Games" aria-label="All Games" hidden>
+                <!-- Lucide ArrowLeft and Folder icons, ISC license (node_modules/lucide/LICENSE). -->
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+              </button>
+              <h3 id="gameLibraryTitle" tabindex="-1">Games</h3>
+              <span id="gameLibraryCount" aria-live="polite"></span>
+            </div>
+            <div id="gameFolders">
+              <button type="button" class="game-folder" data-game-folder="3d" aria-controls="gameLibraryGames">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+                <span><strong>3D Games</strong><small data-folder-count></small></span>
+              </button>
+              <button type="button" class="game-folder" data-game-folder="2d" aria-controls="gameLibraryGames">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+                <span><strong>2D Games</strong><small data-folder-count></small></span>
+              </button>
+            </div>
+            <div id="gameLibraryGames" hidden>
+          <h3 class="library-group-title" id="gameLibrarySoloTitle">Solo Games</h3>
+          <div class="game-card-grid" id="gameLibrarySolo">
             <button type="button" data-start-game="dead-route-3d">Dead Route 3D</button>
             <button type="button" data-start-game="crystal-isles-3d">Crystal Isles 3D</button>
             <button type="button" class="selected" data-start-game="snake">Neon Snake</button>
@@ -9180,8 +9238,8 @@
             <button type="button" data-start-game="sigma-rpg">Crystal RPG</button>
             <button type="button" data-start-game="star-collector">Star Hunt</button>
           </div>
-          <h3>Online</h3>
-          <div class="game-card-grid">
+          <h3 class="library-group-title" id="gameLibraryOnlineTitle">Online Games</h3>
+          <div class="game-card-grid" id="gameLibraryOnline">
             <button type="button" data-start-online-game="online-snake">Online Snake</button>
             <button type="button" data-start-online-game="online-tanks">Online Tanks</button>
             <button type="button" data-start-online-game="online-pong">Online Pong</button>
@@ -9191,6 +9249,12 @@
             <button type="button" data-start-online-game="online-battle">Online Battle</button>
             <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag 3D</button>
           </div>
+            <div id="gameLibraryEmpty" role="status" hidden>
+              <p id="gameLibraryEmptyMessage">No matching games.</p>
+              <button type="button" id="gameLibraryClearSearch">Clear Search</button>
+            </div>
+            </div>
+          </section>
           <div class="online-room-panel" id="gamesRoomFinderPanel">
             <h3>Online Room</h3>
             <div class="online-room-controls">
@@ -10345,6 +10409,7 @@
       let arcadeGameLevelIndex = 0;
       const threeGameHost = document.getElementById("threeGameHost");
       let selectedStartGame = "snake";
+      let activeGameFolder = "";
       let selectedStartMode = "solo";
       let selectedOnlineGame = "online-snake";
       let snake;
@@ -10665,6 +10730,11 @@
       ];
       const translations = {
         en: {
+          folder3d: "3D Games",
+          folder2d: "2D Games",
+          allGames: "All Games",
+          noMatchingGames: "No matching games.",
+          clearSearch: "Clear Search",
           play: "Play",
           games: "Games",
           profile: "Profile",
@@ -10719,6 +10789,11 @@
           selected: "selected"
         },
         ru: {
+          folder3d: "3D \u0438\u0433\u0440\u044b",
+          folder2d: "2D \u0438\u0433\u0440\u044b",
+          allGames: "\u0412\u0441\u0435 \u0438\u0433\u0440\u044b",
+          noMatchingGames: "\u0418\u0433\u0440\u044b \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b.",
+          clearSearch: "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u044c \u043f\u043e\u0438\u0441\u043a",
           noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u044b\u043a\u0438",
           playMusic: "\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u043c\u0443\u0437\u044b\u043a\u0443",
           pauseMusic: "\u041f\u0430\u0443\u0437\u0430",
@@ -10773,6 +10848,11 @@
           selected: "выбрано"
         },
         uk: {
+          folder3d: "3D \u0456\u0433\u0440\u0438",
+          folder2d: "2D \u0456\u0433\u0440\u0438",
+          allGames: "\u0423\u0441\u0456 \u0456\u0433\u0440\u0438",
+          noMatchingGames: "\u0406\u0433\u043e\u0440 \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.",
+          clearSearch: "\u041e\u0447\u0438\u0441\u0442\u0438\u0442\u0438 \u043f\u043e\u0448\u0443\u043a",
           noMusic: "\u0411\u0435\u0437 \u043c\u0443\u0437\u0438\u043a\u0438",
           playMusic: "\u0423\u0432\u0456\u043c\u043a\u043d\u0443\u0442\u0438 \u043c\u0443\u0437\u0438\u043a\u0443",
           pauseMusic: "\u041f\u0430\u0443\u0437\u0430",
@@ -11655,6 +11735,7 @@
         setOptionText(startMusicSelect, "none", currentText("noMusic"));
         setOptionText(musicSelect, "none", currentText("noMusic"));
         updateMusicPlaybackControls();
+        applyDashboardSearch();
       }
 
       function applyPlayerStyleControls() {
@@ -15472,11 +15553,58 @@
       function applyDashboardSearch() {
         const query = mgwDashboardSearch.value.trim().toLowerCase();
         const gameButtons = startGamesMenu.querySelectorAll("[data-start-game], [data-start-online-game]");
-
+        const totals = { "3d": 0, "2d": 0 }, matches = { "3d": 0, "2d": 0 };
+        let solo = 0, online = 0;
         gameButtons.forEach((button) => {
-          const matches = !query || button.textContent.toLowerCase().includes(query);
-          button.hidden = !matches;
+          const folder = isThreeGame(button.dataset.startGame || button.dataset.startOnlineGame) ? "3d" : "2d";
+          const matchesQuery = !query || button.textContent.toLowerCase().includes(query);
+          totals[folder]++;
+          if (matchesQuery) matches[folder]++;
+          button.hidden = !matchesQuery || Boolean(activeGameFolder && folder !== activeGameFolder);
+          if (!button.hidden) {
+            if (button.dataset.startOnlineGame) online++;
+            else solo++;
+          }
         });
+        document.querySelectorAll("[data-game-folder]").forEach(button => {
+          const folder = button.dataset.gameFolder;
+          button.querySelector("strong").textContent = currentText(`folder${folder}`);
+          button.querySelector("[data-folder-count]").textContent = `${query ? `${matches[folder]} / ` : ""}${totals[folder]} ${currentText("games").toLowerCase()}`;
+        });
+        const back = document.getElementById("gameFolderBack");
+        back.hidden = !activeGameFolder;
+        back.title = currentText("allGames");
+        back.setAttribute("aria-label", back.title);
+        document.getElementById("gameLibraryTitle").textContent = currentText(activeGameFolder ? `folder${activeGameFolder}` : "games");
+        document.getElementById("gameLibraryCount").textContent = `${solo + online} ${currentText("games").toLowerCase()}`;
+        document.getElementById("gameFolders").hidden = Boolean(activeGameFolder);
+        document.getElementById("gameLibraryGames").hidden = !activeGameFolder && !query;
+        document.getElementById("gameLibrarySolo").hidden = solo === 0;
+        document.getElementById("gameLibraryOnline").hidden = online === 0;
+        const soloTitle = document.getElementById("gameLibrarySoloTitle"), onlineTitle = document.getElementById("gameLibraryOnlineTitle");
+        soloTitle.hidden = solo === 0; soloTitle.textContent = currentText("singlePlayer");
+        onlineTitle.hidden = online === 0; onlineTitle.textContent = currentText("online");
+        document.getElementById("gameLibraryEmpty").hidden = solo + online > 0;
+        document.getElementById("gameLibraryEmptyMessage").textContent = currentText("noMatchingGames");
+        document.getElementById("gameLibraryClearSearch").textContent = currentText("clearSearch");
+      }
+
+      function setGameFolder(folder) {
+        if (!["", "3d", "2d"].includes(folder)) return;
+        const previous = activeGameFolder;
+        activeGameFolder = folder;
+        applyDashboardSearch();
+        if (folder) {
+          const selected = selectedStartMode === "online" ? selectedOnlineGame : selectedStartGame;
+          const currentButton = [...startSoloGameButtons, ...startOnlineGameButtons].find(button => (button.dataset.startGame || button.dataset.startOnlineGame) === selected);
+          const next = currentButton && !currentButton.hidden ? currentButton : document.querySelector("#gameLibrary [data-start-game]:not([hidden]), #gameLibrary [data-start-online-game]:not([hidden])");
+          if (next?.dataset.startGame) selectSoloGameFromStart(next.dataset.startGame);
+          else if (next?.dataset.startOnlineGame) selectOnlineGameFromStart(next.dataset.startOnlineGame, false);
+          document.getElementById("gameLibraryTitle").focus({ preventScroll: true });
+        } else {
+          document.querySelector(`[data-game-folder="${previous || "3d"}"]`).focus({ preventScroll: true });
+        }
+        document.getElementById("gameLibrary").scrollIntoView({ block: "start", behavior: "instant" });
       }
 
       function showLoadedStartMenu() {
@@ -22883,10 +23011,22 @@
         }
       });
       decorateStartGameCards();
+      applyDashboardSearch();
+      document.querySelectorAll("[data-game-folder]").forEach(button => {
+        button.addEventListener("click", () => setGameFolder(button.dataset.gameFolder));
+      });
+      document.getElementById("gameFolderBack").addEventListener("click", () => setGameFolder(""));
+      document.getElementById("gameLibraryClearSearch").addEventListener("click", () => {
+        mgwDashboardSearch.value = "";
+        applyDashboardSearch();
+        mgwDashboardSearch.focus();
+      });
       updateStartGameShowcase();
       startPlayButton.addEventListener("click", playFromStartMenu);
       startGamesButton.addEventListener("click", () => {
+        activeGameFolder = "";
         showStartSection("games");
+        document.getElementById("gameLibrary").scrollIntoView({ block: "start", behavior: "instant" });
       });
       startShowcaseAction.addEventListener("click", playFromStartMenu);
       startProfileButton.addEventListener("click", () => {

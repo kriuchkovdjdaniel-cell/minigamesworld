@@ -146,6 +146,10 @@ The speaker button or M toggles effects for these two games; the choice is saved
 
 Audio regression tests cover bounded PCM samples, real-physics event triggers, repeat prevention, volume/mute, voice limits, pause/resume, startup failures, and disposal. Browser QA measures the real Web Audio output with music disabled and checks the mute button and narrow toolbar layout.
 
+## Game Folders
+
+The shared Games menu now has **3D Games** and **2D Games** folders. Each folder keeps separate Solo Games and Online Games lists, using the existing game buttons and room actions. Folder counts come from the actual catalog and 3D runtime classification. All Games returns to the folders; searching there covers both folders, while searching inside a folder stays within it. The empty state includes Clear Search. This is menu organization only, with no game-engine or Firebase changes.
+
 ## Online Bomb Tag 3D
 
 Online Bomb Tag is now a full-window Three.js arena with cube players, a visible bomb/fuse, carrier marker, round effects, nameplates, scores and room chat. Surrounding buildings, spectator stands and lighting complete the scene. All other online games and existing solo 3D games keep their implementations.
