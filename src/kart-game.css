@@ -1,0 +1,25 @@
+#threeGameHost[data-kart] { background: #10241f; }
+.kart-hud { position: absolute; inset: 16px 16px auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 16px; background: #10251eee; border: 1px solid #74988a; border-radius: 8px; color: #eff5e9; pointer-events: none; }
+.kart-hud > div:first-child { display: grid; gap: 2px; }
+.kart-hud strong { font: 700 22px Arial, sans-serif; }
+.kart-hud small, .kart-hud span { font: 13px Arial, sans-serif; }
+.kart-hud nav { display: flex; gap: 8px; pointer-events: auto; }
+#threeGameHost .kart-hud button { width: 42px; height: 42px; padding: 8px; border-radius: 6px; display: grid; place-items: center; }
+.kart-stats { display: flex; gap: 24px; }
+.kart-stats span { display: grid; gap: 4px; }
+.kart-stats output { font: 700 20px Arial, sans-serif; }
+.kart-countdown { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); color: #fff5c7; text-shadow: 0 3px 0 #27413b; font: 900 80px Arial, sans-serif; pointer-events: none; }
+.kart-speed { position: absolute; bottom: 20px; right: 20px; background: #10251eee; border: 1px solid #74988a; padding: 12px 18px; border-radius: 8px; color: #eff5e9; display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 6px; }
+.kart-speed strong { font: 700 34px Arial, sans-serif; }
+.kart-speed label { grid-column: 1 / -1; display: grid; gap: 4px; font: 13px Arial, sans-serif; }
+.kart-speed meter { width: 150px; accent-color: #79c8c1; }
+.kart-garage { display: grid; gap: 10px; }
+.kart-garage label { display: grid; gap: 5px; }
+.kart-garage input[type="color"] { width: 100%; height: 38px; cursor: pointer; }
+.avatar-emotes { border: 1px solid #5b8075; border-radius: 6px; padding: 10px; margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.avatar-emotes legend { padding: 0 6px; font-size: 15px; }
+#threeGameHost .avatar-emotes button { flex: 1 1 70px; width: auto; min-width: 0; padding: 8px; font-size: 14px; }
+.avatar-emotes label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
+.avatar-emotes select { flex: 1; min-width: 90px; }
+@media (max-width: 640px) { .kart-hud { inset: 8px 8px auto; gap: 8px; flex-wrap: wrap; padding: 10px; } .kart-hud strong { font-size: 18px; } .kart-stats { order: 3; width: 100%; justify-content: space-between; gap: 10px; } .kart-speed { bottom: 10px; right: 10px; } }
+@media (max-height: 480px) { .kart-hud { padding: 6px 10px; } .kart-hud small { display: none; } .kart-speed { padding: 8px 12px; } .kart-speed strong { font-size: 24px; } }

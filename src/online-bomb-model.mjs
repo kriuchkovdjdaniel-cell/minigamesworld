@@ -1,3 +1,5 @@
+import { getBombMap } from "./bomb-maps.mjs";
+import { validEmote } from "./avatar-emotes.mjs";
 export const BOMB_SLOTS = ["p1", "p2", "p3", "p4", "p5"];
 const colors = ["#68c6b5", "#e0ba70", "#b49bd2", "#dc8596", "#83b7db"];
 const clamp = (n, low, high) => Math.max(low, Math.min(high, Number.isFinite(n) ? n : low));
@@ -13,6 +15,8 @@ export function bombFrame(input = {}) {
       x: (clamp(p.x, 8, width - size - 8) + size / 2 - width / 2) / 20,
       z: (clamp(p.y, 8, height - size - 8) + size / 2 - height / 2) / 20, size: size / 20,
       color: hex(p.headColor, colors[i]), score: clamp(p.totalScore, 0, 1e9), respawn: String(p.respawn?.id || ""),
+      emote: validEmote(p.emote?.id) ? { id: p.emote.id, at: clamp(p.emote.at, 0, Number.MAX_SAFE_INTEGER) } : null,
+      vote: p.mapVote?.round === input.bomb?.round && getBombMap(p.mapVote?.map) ? p.mapVote.map : "",
       skin: p.skin === "custom64" && /^[0-7]{4096}$/.test(p.pixelSkin64 || "") ? p.pixelSkin64 : "",
       palette: Array.from({ length: 8 }, (_, n) => hex(p.customPalette?.[n], colors[n % 5])),
       accessory: p.accessory === "custom" && /^[.0-7]{256}$/.test(p.customAccessory16 || "") ? p.customAccessory16 : "" }];
@@ -20,6 +24,7 @@ export function bombFrame(input = {}) {
   return { width: width / 20, depth: height / 20, code: String(input.code || "").slice(0, 16), local: input.local || "", spectating: Boolean(input.spectating),
     waiting: players.length < 2, players, holder: players.some(p => p.slot === input.bomb?.holder) ? input.bomb.holder : "",
     ticks: clamp(input.bomb?.ticks, 0, 360), round: clamp(input.bomb?.round, 0, Number.MAX_SAFE_INTEGER),
+    map: getBombMap(input.bomb?.map)?.id || "", voting: input.bomb?.phase === "voting", voteTicks: clamp(input.bomb?.voteTicks, 0, 200),
     chat: Array.isArray(input.chat) ? input.chat.slice(-30).map(m => ({ name: String(m?.username || "Player").slice(0, 24), text: String(m?.text || "").slice(0, 80) })) : [],
     canChat: Boolean(input.canChat), chatStatus: String(input.chatStatus || "").slice(0, 160) };
 }

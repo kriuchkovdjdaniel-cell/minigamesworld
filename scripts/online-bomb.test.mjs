@@ -77,9 +77,9 @@ test("restarts and a new occupant's score never produce a false explosion", () =
   assert.deepEqual(observe(frame({ players: [player("p1", { memberId: "replacement", totalScore: 15 }), player("p2")], bomb: { holder: "p1", ticks: 360, round: 3 } })), []);
 });
 
-test("only Bomb Tag joins the existing 3D games; all other online games remain 2D", () => {
+test("Bomb Tag and Dead Route Co-op are 3D; the other online games remain 2D", () => {
   const ctx = load(["isThreeGame"]);
-  for (const game of ["online-bomb-tag", "catcher", "coin-rush", "dodger", "laser-dodge", "crystal-isles-3d", "dead-route-3d"]) assert.equal(ctx.isThreeGame(game), true);
+  for (const game of ["online-bomb-tag", "online-dead-route", "coastline-karts", "catcher", "coin-rush", "dodger", "laser-dodge", "crystal-isles-3d", "dead-route-3d"]) assert.equal(ctx.isThreeGame(game), true);
   for (const game of ["online-snake", "online-catcher", "online-tanks", "online-pong", "online-tag", "online-soccer", "online-maze", "online-battle"]) assert.equal(ctx.isThreeGame(game), false);
 });
 

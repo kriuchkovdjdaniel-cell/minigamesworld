@@ -1,4 +1,4 @@
-const CACHE_NAME = "minigameworld-v21";
+const CACHE_NAME = "minigameworld-v22";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -9,7 +9,10 @@ const APP_SHELL = [
   "./assets/arcade-games.css",
   "./assets/collection-games.css",
   "./assets/online-bomb.css",
+  "./assets/kart-game.css",
+  "./assets/coop-route.css",
   "./assets/online-bomb-3d.png",
+  "./assets/coastline-karts-3d.png",
   "./assets/apple-drop-3d.png",
   "./assets/coin-dash-3d.png",
   "./assets/gem-dash-3d.png",
@@ -18,7 +21,7 @@ const APP_SHELL = [
   "./assets/dead-route-3d.png"
 ];
 // Cache the self-contained 3D engine after first play, not during app installation.
-const LAZY_ASSETS = ["./assets/three-games.js", "./assets/zombie-game.js", "./assets/online-bomb.js"];
+const LAZY_ASSETS = ["./assets/three-games.js", "./assets/zombie-game.js", "./assets/online-bomb.js", "./assets/kart-game.js", "./assets/coop-route.js"];
 const STUDIO_ASSETS = ["./assets/skin-studio.js"];
 const ARCADE_ASSETS = ["./assets/arcade-games.js"];
 const COLLECTION_ASSETS = ["./assets/collection-games.js"];

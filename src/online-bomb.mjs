@@ -4,6 +4,9 @@ import { createElement, Bomb, Camera, Maximize, Menu, Play, LogOut, MessageCircl
 import { bombFrame, cameraMovement, smoothPlayer, createBombEvents } from "./online-bomb-model.mjs";
 import { makeBombScene, makeBombAvatar } from "./online-bomb-scene.mjs";
 import { createCollectionAudio } from "./collection-audio.mjs";
+import { BOMB_MAPS } from "./bomb-maps.mjs";
+import { emotePose, mountEmotePicker } from "./avatar-emotes.mjs";
+export { bombMapObstacles, chooseBombMap } from "./bomb-maps.mjs";
 import "./online-bomb.css";
 
 export function mountOnlineBomb(host, options) {
@@ -35,7 +38,8 @@ export function mountOnlineBomb(host, options) {
   const sun = new THREE.DirectionalLight("#fff0d3", 2.5); sun.position.set(-18, 35, 18); sun.castShadow = quality > 0;
   sun.shadow.mapSize.setScalar(quality > 1 ? 2048 : 1024); sun.shadow.bias = -0.001;
   Object.assign(sun.shadow.camera, { left: -35, right: 35, top: 35, bottom: -35, near: 1, far: 95 }); scene.add(sun);
-  const scenery = makeBombScene(scene, state.width, state.depth), camera = new THREE.PerspectiveCamera(50, 1, 0.1, 250);
+  let scenery = makeBombScene(scene, state.width, state.depth, state.map), renderedMap = state.map;
+  const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 250);
   const controls = new OrbitControls(camera, renderer.domElement); controls.enablePan = controls.enableDamping = false;
   controls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: THREE.MOUSE.ROTATE }; controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.15; controls.minDistance = 16;
   let framing = 45; controls.maxDistance = 75;
@@ -45,6 +49,14 @@ export function mountOnlineBomb(host, options) {
   try { audio.setMuted(localStorage.getItem("online-bomb-muted") === "true"); } catch {}
   const menu = host.querySelector("dialog"), chat = host.querySelector(".bomb-chat"), form = host.querySelector("form"), input = form.querySelector("input"), status = host.querySelector(".bomb-status");
   const on = (target, type, callback, extra = {}) => target.addEventListener(type, callback, { ...extra, signal: abort.signal });
+  const emotes = mountEmotePicker(menu, { signal: abort.signal, play: id => { options.emote?.(id); setMenu(false); } });
+  const ballot = document.createElement("section"); ballot.className = "bomb-ballot"; ballot.hidden = true; ballot.setAttribute("aria-label", "Next map vote");
+  const voteHeading = document.createElement("strong"); voteHeading.textContent = "Next map"; ballot.append(voteHeading);
+  for (const map of BOMB_MAPS) {
+    const button = document.createElement("button"); button.dataset.vote = map.id; button.textContent = map.name;
+    on(button, "click", () => options.vote?.(map.id, state.round)); ballot.append(button);
+  }
+  host.append(ballot);
   function soundButton() {
     const button = host.querySelector('[data-action="sound"]'), muted = audio.snapshot().muted;
     button.replaceChildren(icon(muted ? VolumeX : Volume2)); button.title = `${muted ? "Unmute" : "Mute"} effects (M)`; button.setAttribute("aria-label", button.title); button.setAttribute("aria-pressed", String(muted));
@@ -65,9 +77,18 @@ export function mountOnlineBomb(host, options) {
   function updateHUD() {
     const holder = state.players.find(p => p.slot === state.holder);
     host.querySelector("[data-room]").textContent = `${state.code} / ${state.players.length} of 5 players${state.spectating ? " / Spectating" : ""}`;
-    host.querySelector("[data-clock]").textContent = state.waiting ? "--" : `${Math.ceil(state.ticks * 0.035)}s`;
+    host.querySelector("[data-clock]").textContent = state.waiting ? "--" : `${Math.ceil((state.voting ? state.voteTicks : state.ticks) * 35 / 1000)}s`;
     host.querySelector("[data-holder]").textContent = state.waiting ? "Waiting" : "Fuse remaining";
     status.textContent = state.waiting ? "Waiting for another player" : state.holder === state.local ? "You have the bomb" : `${holder?.name || "Player"} has the bomb`;
+    if (state.voting) { status.textContent = "Round complete / Vote for the next map"; host.querySelector("[data-holder]").textContent = "Voting"; }
+    ballot.hidden = !state.voting;
+    for (const button of ballot.querySelectorAll("button")) {
+      const map = BOMB_MAPS.find(m => m.id === button.dataset.vote);
+      button.textContent = `${map.name} (${state.players.filter(p => p.vote === map.id).length})`;
+      button.disabled = state.spectating;
+      button.setAttribute("aria-pressed", String(state.players.find(p => p.slot === state.local)?.vote === map.id));
+    }
+    if (!state.voting && state.map) status.textContent += ` / ${BOMB_MAPS.find(m => m.id === state.map).name}`;
     const key = JSON.stringify(state.players.map(p => [p.slot, p.id, p.name, p.score, p.color, p.slot === state.holder]));
     if (key !== rosterKey) {
       rosterKey = key; const list = host.querySelector(".bomb-roster"); list.replaceChildren();
@@ -89,10 +110,12 @@ export function mountOnlineBomb(host, options) {
   }
   function refreshState(now) {
     if (now - readTime < 33) return; readTime = now; state = bombFrame(options.read()); updateHUD();
+    if (renderedMap !== state.map) { scenery.dispose(); scenery = makeBombScene(scene, state.width, state.depth, state.map); renderedMap = state.map; burstTime = 0; }
     for (const event of observe(state)) {
       if (event.type === "burst") {
         burstTime = 0.65; scenery.burst.position.set(event.player.x, 0.7, event.player.z);
         if (!menuOpen && !document.hidden) audio.play(event.won ? "gate" : "hurt");
+        if (event.won) options.emote?.(emotes.victory);
       } else if (!menuOpen && !document.hidden) audio.play(event.type === "pass" ? "shield" : "warning", { gain: 0.35 });
     }
     const slots = new Set(state.players.map(p => p.slot));
@@ -109,16 +132,20 @@ export function mountOnlineBomb(host, options) {
   }
   function render(dt, now) {
     refreshState(now);
-    const moving = !leavePending && !menuOpen && !document.hidden && !state.waiting && !state.spectating && document.activeElement !== input;
+    const moving = !leavePending && !menuOpen && !document.hidden && !state.waiting && !state.voting && !state.spectating && document.activeElement !== input;
     const movement = moving ? cameraMovement(Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft")), Number(keys.has("KeyS") || keys.has("ArrowDown")) - Number(keys.has("KeyW") || keys.has("ArrowUp")), controls.getAzimuthalAngle()) : { x: 0, y: 0 };
     options.move(movement);
     for (const avatar of avatars.values()) {
       const old = avatar.position, p = smoothPlayer(old, avatar.target, dt); avatar.position = p;
       if (old && Math.hypot(p.x - old.x, p.z - old.z) > 0.002) avatar.group.rotation.y = Math.atan2(old.x - p.x, old.z - p.z);
-      avatar.group.position.set(p.x, 0.05, p.z); avatar.label.position.set(p.x, p.size + 2.3, p.z);
+      const pose = emotePose(p.emote?.id, (Date.now() - (p.emote?.at || 0)) / 1000);
+      avatar.group.position.set(p.x, 0.05 + pose.y, p.z); avatar.group.rotation.x = pose.tilt;
+      avatar.group.scale.set(p.size, p.size * pose.squash, p.size);
+      if (p.emote && Date.now() - p.emote.at < 2400) avatar.group.rotation.y = pose.yaw;
+      avatar.label.position.set(p.x, p.size + 2.3, p.z);
     }
     const carrier = avatars.get(state.holder);
-    scenery.bomb.visible = scenery.ring.visible = Boolean(carrier && !state.waiting);
+    scenery.bomb.visible = scenery.ring.visible = Boolean(carrier && !state.waiting && !state.voting);
     if (carrier) {
       scenery.bomb.position.set(carrier.group.position.x, carrier.target.size + 0.7, carrier.group.position.z);
       scenery.ring.position.set(carrier.group.position.x, 0.09, carrier.group.position.z);
@@ -183,6 +210,6 @@ export function mountOnlineBomb(host, options) {
     camera.far = Math.max(250, distance + 120); scene.fog.near = Math.max(70, distance + 10); scene.fog.far = Math.max(180, distance + 100); camera.updateProjectionMatrix();
   };
   const observer = new ResizeObserver(resize); observer.observe(host); resize(); soundButton(); void audio.unlock(); renderer.domElement.focus(); frameId = requestAnimationFrame(frame);
-  return { pause: () => setMenu(true), snapshot: () => ({ code: state.code, players: [...avatars].map(([slot, avatar]) => ({ slot, ...avatar.position })), holder: state.holder, ticks: state.ticks, waiting: state.waiting, menuOpen, camera: controls.getAzimuthalAngle(), drawCalls: renderer.info.render.calls, audio: audio.snapshot() }),
+  return { pause: () => setMenu(true), snapshot: () => ({ code: state.code, map: renderedMap, voting: state.voting, players: [...avatars].map(([slot, avatar]) => ({ slot, ...avatar.position })), holder: state.holder, ticks: state.ticks, waiting: state.waiting, menuOpen, camera: controls.getAzimuthalAngle(), drawCalls: renderer.info.render.calls, audio: audio.snapshot() }),
     dispose() { if (disposed) return; disposed = true; abort.abort(); cancelAnimationFrame(frameId); observer.disconnect(); clearInput(); menu.close(); controls.dispose(); audio.dispose(); for (const avatar of avatars.values()) avatar.dispose(); avatars.clear(); scenery.dispose(); renderer.dispose(); renderer.forceContextLoss(); delete host.dataset.onlineBomb; delete host.dataset.chatOpen; host.replaceChildren(); } };
 }

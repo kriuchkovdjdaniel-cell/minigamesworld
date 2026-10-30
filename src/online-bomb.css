@@ -39,3 +39,8 @@
 @media (max-height: 500px) { #threeGameHost .bomb-chat-log { height: 90px; } #threeGameHost .bomb-roster { width: 170px; } }
 body[data-runtime] :is(.game-thumb, .showcase-thumb)[data-game="online-bomb-tag"] { background: #83aaa2 url("../assets/online-bomb-3d.png") center / cover no-repeat !important; }
 [data-game="online-bomb-tag"] :is(.game-icon-large, .showcase-icon) { visibility: hidden; }
+#threeGameHost .bomb-ballot { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: min(540px, calc(100% - 24px)); display: flex; flex-wrap: wrap; gap: 8px; background: #17372fee; padding: 12px; border: 1px solid #85b49f; border-radius: 8px; box-sizing: border-box; }
+#threeGameHost .bomb-ballot[hidden] { display: none; }
+.bomb-ballot strong { flex-basis: 100%; color: #ecf5e9; font-size: 16px; }
+#threeGameHost .bomb-ballot button { flex: 1 1 100px; min-width: 0; width: auto; padding: 10px 6px; font-size: 14px; }
+#threeGameHost .bomb-ballot button[aria-pressed="true"] { outline: 2px solid #dace9b; outline-offset: 2px; }

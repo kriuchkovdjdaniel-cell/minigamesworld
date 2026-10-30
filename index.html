@@ -9052,6 +9052,10 @@
       #threeGameHost.zombie-hurt { box-shadow: inset 0 0 0 5px #ae655f; }
       .game-thumb[data-game="dead-route-3d"], .showcase-thumb[data-game="dead-route-3d"] { background: #638778 url("assets/dead-route-3d.png") center / cover no-repeat !important; }
       [data-game="dead-route-3d"] .game-icon-large, [data-game="dead-route-3d"] .showcase-icon { visibility: hidden; }
+      .game-thumb[data-game="online-dead-route"], .showcase-thumb[data-game="online-dead-route"] { background: #638778 url("assets/dead-route-3d.png") center / cover no-repeat !important; }
+      .game-thumb[data-game="coastline-karts"], .showcase-thumb[data-game="coastline-karts"] { background: #638778 url("assets/coastline-karts-3d.png") center / cover no-repeat !important; }
+      [data-game="online-dead-route"] .game-icon-large, [data-game="online-dead-route"] .showcase-icon,
+      [data-game="coastline-karts"] .game-icon-large, [data-game="coastline-karts"] .showcase-icon { visibility: hidden; }
       @media (max-width: 760px) {
         #threeGameHost .zombie-header { padding: 12px; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
         #threeGameHost .zombie-brand strong { font-size: 18px; }
@@ -9123,6 +9127,8 @@
     <link rel="stylesheet" href="assets/arcade-games.css">
     <link rel="stylesheet" href="assets/collection-games.css">
     <link rel="stylesheet" href="assets/online-bomb.css">
+    <link rel="stylesheet" href="assets/kart-game.css">
+    <link rel="stylesheet" href="assets/coop-route.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -9227,6 +9233,7 @@
             <div id="gameLibraryGames" hidden>
           <h3 class="library-group-title" id="gameLibrarySoloTitle">Solo Games</h3>
           <div class="game-card-grid" id="gameLibrarySolo">
+            <button type="button" data-start-game="coastline-karts">Coastline Karts 3D</button>
             <button type="button" data-start-game="dead-route-3d">Dead Route 3D</button>
             <button type="button" data-start-game="crystal-isles-3d">Crystal Isles 3D</button>
             <button type="button" class="selected" data-start-game="snake">Neon Snake</button>
@@ -9248,6 +9255,7 @@
             <button type="button" data-start-online-game="online-maze">Online Maze</button>
             <button type="button" data-start-online-game="online-battle">Online Battle</button>
             <button type="button" data-start-online-game="online-bomb-tag">Online Bomb Tag 3D</button>
+            <button type="button" data-start-online-game="online-dead-route">Dead Route Co-op 3D</button>
           </div>
             <div id="gameLibraryEmpty" role="status" hidden>
               <p id="gameLibraryEmptyMessage">No matching games.</p>
@@ -9900,6 +9908,7 @@
           <button type="button" data-online-game="online-maze">Online Maze</button>
           <button type="button" data-online-game="online-battle">Online Battle</button>
           <button type="button" data-online-game="online-bomb-tag">Online Bomb Tag 3D</button>
+          <button type="button" data-online-game="online-dead-route">Dead Route Co-op 3D</button>
           <button type="button" id="createRoom">Create Room</button>
           <div class="room-form">
             <input id="roomCodeInput" type="text" maxlength="8" placeholder="Room code" aria-label="Room code">
@@ -10266,6 +10275,8 @@
         { x: 6, y: 10 }
       ];
       const games = {
+        "online-dead-route": { title: "Dead Route Co-op 3D", bestKey: "online-dead-route-best", help: "2-5 survivors. One bus. Reach Safe Haven together." },
+        "coastline-karts": { title: "Coastline Karts 3D", bestKey: "coastline-karts-best", help: "Three circuits. Three laps. Drift into the lead." },
         "dead-route-3d": {
           title: "Dead Route 3D",
           bestKey: "dead-route-3d-best",
@@ -10363,6 +10374,7 @@
         }
       };
       const onlineGameNames = {
+        "online-dead-route": "Dead Route Co-op 3D",
         "online-snake": "Online Snake",
         "online-catcher": "Online Apple Drop",
         "online-tanks": "Online Tanks",
@@ -10374,6 +10386,8 @@
         "online-bomb-tag": "Online Bomb Tag 3D"
       };
       const startGameMeta = {
+        "online-dead-route": { display: "Dead Route Co-op 3D", creator: "MiniGameWorld Online" },
+        "coastline-karts": { display: "Coastline Karts 3D", creator: "MiniGameWorld Racing" },
         "dead-route-3d": { display: "Dead Route 3D", creator: "MiniGameWorld Studio" },
         "crystal-isles-3d": { display: "Crystal Isles 3D", creator: "MiniGameWorld Studio" },
         snake: { display: "Neon Snake", creator: "MiniGameWorld Studio" },
@@ -10397,6 +10411,13 @@
       let currentGame = "snake";
       let threeGameSession = null;
       let threeGameLoading = null;
+      let onlineCoopModule = null;
+      let onlineCoopRuntime = null;
+      let onlineCoopImportAttempt = 0;
+      let kartGameModule = null;
+      let kartGameImportAttempt = 0;
+      let platformGameModule = null;
+      let platformGameImportAttempt = 0;
       let threeGameLevelIndex = 0;
       let zombieGameModule = null;
       let zombieGameImportAttempt = 0;
@@ -11025,7 +11046,7 @@
           return;
         }
 
-        if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(gameName)) { startArcadeGame(gameName); return; }
+        if (["dodger", "laser-dodge", "catcher", "coin-rush", "coastline-karts"].includes(gameName)) { startArcadeGame(gameName); return; }
         if (gameName === "dead-route-3d") { startZombieGame(); return; }
         if (gameName === "crystal-isles-3d") {
           startThreeGame();
@@ -11062,10 +11083,12 @@
       }
 
       function isSinglePlayerGame(gameName) {
+        if (gameName === "coastline-karts") return true;
         return ["snake", "catcher", "dodger", "solo-pong", "coin-rush", "laser-dodge", "sigma-rpg", "star-collector", "crystal-isles-3d", "dead-route-3d"].includes(gameName);
       }
 
       function isThreeGame(gameName = currentGame) {
+        if (gameName === "coastline-karts" || gameName === "online-dead-route") return true;
         return gameName === "crystal-isles-3d" || gameName === "dead-route-3d" || gameName === "dodger" || gameName === "laser-dodge" || gameName === "catcher" || gameName === "coin-rush" || gameName === "online-bomb-tag";
       }
 
@@ -11101,7 +11124,7 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=1&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
+          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=maps-2&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           controller.signal.throwIfAborted();
           if (!ownsRoom()) return;
@@ -11118,15 +11141,78 @@
               chatInput.value = text; await sendRoomChat();
               return ownsRoom() && !chatMessage.textContent && !chatInput.value;
             },
-            graphicsLost: () => fail(new Error("Graphics were interrupted. Retry to reconnect the 3D view."))
+            graphicsLost: () => fail(new Error("Graphics were interrupted. Retry to reconnect the 3D view.")),
+            vote: (map, round) => {
+              const player = onlineState?.playersState?.[onlinePlayerSlot];
+              if (ownsRoom() && player && onlineState.bomb?.phase === "voting" && onlineState.bomb.round === round && ["rooftops", "factory", "park"].includes(map)) { player.mapVote = { map, round }; onlineLocalDirty = true; }
+            },
+            emote: id => {
+              const player = onlineState?.playersState?.[onlinePlayerSlot];
+              if (ownsRoom() && player && ["bounce", "spin", "bow"].includes(id)) { player.emote = { id, at: Date.now() }; onlineLocalDirty = true; }
+            }
           });
           paused = false;
         } catch (error) { fail(error); }
         finally { clearTimeout(timeout); }
       }
 
-      async function startArcadeGame(mode, levelIndex = 0) {
-        if (!["dodger", "laser-dodge", "catcher", "coin-rush"].includes(mode) || !requireDesktopGameplay()) return;
+      function disposeOnlineCoop() {
+        const runtime = onlineCoopRuntime; onlineCoopRuntime = null;
+        runtime?.world?.dispose();
+      }
+
+      async function startOnlineCoop3D() {
+        if (currentGame !== "online-dead-route" || !onlineRoomCode || !canPlayGames()) return;
+        const code = onlineRoomCode;
+        disposeThreeGame(); resetGameEffects();
+        const controller = new AbortController(); threeGameLoading = controller;
+        const ownsRoom = () => threeGameLoading === controller && onlineRoomCode === code && currentGame === "online-dead-route";
+        paused = true; closeStartScreen(); hidePlayOverlay(); threeGameHost.hidden = false;
+        threeGameHost.innerHTML = '<div class="three-loading" role="status"><h2>Dead Route Co-op 3D</h2><p>Loading the road...</p><button data-three-cancel>Leave Room</button></div>';
+        const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Please retry.")), 20000);
+        try {
+          const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
+          const loading = onlineCoopModule ? Promise.resolve(onlineCoopModule) : import(`./assets/coop-route.js?v=1&attempt=${++onlineCoopImportAttempt}`).then(module => { onlineCoopModule = module; return module; });
+          const module = await Promise.race([loading, canceled]); controller.signal.throwIfAborted();
+          if (!ownsRoom()) return;
+          if (onlinePlayerSlot === "p1") {
+            if (!onlineCoopRuntime || onlineCoopRuntime.code !== code) {
+              disposeOnlineCoop();
+              const runtime = { code, world: null, accumulator: 0, loading: null }; onlineCoopRuntime = runtime;
+              runtime.loading = module.createCoopRouteWorld().then(world => {
+                if (onlineCoopRuntime !== runtime || onlineRoomCode !== code) { world.dispose(); return null; }
+                runtime.world = world; return world;
+              });
+            }
+            const world = await Promise.race([onlineCoopRuntime.loading, canceled]);
+            if (!world || !ownsRoom()) return;
+            world.reconcile(getOnlinePlayerEntries().map(([slot, player]) => ({ ...player, slot, headColor: getTheme(player.color).head })));
+            onlineState.route = world.snapshot(); onlineSharedDirty = true; syncOnlineState();
+          }
+          const mounted = module.mountCoopRoute(threeGameHost, {
+            code, slot: onlinePlayerSlot, signal: controller.signal, quality: getGraphicsQualityRank(), color: getTheme(playerStyle.color).head, getVolume: getGameVolume,
+            read: () => onlineState?.route,
+            write: input => { const player = onlineState?.playersState?.[onlinePlayerSlot]; if (ownsRoom() && player) { player.routeInput = input; onlineLocalDirty = true; } },
+            onPause: value => { if (ownsRoom()) paused = value; }, onFullscreen: toggleGameFullscreen,
+            onExit: () => { if (ownsRoom()) void returnToMainMenu(); },
+            onRestart: () => { if (ownsRoom() && onlinePlayerSlot === "p1") { disposeOnlineCoop(); void startOnlineCoop3D(); } },
+            onFinish: result => {
+              if (!ownsRoom()) return;
+              score = result.score;
+              try { if (score > getLocalBestScore("online-dead-route")) setLocalBestScore("online-dead-route", score); } catch {}
+            }
+          });
+          const session = await Promise.race([mounted, canceled]);
+          if (!ownsRoom() || controller.signal.aborted) { session.dispose(); return; }
+          threeGameSession = session; paused = false;
+        } catch (error) {
+          if (ownsRoom() && onlineCoopRuntime?.code === code && !onlineCoopRuntime.world) disposeOnlineCoop();
+          if (ownsRoom()) threeGameHost.innerHTML = `<div class="three-loading" role="alert"><h2>Dead Route Co-op 3D</h2><p>${escapeHtml(error?.message || "Could not load the game.")}</p><button data-three-retry>Retry</button><button data-three-cancel>Leave Room</button></div>`;
+        } finally { clearTimeout(timeout); }
+      }
+
+      async function startArcadeGame(mode, levelIndex = 0, autoStart = false) {
+        if (!["dodger", "laser-dodge", "catcher", "coin-rush", "coastline-karts"].includes(mode) || !requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting a solo game.");
           return;
@@ -11145,16 +11231,17 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const collection = mode === "catcher" || mode === "coin-rush";
-          const loading = collection
+          const collection = mode === "catcher" || mode === "coin-rush", kart = mode === "coastline-karts";
+          const loading = kart ? kartGameModule ? Promise.resolve(kartGameModule) : import(`./assets/kart-game.js?v=1&attempt=${++kartGameImportAttempt}`).then(module => { kartGameModule = module; return module; }) : collection
             ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=sound-1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
             : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
-          const mountGame = collection ? module.mountCollectionGame : module.mountArcadeGame;
+          const mountGame = kart ? module.mountKartGame : collection ? module.mountCollectionGame : module.mountArcadeGame;
           controller.signal.throwIfAborted();
           let finished = false;
           const mounting = mountGame(threeGameHost, {
             mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
+            trackIndex: arcadeGameLevelIndex, autoStart, storageKey: `mgw-karts-${owner || "guest"}`, onTrack: (next, start) => startArcadeGame(mode, next, start),
             color: getTheme(playerStyle.color).head, pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "", palette: pixelSkinPalette,
             accessory: playerStyle.accessory, accessoryPixels: playerStyle.customAccessory16,
             onPause: value => { if (threeGameLoading === controller) paused = value; },
@@ -11244,7 +11331,7 @@
         } finally { clearTimeout(timeout); }
       }
 
-      async function startThreeGame(requestedLevel) {
+      async function startThreeGame(requestedLevel, trial = false) {
         if (!requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting Crystal Isles 3D.");
@@ -11271,7 +11358,8 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const { mountThreeGame, LEVELS, normalizeProgress, recordLevelResult } = await Promise.race([import("./assets/three-games.js?v=levels-2"), canceled]);
+          const platformLoading = platformGameModule ? Promise.resolve(platformGameModule) : import(`./assets/three-games.js?v=trials-3&attempt=${++platformGameImportAttempt}`).then(module => { platformGameModule = module; return module; });
+          const { mountThreeGame, LEVELS, normalizeProgress, recordLevelResult } = await Promise.race([platformLoading, canceled]);
           controller.signal.throwIfAborted();
           const progressKey = `crystal-isles-3d-progress-${owner || "guest"}`;
           const readProgress = () => {
@@ -11290,6 +11378,8 @@
           };
           saveProgress();
           const mounting = mountThreeGame(threeGameHost, {
+            trial, replayKey: `${progressKey}-replay-${levelIndex}`,
+            onTrial: () => startThreeGame(levelIndex, true),
             mode: currentGame, levelIndex, completed: progress.completed, signal: controller.signal, quality: getGraphicsQualityRank(),
             color: getTheme(playerStyle.color).head,
             pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "",
@@ -11298,8 +11388,8 @@
             onPickup: () => playSound("eat"),
             onFullscreen: toggleGameFullscreen,
             onExit: showMainMenu,
-            onRestart: () => startThreeGame(levelIndex),
-            onLevelChange: (nextLevel) => startThreeGame(nextLevel),
+            onRestart: () => startThreeGame(levelIndex, trial),
+            onLevelChange: (nextLevel) => startThreeGame(nextLevel, trial),
             onFinish: (result) => {
               if (threeGameLoading !== controller) return;
               progress = recordLevelResult(progress, result);
@@ -13906,7 +13996,7 @@
       }
 
       function resetGame() {
-        if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) { startArcadeGame(currentGame, arcadeGameLevelIndex); return; }
+        if (["dodger", "laser-dodge", "catcher", "coin-rush", "coastline-karts"].includes(currentGame)) { startArcadeGame(currentGame, arcadeGameLevelIndex); return; }
         if (currentGame === "dead-route-3d") { startZombieGame(); return; }
         if (currentGame === "crystal-isles-3d") { startThreeGame(); return; }
         const restartAfterDeath = gameOver;
@@ -15438,7 +15528,7 @@
       }
 
       function showMainMenu() {
-        if (currentGame === "online-bomb-tag" && onlineRoomCode) { void returnToMainMenu(); return; }
+        if (isThreeGame() && onlineRoomCode) { void returnToMainMenu(); return; }
         if (threeGameLoading || threeGameSession) {
           disposeThreeGame();
           currentGame = "snake";
@@ -15760,11 +15850,12 @@
 
       function getStartGameGenre(gameName, isOnline) {
         if (isOnline) {
-          if (gameName === "online-bomb-tag") return "3D / 2-5 players";
+          if (gameName === "online-bomb-tag" || gameName === "online-dead-route") return "3D / 2-5 players";
           return "Online room";
         }
 
         const genres = {
+          "coastline-karts": "3D kart racing",
           "dead-route-3d": "3D survival RPG",
           "crystal-isles-3d": "3D platformer",
           snake: "Classic arcade",
@@ -19598,6 +19689,7 @@
 
       function getLocalBestScores() {
         return {
+          "coastline-karts": getLocalBestScore("coastline-karts"),
           "dead-route-3d": getLocalBestScore("dead-route-3d"),
           "crystal-isles-3d": getLocalBestScore("crystal-isles-3d"),
           snake: getLocalBestScore("snake"),
@@ -20785,7 +20877,7 @@
       }
 
       function onlineUsesHostScores(gameName = currentGame) {
-        return gameName === "online-catcher" || gameName === "online-pong" || isOnlineArcadeGame(gameName);
+        return gameName === "online-dead-route" || gameName === "online-catcher" || gameName === "online-pong" || isOnlineArcadeGame(gameName);
       }
 
       function getOnlineSpawn(slot, gameName) {
@@ -20877,7 +20969,7 @@
           };
         }
 
-        if (isOnlineArcadeGame(gameName)) {
+        if (isOnlineArcadeGame(gameName) || gameName === "online-dead-route") {
           const start = getOnlineSpawn(slot, gameName);
 
           return {
@@ -20993,8 +21085,9 @@
         };
       }
 
-      function makeOnlineBombState(holder = "p1") {
+      function makeOnlineBombState(holder = "p1", map = "park") {
         return {
+          map, phase: "playing", voteTicks: 0,
           holder,
           ticks: 360,
           cooldown: 45,
@@ -21042,6 +21135,7 @@
       }
 
       function closeOnlineRoomLocally(message = "Online room closed.") {
+        disposeOnlineCoop();
         clearInterval(timer);
         clearInterval(waitingTimer);
         unsubscribeFromRoom();
@@ -21132,6 +21226,7 @@
         drawOnlineGame();
         timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
         if (gameName === "online-bomb-tag") void startOnlineBomb3D();
+        if (gameName === "online-dead-route") void startOnlineCoop3D();
       }
 
       async function spectateOnlineRoom(code) {
@@ -21148,7 +21243,7 @@
         }
 
         const gameName = room.game || "online-snake";
-        if (gameName === "online-bomb-tag" && !requireDesktopGameplay()) return;
+        if (isThreeGame(gameName) && !requireDesktopGameplay()) return;
         disposeThreeGame();
         clearInterval(timer);
         clearInterval(waitingTimer);
@@ -21200,6 +21295,7 @@
         drawOnlineGame();
         timer = setInterval(tickOnlineGame, getOnlineTickDelay(gameName));
         if (gameName === "online-bomb-tag") void startOnlineBomb3D();
+        if (gameName === "online-dead-route") void startOnlineCoop3D();
       }
 
       function prepareOnlineState(room, gameName, slot) {
@@ -21477,10 +21573,12 @@
           }
         });
         if (gameName === "online-bomb-tag" && waitingToPlay) void startOnlineBomb3D();
+        if (gameName === "online-dead-route" && waitingToPlay) void startOnlineCoop3D();
       }
 
       async function leaveOnlineRoom() {
-        if (currentGame === "online-bomb-tag") disposeThreeGame();
+        if (isThreeGame()) disposeThreeGame();
+        disposeOnlineCoop();
         if (!onlineRoomCode) {
           startGame("snake");
           return;
@@ -21561,7 +21659,16 @@
           return;
         }
 
-        if (currentGame === "online-snake") {
+        if (currentGame === "online-dead-route") {
+          const runtime = onlineCoopRuntime;
+          if (onlinePlayerSlot === "p1" && runtime?.world && runtime.code === onlineRoomCode) {
+            runtime.world.reconcile(getOnlinePlayerEntries().map(([slot, player]) => ({ ...player, slot, headColor: getTheme(player.color).head })));
+            runtime.accumulator += 0.035;
+            while (runtime.accumulator >= onlineCoopModule.COOP_STEP) { runtime.world.step(); runtime.accumulator -= onlineCoopModule.COOP_STEP; }
+            onlineState.route = runtime.world.snapshot(); onlineSharedDirty = true;
+            getOnlinePlayerEntries().forEach(([, player]) => { player.score = runtime.world.state.score; });
+          }
+        } else if (currentGame === "online-snake") {
           ensureOnlineSnakeFoods();
           updateOnlineSnake();
         } else if (currentGame === "online-tanks") {
@@ -21609,7 +21716,7 @@
             Object.prototype.hasOwnProperty.call(patch, "goal") ||
             Object.prototype.hasOwnProperty.call(patch, "orb") ||
             Object.prototype.hasOwnProperty.call(patch, "poweredSlot") ||
-            Object.prototype.hasOwnProperty.call(patch, "bomb");
+            Object.prototype.hasOwnProperty.call(patch, "bomb") || Object.prototype.hasOwnProperty.call(patch, "route");
 
           // Clear before sending so changes made during the request remain dirty.
           onlineLocalDirty = onlineFoodsDirty = onlineApplesDirty = onlinePongDirty = onlineSharedDirty = false;
@@ -21636,6 +21743,7 @@
         const patch = {
           updatedAt: Date.now()
         };
+        if (currentGame === "online-dead-route" && onlinePlayerSlot === "p1" && onlineSharedDirty && onlineState.route) patch.route = onlineState.route;
 
         const player = onlineState.playersState[onlinePlayerSlot];
 
@@ -21703,6 +21811,7 @@
       }
 
       function mergeOnlineState(room) {
+        if (currentGame === "online-dead-route" && onlinePlayerSlot !== "p1") onlineState.route = room.route || null;
         const remoteState = prepareOnlineState(room, currentGame, onlinePlayerSlot);
         const localPlayer = onlineState.playersState[onlinePlayerSlot];
         const remotePlayer = getOnlinePlayerEntries(remoteState).find(([slot]) => slot === onlinePlayerSlot)?.[1];
@@ -21961,9 +22070,10 @@
           return;
         }
 
-        if (onlineMove.x !== 0 || onlineMove.y !== 0) {
+        if ((onlineMove.x !== 0 || onlineMove.y !== 0) && !(currentGame === "online-bomb-tag" && onlineState.bomb?.phase === "voting")) {
           const speed = 4.8;
           moveOnlineArcadePlayer(player, onlineMove.x * speed, onlineMove.y * speed);
+          if (player.emote) player.emote = null;
           onlineLocalDirty = true;
         }
 
@@ -21984,6 +22094,14 @@
         const size = player.size || 28;
         const nextX = Math.max(8, Math.min(canvas.width - size - 8, player.x + dx));
         const nextY = Math.max(8, Math.min(canvas.height - size - 8, player.y + dy));
+
+        if (currentGame === "online-bomb-tag") {
+          const obstacles = onlineBombModule?.bombMapObstacles(onlineState.bomb?.map, canvas.width, canvas.height) || [];
+          const blocked = (x, y) => obstacles.some(wall => rectsTouch(x, y, size, size, wall.x, wall.y, wall.w, wall.h));
+          if (!blocked(nextX, player.y)) player.x = nextX;
+          if (!blocked(player.x, nextY)) player.y = nextY;
+          return;
+        }
 
         if (currentGame === "online-maze" && hitsMazeWall(nextX, player.y, size)) {
           player.y = nextY;
@@ -22116,8 +22234,18 @@
         onlineState.bomb = onlineState.bomb || makeOnlineBombState("p1");
         const entries = getOnlinePlayerEntries();
         if (entries.length < 2) return;
+        if (onlineState.bomb.phase === "voting") {
+          onlineState.bomb.voteTicks = Math.max(0, onlineState.bomb.voteTicks - 1);
+          if (!onlineState.bomb.voteTicks && onlineBombModule) {
+            onlineState.bomb.map = onlineBombModule.chooseBombMap(entries.map(([, player]) => player), onlineState.bomb.round, onlineState.bomb.map);
+            onlineState.bomb.phase = "playing";
+            entries.forEach(([slot]) => resetOnlinePosition(slot));
+          }
+          if (onlineState.bomb.voteTicks % 10 === 0) onlineSharedDirty = true;
+          return;
+        }
         if (!onlineState.playersState[onlineState.bomb.holder]) {
-          onlineState.bomb = makeOnlineBombState(entries[0][0]);
+          onlineState.bomb.holder = entries[0][0];
           onlineSharedDirty = true;
         }
         onlineState.bomb.ticks = Math.max(0, Number(onlineState.bomb.ticks || 0) - 1);
@@ -22137,7 +22265,7 @@
           survivors.forEach(([, member]) => { member.score = (member.score || 0) + 1; });
           entries.forEach(([slot]) => resetOnlinePosition(slot));
           const nextHolder = survivors[Math.floor(Math.random() * survivors.length)][0];
-          onlineState.bomb = makeOnlineBombState(nextHolder);
+          onlineState.bomb = { ...makeOnlineBombState(nextHolder, onlineState.bomb.map), phase: "voting", voteTicks: 200 };
           onlineSharedDirty = true;
         }
 
@@ -22364,6 +22492,7 @@
       }
 
       function drawOnlineGame() {
+        if (isThreeGame()) return;
         draw();
       }
 
@@ -23219,7 +23348,8 @@
         if (event.target.closest("[data-three-cancel]")) showMainMenu();
         if (event.target.closest("[data-three-retry]")) {
           if (currentGame === "online-bomb-tag") startOnlineBomb3D();
-          else if (["dodger", "laser-dodge", "catcher", "coin-rush"].includes(currentGame)) startArcadeGame(currentGame, arcadeGameLevelIndex);
+          else if (currentGame === "online-dead-route") startOnlineCoop3D();
+          else if (["dodger", "laser-dodge", "catcher", "coin-rush", "coastline-karts"].includes(currentGame)) startArcadeGame(currentGame, arcadeGameLevelIndex);
           else if (currentGame === "dead-route-3d") startZombieGame();
           else startThreeGame(threeGameLevelIndex);
         }

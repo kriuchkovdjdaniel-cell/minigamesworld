@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { attachAvatarEmotes } from "./avatar-emotes.mjs";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Apple, Coins, Heart, Timer, ArrowRight, Zap, Volume2, VolumeX } from "lucide";
 import { createCollectionSimulation, COLLECTION_LEVELS, STEP } from "./collection-world.mjs";
@@ -54,6 +55,8 @@ export async function mountCollectionGame(host, options) {
   const on = (target, type, callback, extra = {}) => target.addEventListener(type, callback, { ...extra, signal: abort.signal });
   let disposed = false, paused = false, ended = false, frameId = null, lastTime = null, accumulator = 0, jump = false, dash = false, cameraPointer = null;
   let previousCollected = 0, previousLives = 3, previousShield = 0, noticeUntil = 0;
+  let moving = false;
+  const emotes = attachAvatarEmotes(menu, visuals.player, { signal: abort.signal, time: () => sim.state.elapsed, resume: () => setPaused(false) });
   const audio = createCollectionAudio({ volume: options.getVolume || options.volume });
   const soundStep = createCollectionSoundTracker(level.mode, audio.play);
   soundStep(sim.state, sim.body.translation());
@@ -77,6 +80,7 @@ export async function mountCollectionGame(host, options) {
   function render() {
     if (disposed) return;
     const s = sim.state, p = sim.body.translation(); visuals.update(sim);
+    emotes.update(moving);
     const target = new THREE.Vector3(p.x * 0.25, 0, p.z * 0.25); camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
     const collected = orchard ? s.caught : s.collected.size;
     hud.lives.textContent = s.lives; hud.score.textContent = s.score; hud.time.textContent = clock(level.duration - s.elapsed);
@@ -111,6 +115,7 @@ export async function mountCollectionGame(host, options) {
     const x = Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft"));
     const z = Number(keys.has("KeyS") || keys.has("ArrowDown")) - Number(keys.has("KeyW") || keys.has("ArrowUp"));
     const yaw = controls.getAzimuthalAngle(), dx = x * Math.cos(yaw) + z * Math.sin(yaw), dz = z * Math.cos(yaw) - x * Math.sin(yaw);
+    moving = !!(x || z || jump || dash);
     while (accumulator >= STEP) { sim.step({ x: dx, z: dz, jump, dash }); soundStep(sim.state, sim.body.translation(), yaw); jump = dash = false; accumulator -= STEP; }
     audio.sync();
     if (x || z) visuals.player.rotation.y = Math.atan2(-dx, -dz);
@@ -118,6 +123,7 @@ export async function mountCollectionGame(host, options) {
     if (sim.state.status === "playing") { schedule(); return; }
     ended = true; keys.clear(); releaseCamera(); controls.enabled = false;
     const won = sim.state.status === "won";
+    if (won) { emotes.victory(); renderer.render(scene, camera); }
     host.querySelector("h2").textContent = won ? "Stage Clear" : sim.state.lives <= 0 ? "Out of Lives" : "Time Up";
     hud.result.textContent = `${sim.state.score} points / ${clock(sim.state.elapsed)}${orchard ? ` / ${sim.state.missed} missed` : ""}`;
     host.querySelector('[data-action="resume"]').hidden = true; host.querySelector('[data-action="next"]').hidden = !won || level.index === 2;

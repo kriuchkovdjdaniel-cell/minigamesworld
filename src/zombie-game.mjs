@@ -10,7 +10,7 @@ export { normalizeCheckpoint } from "./zombie-world.mjs";
 const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, heal: Heart, reload: Crosshair, inventory: Backpack, fuel: Fuel, shield: Shield, sound: Volume2 };
 
 export async function mountZombieGame(host, options) {
-  const sim = await createZombieSimulation(options.checkpoint);
+  const sim = options.simulation || await createZombieSimulation(options.checkpoint);
   if (options.signal?.aborted) { sim.dispose(); throw new DOMException("Canceled", "AbortError"); }
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ antialias: options.quality > 0, powerPreference: "high-performance" }); }
@@ -75,6 +75,14 @@ export async function mountZombieGame(host, options) {
       <button data-action="exit"><i data-icon="exit"></i>Return to Games</button>
     </dialog>`;
   host.prepend(canvas);
+  if (options.cooperative) {
+    host.querySelector(".zombie-brand strong").innerHTML = "DEAD ROUTE <small>CO-OP</small>";
+    host.dataset.cooperative = "true";
+    host.querySelector('[data-action="new"]').hidden = true;
+    host.querySelector('[data-action="restart"]').hidden = options.slot !== "p1";
+    host.querySelector('[data-action="restart"]').textContent = "Restart Journey";
+    const team = document.createElement("aside"); team.className = "route-team"; team.setAttribute("aria-label", "Survivor team"); host.append(team);
+  }
   for (const item of host.querySelectorAll("[data-icon]")) item.replaceWith(createElement(ICONS[item.dataset.icon], { width: 19, height: 19, "aria-hidden": "true" }));
   const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 220);
   const controls = new OrbitControls(camera, canvas);
@@ -180,8 +188,8 @@ export async function mountZombieGame(host, options) {
     parts.forEach((part, i) => { part.updateMatrix(); batch.setMatrixAt(i, part.matrix); bus.remove(part); });
     batch.castShadow = batch.receiveShadow = true; bus.add(batch);
   }
-  function person(zombie = false, boss = false, variant = 0) {
-    const group = new THREE.Group(), skin = zombie ? boss ? "#7c9070" : "#9aae86" : "#dbb597", shirt = zombie ? boss ? "#786e96" : ["#8c7872", "#6c8a95", "#909a76", "#a68f69"][variant % 4] : options.color || "#57938c";
+  function person(zombie = false, boss = false, variant = 0, color = options.color) {
+    const group = new THREE.Group(), skin = zombie ? boss ? "#7c9070" : "#9aae86" : "#dbb597", shirt = zombie ? boss ? "#786e96" : ["#8c7872", "#6c8a95", "#909a76", "#a68f69"][variant % 4] : color || "#57938c";
     box(group, 0, 1.15, 0, 0.7, 0.7, 0.43, shirt).geometry = roundedGeo;
     box(group, 0, 1.8, 0, 0.52, 0.52, 0.46, skin).geometry = roundedGeo;
     box(group, 0, 2.04, 0.04, 0.55, 0.1, 0.53, zombie ? "#4b5549" : "#46493e");
@@ -213,6 +221,8 @@ export async function mountZombieGame(host, options) {
     scene.add(group); return { group, arms, legs, health, gun, deathTime: null };
   }
   const survivor = person();
+  const allies = new Map();
+  let coopEpoch = null;
   const flashMaterial = new THREE.MeshBasicMaterial({ color: "#ffe6ac" }); materials.set("muzzle-flash", flashMaterial);
   const muzzle = new THREE.Mesh(coneGeo, flashMaterial); muzzle.rotation.x = -Math.PI / 2; muzzle.position.set(0, 0.03, -0.66); muzzle.scale.set(0.14, 0.34, 0.14); muzzle.visible = false; survivor.gun.add(muzzle);
   let enemies = new Map(), loot = new Map(), renderedStop = -1;
@@ -269,20 +279,21 @@ export async function mountZombieGame(host, options) {
     if (cameraPointer !== null && canvas.hasPointerCapture(cameraPointer)) canvas.releasePointerCapture(cameraPointer);
     cameraPointer = null; controls.disconnect(); controls.connect(canvas);
   }
-  function clearInput() { keys.clear(); oneShot.clear(); shooting = false; releaseCamera(); }
+  function clearInput() { keys.clear(); oneShot.clear(); shooting = false; releaseCamera(); sim.clearInput?.(); }
   function pause(value = !paused, workshop = false) {
     if (disposed || ended && !value) return;
     paused = value; options.onPause?.(value); clearInput(); controls.enabled = !value;
     audio.setPaused(value);
     if (paused) {
-      cancelAnimationFrame(frameId); frameId = 0;
+      if (!options.cooperative) { cancelAnimationFrame(frameId); frameId = 0; }
       updateHUD();
       el("workshop").hidden = !workshop;
       host.querySelector("#zombieMenuTitle").textContent = ended ? sim.state.status === "won" ? "Safe Haven" : "Journey interrupted" : workshop ? "Bus Workshop" : "Paused";
-      el("result").textContent = ended ? `${sim.objective()} / ${sim.state.score} score / ${sim.state.kills} infected defeated` : `${STOPS[sim.state.stopIndex].name} / Level ${sim.state.level}`;
+      el("result").textContent = ended ? `${sim.objective()} / ${sim.state.score} score / ${sim.state.kills} infected defeated` : options.cooperative ? "The co-op room stays live while this menu is open." : `${STOPS[sim.state.stopIndex].name} / Level ${sim.state.level}`;
       host.querySelector('[data-action="resume"]').hidden = ended;
       workshopUI();
       const freshButton = host.querySelector('[data-action="new"]'); freshButton.textContent = "New Journey"; delete freshButton.dataset.confirm;
+      if (options.cooperative) { const restart = host.querySelector('[data-action="restart"]'); restart.textContent = "Restart Journey"; delete restart.dataset.confirm; }
       if (!menu.open) menu.showModal();
     } else {
       if (menu.open) menu.close(); previous = 0; accumulator = 0; canvas.focus();
@@ -298,6 +309,11 @@ export async function mountZombieGame(host, options) {
   }
   function updateHUD() {
     const s = sim.state;
+    if (options.cooperative) {
+      const team = host.querySelector(".route-team"); team.replaceChildren();
+      const title = document.createElement("strong"); title.textContent = `Room ${options.code} / ${sim.playerCount} survivors`; team.append(title);
+      for (const ally of sim.teammates.values()) { const row = document.createElement("p"), name = document.createElement("span"), health = document.createElement("b"); name.textContent = ally.username; health.textContent = ally.health <= 0 ? "DOWN" : ally.inBus ? "IN BUS" : `${Math.ceil(ally.health)} HP`; row.append(name, health); team.append(row); }
+    }
     el("stop").textContent = `STOP ${s.stopIndex + 1} / 3 - ${STOPS[s.stopIndex].name.toUpperCase()}`;
     el("objective").textContent = sim.objective();
     for (const [key, value, max] of [["health", s.health, s.maxHealth], ["bus", s.busHealth, s.maxBusHealth], ["fuel", s.fuel, 100]]) {
@@ -350,6 +366,12 @@ export async function mountZombieGame(host, options) {
     if (disposed) return;
     frameId = 0;
     const dt = previous ? Math.min(0.1, (now - previous) / 1000) : 0; previous = now;
+    if (options.cooperative) {
+      sim.refresh(dt);
+      if (coopEpoch && coopEpoch !== sim.epoch) { ended = false; paused = false; renderedStop = -1; menu.close(); controls.enabled = true; options.onPause?.(false); audio.setPaused(false); }
+      coopEpoch = sim.epoch; drainEvents();
+      if (renderedStop !== sim.state.stopIndex || enemies.size !== sim.state.enemies.length) refreshStop();
+    }
     if (!paused && !document.hidden) {
       const forward = new THREE.Vector3(); camera.getWorldDirection(forward); forward.y = 0; forward.normalize();
       const right = new THREE.Vector3(-forward.z, 0, forward.x);
@@ -389,6 +411,17 @@ export async function mountZombieGame(host, options) {
     }
     const t = sim.state.elapsed, pos = sim.player.body.translation();
     survivor.group.visible = !sim.state.inBus;
+    survivor.group.rotation.z = sim.state.health <= 0 ? Math.PI / 2 : 0;
+    if (options.cooperative) {
+      for (const [slot, model] of allies) if (!sim.teammates.has(slot) || sim.teammates.get(slot).memberId !== model.memberId) { scene.remove(model.group, model.health); allies.delete(slot); }
+      for (const [slot, ally] of sim.teammates) {
+        let model = allies.get(slot);
+        if (!model) { model = { ...person(false, false, 0, ally.color), memberId: ally.memberId }; allies.set(slot, model); }
+        const p = ally.body.translation(), walking = model.lastPosition && Math.hypot(p.x - model.lastPosition.x, p.z - model.lastPosition.z) > 0.002;
+        model.lastPosition = { ...p }; model.group.visible = !ally.inBus; model.group.position.set(p.x, p.y - 0.86, p.z); model.group.rotation.y = Math.atan2(-(ally.aim?.x ?? 0), -(ally.aim?.z ?? -1)); model.group.rotation.z = ally.health <= 0 ? Math.PI / 2 : 0;
+        for (let i = 0; i < 2; i++) { model.legs[i].rotation.x = walking && ally.health > 0 ? Math.sin(t * 10 + i * Math.PI) * 0.35 : 0; model.arms[i].rotation.x = i ? -1.35 : 0; }
+      }
+    }
     survivor.group.position.set(pos.x, pos.y - 0.86, pos.z); survivor.group.rotation.y = Math.atan2(-sim.state.aim.x, -sim.state.aim.z);
     survivor.gun.scale.z = sim.state.weapon ? 1.3 : 1; survivor.gun.rotation.x = sim.state.reload > 0 ? 0.65 : Math.max(0, muzzleTime) * 3;
     muzzle.visible = muzzleTime > 0;
@@ -426,7 +459,7 @@ export async function mountZombieGame(host, options) {
     sun.position.set(controls.target.x - 24, 35, controls.target.z + 18); sun.target.position.copy(controls.target);
     hudTime += dt; if (hudTime > 0.1 || !previous) { updateHUD(); hudTime = 0; }
     renderer.render(scene, camera);
-    if (!document.hidden && !paused) frameId = requestAnimationFrame(frame);
+    if (!document.hidden && (!paused || options.cooperative)) frameId = requestAnimationFrame(frame);
   }
   function resize() {
     const width = host.clientWidth, height = host.clientHeight;
@@ -446,7 +479,10 @@ export async function mountZombieGame(host, options) {
       case "sound": toggleSound(); break;
       case "camera": resetCamera(); break;
       case "fullscreen": options.onFullscreen?.(); break;
-      case "restart": options.onRestart?.(false); break;
+      case "restart":
+        if (options.cooperative && button.dataset.confirm !== "yes") { button.dataset.confirm = "yes"; button.textContent = "Confirm Restart for Everyone"; }
+        else options.onRestart?.(false);
+        break;
       case "new":
         if (button.dataset.confirm === "yes") options.onRestart?.(true);
         else { button.dataset.confirm = "yes"; button.textContent = "Confirm New Journey"; }
@@ -498,6 +534,7 @@ export async function mountZombieGame(host, options) {
     for (const texture of textures) texture.dispose();
     renderer.dispose(); renderer.forceContextLoss(); sim.dispose(); host.classList.remove("zombie-hurt");
     audio.dispose();
+    delete host.dataset.cooperative;
   }
   options.signal?.addEventListener("abort", dispose, { once: true });
   drainEvents(); updateHUD(); updateSoundButton(); canvas.focus(); void audio.unlock(); frameId = requestAnimationFrame(frame);

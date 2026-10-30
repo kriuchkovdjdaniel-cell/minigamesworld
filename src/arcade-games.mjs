@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { attachAvatarEmotes } from "./avatar-emotes.mjs";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
@@ -153,10 +154,13 @@ export async function mountArcadeGame(host, options) {
   const hud = Object.fromEntries(["lives", "score", "time", "objective", "progress", "result"].map(name => [name, host.querySelector(`[data-${name}]`)]));
   const keys = new Set(); let frameId = null, paused = false, ended = false, disposed = false, lastTime = null, accumulator = 0, jump = false, cameraPointer = null;
   let previousGems = 0, previousLives = 3, noticeUntil = 0;
+  let moving = false;
+  const emotes = attachAvatarEmotes(menu, player, { signal: abort.signal, time: () => sim.state.elapsed, resume: () => setPaused(false) });
   function releaseCamera() { if (cameraPointer === null) return; const id = cameraPointer; cameraPointer = null; if (renderer.domElement.hasPointerCapture(id)) renderer.domElement.releasePointerCapture(id); controls.disconnect(); controls.connect(renderer.domElement); renderer.domElement.style.cursor = ""; }
   function render() {
     if (disposed) return;
     player.position.copy(sim.body.translation()); player.visible = sim.state.invulnerable <= 0 || Math.floor(sim.state.elapsed * 12) % 2 === 0;
+    emotes.update(moving);
     const target = new THREE.Vector3(player.position.x * 0.3, 0, player.position.z * 0.3); camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
     gems.forEach((m, i) => { m.visible = !sim.state.collected.has(i); m.rotation.y = sim.state.elapsed; m.position.y = level.gems[i].y + Math.sin(sim.state.elapsed * 2 + i) * 0.1; });
     guards.forEach((m, i) => { if (sim.state.guards[i]) m.position.copy(sim.state.guards[i]); m.rotation.y = Math.sin(sim.state.elapsed + i) * 0.5; });
@@ -194,12 +198,14 @@ export async function mountArcadeGame(host, options) {
     const x = Number(keys.has("KeyD") || keys.has("ArrowRight")) - Number(keys.has("KeyA") || keys.has("ArrowLeft"));
     const z = Number(keys.has("KeyS") || keys.has("ArrowDown")) - Number(keys.has("KeyW") || keys.has("ArrowUp"));
     const yaw = controls.getAzimuthalAngle(), dx = x * Math.cos(yaw) + z * Math.sin(yaw), dz = z * Math.cos(yaw) - x * Math.sin(yaw);
+    moving = !!(x || z || jump);
     while (accumulator >= STEP) { sim.step({ x: dx, z: dz, jump }); jump = false; accumulator -= STEP; }
     if (x || z) player.rotation.y = Math.atan2(-dx, -dz);
     render();
     if (sim.state.status !== "playing") {
       ended = true; keys.clear(); releaseCamera(); controls.enabled = false;
       const won = sim.state.status === "won";
+      if (won) { emotes.victory(); renderer.render(scene, camera); }
       host.querySelector("h2").textContent = won ? "Stage Clear" : sim.state.lives <= 0 ? "Out of Lives" : "Time Up";
       hud.result.textContent = `${sim.state.score} points / ${clock(sim.state.elapsed)}`;
       host.querySelector('[data-action="resume"]').hidden = true; host.querySelector('[data-action="next"]').hidden = !won || level.index === 2;

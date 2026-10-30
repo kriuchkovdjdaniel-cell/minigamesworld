@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { Script, createContext } from "node:vm";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const expected3d = ["dead-route-3d", "crystal-isles-3d", "catcher", "dodger", "coin-rush", "laser-dodge", "online-bomb-tag"];
+const expected3d = ["coastline-karts", "dead-route-3d", "crystal-isles-3d", "catcher", "dodger", "coin-rush", "laser-dodge", "online-bomb-tag", "online-dead-route"];
 function library() {
   let focus = "", scrolls = 0;
   const node = (id = "") => ({ hidden: false, textContent: "", dataset: {}, setAttribute(key, value) { this[key] = value; }, focus() { focus = id; }, scrollIntoView() { scrolls++; } });
@@ -43,18 +43,18 @@ function library() {
 
 test("the root shows exactly two folders with counts derived from the actual game buttons", () => {
   const { ctx, ids, buttons, folders } = library(); ctx.applyDashboardSearch();
-  assert.equal(buttons.length, 18); assert.equal(new Set(buttons.map(b => b.dataset.startGame || b.dataset.startOnlineGame)).size, 18);
+  assert.equal(buttons.length, 20); assert.equal(new Set(buttons.map(b => b.dataset.startGame || b.dataset.startOnlineGame)).size, 20);
   assert.equal(ids.gameFolders.hidden, false); assert.equal(ids.gameLibraryGames.hidden, true); assert.equal(ids.gameFolderBack.hidden, true);
-  assert.equal(folders[0].querySelector("[data-folder-count]").textContent, "7 games");
+  assert.equal(folders[0].querySelector("[data-folder-count]").textContent, "9 games");
   assert.equal(folders[1].querySelector("[data-folder-count]").textContent, "11 games");
 });
 
-test("3D contains all six solo conversions and Online Bomb Tag, with no duplicated buttons", () => {
+test("3D contains the seven solo games and both online 3D games without duplicate buttons", () => {
   const { ctx, ids, visible } = library(); ctx.setGameFolder("3d");
   assert.deepEqual(visible(), expected3d);
   assert.equal(ids.gameLibrarySolo.hidden, false); assert.equal(ids.gameLibraryOnline.hidden, false);
   assert.equal(ids.gameFolders.hidden, true); assert.equal(ids.gameLibraryGames.hidden, false);
-  assert.equal(ids.gameLibraryTitle.textContent, "3D Games"); assert.equal(ctx.selectedStartGame, "dead-route-3d");
+  assert.equal(ids.gameLibraryTitle.textContent, "3D Games"); assert.equal(ctx.selectedStartGame, "coastline-karts");
 });
 
 test("2D contains only the remaining games and retains a valid selected game", () => {
@@ -68,7 +68,7 @@ test("search from the root finds games across both folders without changing runt
   ctx.mgwDashboardSearch.value = " bOmB "; ctx.applyDashboardSearch();
   assert.deepEqual(visible(), ["online-bomb-tag"]); assert.equal(ids.gameLibraryGames.hidden, false);
   assert.equal(ids.gameFolders.hidden, false); assert.equal(ids.gameLibrarySolo.hidden, true); assert.equal(ids.gameLibraryOnline.hidden, false);
-  assert.equal(folders[0].querySelector("[data-folder-count]").textContent, "1 / 7 games");
+  assert.equal(folders[0].querySelector("[data-folder-count]").textContent, "1 / 9 games");
   assert.equal(folders[1].querySelector("[data-folder-count]").textContent, "0 / 11 games");
 });
 

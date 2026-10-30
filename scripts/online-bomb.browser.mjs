@@ -22,7 +22,7 @@ export async function createBombBrowserQA(browser, base) {
     await broadcast(); return result;
   }
   async function client({ app = true, mobile = false, width = 1280, height = 800 } = {}) {
-    const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, serviceWorkers: "block" });
+    const context = await browser.newContext({ viewport: { width, height }, isMobile: mobile, hasTouch: mobile, serviceWorkers: "block", ...(mobile ? { userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36" } : {}) });
     await context.exposeBinding("__qaDatabase", (_, args) => database(args));
     await context.addInitScript(({ app }) => {
       localStorage.setItem("snake-settings", JSON.stringify({ musicDisabled: true, volume: 60, graphicsQuality: "low" }));
