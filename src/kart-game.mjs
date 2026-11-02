@@ -87,7 +87,8 @@ export async function mountKartGame(host, options) {
   });
   const menu = host.querySelector("dialog"), el = name => host.querySelector(`[data-${name}]`), keys = new Set();
   let paused = true, started = false, disposed = false, frameId = 0, previous = 0, accumulator = 0, activeEmote = null, finished = false, cameraDragging = false, orbitUntil = 0;
-  const emotes = mountEmotePicker(menu, { signal, play: id => { activeEmote = { id, at: performance.now() }; } });
+  const emotes = mountEmotePicker(menu, { signal, inventory: options.emotes, play: id => { activeEmote = { id, at: performance.now() }; }, canOpen: () => !disposed && !paused && !finished,
+    onWheelChange: open => { keys.clear(); releaseCamera(); controls.enabled = !open && !paused && !finished; } });
   let garage = { paint: "#55b8a8", body: "sprint" };
   try { const saved = JSON.parse(localStorage.getItem(options.storageKey + "-garage") || "null"); if (/^#[0-9a-f]{6}$/i.test(saved?.paint)) garage.paint = saved.paint; if (saved?.body === "touring") garage.body = saved.body; } catch {}
   el("paint").value = garage.paint; el("body").value = garage.body; el("track").value = sim.state.trackIndex;

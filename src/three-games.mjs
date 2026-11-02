@@ -70,7 +70,8 @@ export async function mountThreeGame(host, options) {
   const ghost = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.9, 0.86), new THREE.MeshBasicMaterial({ color: "#a9e9eb", transparent: true, opacity: 0.32, depthWrite: false }));
   ghost.visible = false; scene.add(ghost);
   let activeEmote = null;
-  const emotes = mountEmotePicker(host.querySelector("dialog"), { signal: abort.signal, play: id => { activeEmote = { id, at: sim.state.elapsed }; setPaused(false); } });
+  const emotes = mountEmotePicker(host.querySelector("dialog"), { signal: abort.signal, inventory: options.emotes, play: id => { activeEmote = { id, at: sim.state.elapsed }; setPaused(false); }, canOpen: () => !disposed && !paused && !ended,
+    onWheelChange: open => { keys.clear(); jump = false; releaseCameraDrag(); controls.enabled = !open && !paused && !ended; } });
   for (const element of host.querySelectorAll("[data-three-icon]")) element.replaceWith(createElement(ICONS[element.dataset.threeIcon], { width: 20, height: 20, "aria-hidden": "true" }));
   const camera = new THREE.PerspectiveCamera(54, 1, 0.1, 260);
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -328,7 +329,7 @@ export async function mountThreeGame(host, options) {
   resize(); renderer.domElement.focus(); schedule();
   return {
     pause: () => setPaused(true),
-    snapshot: () => ({ ...sim.state, trial: !!options.trial, replayValid: recorder.valid, ghost: ghost.visible, levelIndex, levelName: sim.level.name, paused, collected: sim.state.collected.size, position: { ...sim.body.translation() }, camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls }),
+    snapshot: () => ({ ...sim.state, emote: activeEmote?.id || "", emoteVisual: { y: visual.position.y, tilt: visual.rotation.x }, trial: !!options.trial, replayValid: recorder.valid, ghost: ghost.visible, levelIndex, levelName: sim.level.name, paused, collected: sim.state.collected.size, position: { ...sim.body.translation() }, camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls }),
     dispose() {
       if (disposed) return;
       disposed = true; cancelAnimationFrame(frameId); abort.abort(); observer.disconnect(); releaseCameraDrag(); controls.dispose(); menu.close();

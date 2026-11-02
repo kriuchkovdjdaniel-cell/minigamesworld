@@ -56,7 +56,8 @@ export async function mountCollectionGame(host, options) {
   let disposed = false, paused = false, ended = false, frameId = null, lastTime = null, accumulator = 0, jump = false, dash = false, cameraPointer = null;
   let previousCollected = 0, previousLives = 3, previousShield = 0, noticeUntil = 0;
   let moving = false;
-  const emotes = attachAvatarEmotes(menu, visuals.player, { signal: abort.signal, time: () => sim.state.elapsed, resume: () => setPaused(false) });
+  const emotes = attachAvatarEmotes(menu, visuals.player, { signal: abort.signal, inventory: options.emotes, time: () => sim.state.elapsed, resume: () => setPaused(false), canOpen: () => !disposed && !paused && !ended,
+    onWheelChange: open => { keys.clear(); jump = dash = false; moving = false; releaseCamera(); controls.enabled = !open && !paused && !ended; } });
   const audio = createCollectionAudio({ volume: options.getVolume || options.volume });
   const soundStep = createCollectionSoundTracker(level.mode, audio.play);
   soundStep(sim.state, sim.body.translation());
@@ -64,7 +65,7 @@ export async function mountCollectionGame(host, options) {
   function updateSoundButton() {
     const button = host.querySelector('[data-action="sound"]'), muted = audio.snapshot().muted;
     button.replaceChildren(createElement(muted ? VolumeX : Volume2, { width: 19, height: 19, "aria-hidden": "true" }));
-    button.title = `${muted ? "Unmute" : "Mute"} game effects (M)`;
+    button.title = `${muted ? "Unmute" : "Mute"} game effects (N)`;
     button.setAttribute("aria-label", button.title); button.setAttribute("aria-pressed", String(muted));
   }
   function toggleSound() {
@@ -152,7 +153,7 @@ export async function mountCollectionGame(host, options) {
   on(window, "pointerup", event => { if (!(event.buttons & 2)) releaseCamera(); }); on(renderer.domElement, "pointercancel", releaseCamera); on(renderer.domElement, "lostpointercapture", releaseCamera);
   on(window, "keydown", event => {
     if (event.target instanceof Element && event.target.closest("input,select,textarea") || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.code === "KeyM" && !event.repeat) { event.preventDefault(); toggleSound(); return; }
+    if (event.code === "KeyN" && !event.repeat) { event.preventDefault(); toggleSound(); return; }
     if (event.target instanceof Element && event.target.closest("button")) return;
     if (event.code === "Escape" && !menu.open) { event.preventDefault(); setPaused(true); return; }
     if (paused || ended) return;

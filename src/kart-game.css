@@ -21,5 +21,27 @@
 #threeGameHost .avatar-emotes button { flex: 1 1 70px; width: auto; min-width: 0; padding: 8px; font-size: 14px; }
 .avatar-emotes label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: 100%; }
 .avatar-emotes select { flex: 1; min-width: 90px; }
+#threeGameHost dialog.mgw-emote-wheel { position: fixed; inset: 0; margin: auto; width: min(460px, calc(100vw - 20px)); max-width: none; height: fit-content; max-height: calc(100dvh - 16px); padding: 12px; border: 1px solid #507267; border-radius: 8px; background: #132421f5; color: #eff5ef; box-shadow: 0 16px 48px #0008; overflow: auto; font: 14px Arial, sans-serif; text-align: center; letter-spacing: 0; }
+#threeGameHost .mgw-emote-wheel:not([open]) { display: none; }
+.mgw-emote-wheel::backdrop { background: #07100e99; }
+#threeGameHost .emote-wheel-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#threeGameHost .emote-wheel-heading h2 { margin: 0; padding: 0 8px; font: 700 20px Arial, sans-serif; color: #eff5ef; text-shadow: none; }
+#threeGameHost .emote-wheel-heading button { display: grid; place-items: center; width: 36px; height: 36px; min-height: 0; padding: 6px; border-radius: 6px; background: #29413a; border: 1px solid #658a7c; box-shadow: none; }
+.emote-wheel-ring { position: relative; width: min(410px, calc(100vw - 48px), calc(100dvh - 180px)); aspect-ratio: 1; margin: 8px auto; border: 1px solid #35594c; border-radius: 50%; background: #10201d; }
+#threeGameHost .emote-wheel-slot { position: absolute; transform: translate(-50%, -50%); width: 26%; height: 26%; min-width: 0; min-height: 0; padding: 6px; margin: 0; border-radius: 50%; border: 1px solid #567b6e; background: #29483e; color: #eef4ed; box-shadow: none; text-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font: 600 13px Arial, sans-serif; text-transform: none; }
+#threeGameHost .emote-wheel-slot::before, #threeGameHost .emote-wheel-slot::after, #threeGameHost .emote-wheel-heading button::before, #threeGameHost [data-emote-buy]::before { display: none; }
+#threeGameHost .emote-wheel-slot[data-locked="true"] { background: #302e40; border-color: #6e6585; color: #d5cedf; }
+#threeGameHost .emote-wheel-slot:hover, #threeGameHost .emote-wheel-slot:focus-visible { background: #3b6052; outline: 2px solid #94d6ba; outline-offset: 2px; }
+#threeGameHost .emote-wheel-slot[aria-pressed="true"] { border-color: #dec28d; }
+.emote-wheel-slot > svg { flex: 0 0 auto; }
+.emote-wheel-slot .emote-slot-lock { position: absolute; top: 14%; right: 14%; width: 16px; height: 16px; padding: 2px; background: #191c21; border-radius: 50%; }
+.emote-wheel-center { position: absolute; inset: 38%; display: grid; place-items: center; color: #a9b9ac; }
+.emote-wheel-center svg { width: 42px; height: 42px; }
+.emote-wheel-purchase { min-height: 70px; display: grid; justify-items: center; gap: 6px; }
+#threeGameHost .emote-wheel-purchase p { margin: 0; min-height: 18px; max-width: 100%; overflow-wrap: anywhere; color: #e3d6b3; font: 14px Arial, sans-serif; }
+#threeGameHost [data-emote-buy] { display: flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-height: 38px; padding: 8px 18px; border-radius: 6px; border: 1px solid #a99c6b; background: #5d5838; color: #fff3d2; box-shadow: none; text-shadow: none; font: 600 14px Arial, sans-serif; }
+#threeGameHost [data-emote-buy][hidden] { display: none; }
+#threeGameHost [data-emote-buy]:disabled { opacity: 0.6; cursor: wait; }
+@media (max-height: 480px) { #threeGameHost .emote-wheel-slot { font-size: 12px; gap: 1px; padding: 4px; } .emote-wheel-slot > svg { width: 18px; height: 18px; } .emote-wheel-center svg { width: 28px; height: 28px; } }
 @media (max-width: 640px) { .kart-hud { inset: 8px 8px auto; gap: 8px; flex-wrap: wrap; padding: 10px; } .kart-hud strong { font-size: 18px; } .kart-stats { order: 3; width: 100%; justify-content: space-between; gap: 10px; } .kart-speed { bottom: 10px; right: 10px; } }
 @media (max-height: 480px) { .kart-hud { padding: 6px 10px; } .kart-hud small { display: none; } .kart-speed { padding: 8px 12px; } .kart-speed strong { font-size: 24px; } }

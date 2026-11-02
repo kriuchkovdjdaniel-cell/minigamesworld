@@ -155,7 +155,8 @@ export async function mountArcadeGame(host, options) {
   const keys = new Set(); let frameId = null, paused = false, ended = false, disposed = false, lastTime = null, accumulator = 0, jump = false, cameraPointer = null;
   let previousGems = 0, previousLives = 3, noticeUntil = 0;
   let moving = false;
-  const emotes = attachAvatarEmotes(menu, player, { signal: abort.signal, time: () => sim.state.elapsed, resume: () => setPaused(false) });
+  const emotes = attachAvatarEmotes(menu, player, { signal: abort.signal, inventory: options.emotes, time: () => sim.state.elapsed, resume: () => setPaused(false), canOpen: () => !disposed && !paused && !ended,
+    onWheelChange: open => { keys.clear(); jump = false; moving = false; releaseCamera(); controls.enabled = !open && !paused && !ended; } });
   function releaseCamera() { if (cameraPointer === null) return; const id = cameraPointer; cameraPointer = null; if (renderer.domElement.hasPointerCapture(id)) renderer.domElement.releasePointerCapture(id); controls.disconnect(); controls.connect(renderer.domElement); renderer.domElement.style.cursor = ""; }
   function render() {
     if (disposed) return;

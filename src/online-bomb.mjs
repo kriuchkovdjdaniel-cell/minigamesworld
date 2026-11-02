@@ -23,7 +23,7 @@ export function mountOnlineBomb(host, options) {
   host.dataset.onlineBomb = "true";
   host.innerHTML = `<header class="bomb-header"><div class="bomb-brand"><strong>Online Bomb Tag 3D</strong><small data-room></small></div>
     <div class="bomb-clock"><output data-clock></output><span data-holder></span></div>
-    <div class="bomb-tools">${["sound", "camera", "chat", "fullscreen", "menu"].map(action => `<button data-action="${action}" title="${{ sound: "Mute effects (M)", camera: "Reset camera", chat: "Room chat", fullscreen: "Fullscreen", menu: "Room menu (Escape)" }[action]}" aria-label="${action}"></button>`).join("")}</div></header>
+    <div class="bomb-tools">${["sound", "camera", "chat", "fullscreen", "menu"].map(action => `<button data-action="${action}" title="${{ sound: "Mute effects (N)", camera: "Reset camera", chat: "Room chat", fullscreen: "Fullscreen", menu: "Room menu (Escape)" }[action]}" aria-label="${action}"></button>`).join("")}</div></header>
     <p class="bomb-status" role="status"></p><ol class="bomb-roster" aria-label="Room players and scores"></ol>
     <section class="bomb-chat" aria-label="Room chat" hidden><div class="bomb-chat-log" role="log" aria-live="polite"></div><form class="bomb-chat-form"><input maxlength="80" aria-label="Chat message" autocomplete="off"><button type="submit" title="Send message" aria-label="Send message"></button></form><p class="bomb-chat-status" role="status"></p></section>
     <dialog class="three-menu bomb-menu" aria-labelledby="bombMenuTitle"><h2 id="bombMenuTitle">Room Menu</h2><p data-menu-status>Live multiplayer room</p><button data-action="resume">Resume</button><button data-action="leave">Leave Room</button></dialog>`;
@@ -49,7 +49,8 @@ export function mountOnlineBomb(host, options) {
   try { audio.setMuted(localStorage.getItem("online-bomb-muted") === "true"); } catch {}
   const menu = host.querySelector("dialog"), chat = host.querySelector(".bomb-chat"), form = host.querySelector("form"), input = form.querySelector("input"), status = host.querySelector(".bomb-status");
   const on = (target, type, callback, extra = {}) => target.addEventListener(type, callback, { ...extra, signal: abort.signal });
-  const emotes = mountEmotePicker(menu, { signal: abort.signal, play: id => { options.emote?.(id); setMenu(false); } });
+  const emotes = mountEmotePicker(menu, { signal: abort.signal, inventory: options.emotes, play: id => { options.emote?.(id); setMenu(false); }, canOpen: () => !disposed && !menuOpen && !leavePending && !state.spectating,
+    onWheelChange: open => { clearInput(); controls.enabled = !open && !menuOpen; } });
   const ballot = document.createElement("section"); ballot.className = "bomb-ballot"; ballot.hidden = true; ballot.setAttribute("aria-label", "Next map vote");
   const voteHeading = document.createElement("strong"); voteHeading.textContent = "Next map"; ballot.append(voteHeading);
   for (const map of BOMB_MAPS) {
@@ -59,7 +60,7 @@ export function mountOnlineBomb(host, options) {
   host.append(ballot);
   function soundButton() {
     const button = host.querySelector('[data-action="sound"]'), muted = audio.snapshot().muted;
-    button.replaceChildren(icon(muted ? VolumeX : Volume2)); button.title = `${muted ? "Unmute" : "Mute"} effects (M)`; button.setAttribute("aria-label", button.title); button.setAttribute("aria-pressed", String(muted));
+    button.replaceChildren(icon(muted ? VolumeX : Volume2)); button.title = `${muted ? "Unmute" : "Mute"} effects (N)`; button.setAttribute("aria-label", button.title); button.setAttribute("aria-pressed", String(muted));
   }
   function toggleSound() { audio.setMuted(!audio.snapshot().muted); soundButton(); try { localStorage.setItem("online-bomb-muted", String(audio.snapshot().muted)); } catch {} }
   function releaseCamera() {
@@ -185,7 +186,7 @@ export function mountOnlineBomb(host, options) {
   on(input, "focus", clearInput);
   on(window, "keydown", event => {
     if (event.target instanceof Element && event.target.closest("input,textarea,select") || event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.code === "KeyM" && !event.repeat) { event.preventDefault(); toggleSound(); return; }
+    if (event.code === "KeyN" && !event.repeat) { event.preventDefault(); toggleSound(); return; }
     if (event.code === "Escape" && !menu.open) { event.preventDefault(); setMenu(true); return; }
     if (menuOpen || event.target instanceof Element && event.target.closest("button")) return;
     if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) { event.preventDefault(); keys.add(event.code); void audio.unlock(); }

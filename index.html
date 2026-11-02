@@ -10621,7 +10621,14 @@
         normal: "620px",
         large: "760px"
       };
+      const emoteShopItems = [
+        { id: "emote-groove", type: "emote", value: "groove", name: "Groove Emote", cost: 200 },
+        { id: "emote-twirl", type: "emote", value: "twirl", name: "Twirl Emote", cost: 350 },
+        { id: "emote-flip", type: "emote", value: "flip", name: "Flip Emote", cost: 500 }
+      ];
+      const pendingEmotePurchases = new Map();
       const shopItems = [
+        ...emoteShopItems,
         { id: "skin-round", type: "skin", value: "round", name: "Orbit Skin", cost: 40 },
         { id: "skin-neon", type: "skin", value: "neon", name: "Neon Core", cost: 80 },
         { id: "skin-block", type: "skin", value: "block", name: "Block Core", cost: 60 },
@@ -11124,11 +11131,12 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=maps-2&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
+          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=emotes-3&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           controller.signal.throwIfAborted();
           if (!ownsRoom()) return;
           threeGameSession = module.mountOnlineBomb(threeGameHost, {
+            emotes: getEmoteInventory(),
             signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
             read: () => ({ width: canvas.width, height: canvas.height, code, local: onlinePlayerSlot, spectating: onlineSpectating,
               players: getOnlinePlayerEntries().map(([slot, player]) => ({ ...player, slot, headColor: getTheme(player.color).head, totalScore: getPlayerTotalScore(player) })),
@@ -11148,7 +11156,7 @@
             },
             emote: id => {
               const player = onlineState?.playersState?.[onlinePlayerSlot];
-              if (ownsRoom() && player && ["bounce", "spin", "bow"].includes(id)) { player.emote = { id, at: Date.now() }; onlineLocalDirty = true; }
+              if (ownsRoom() && player && getOwnedEmotes().includes(id)) { player.emote = { id, at: Date.now() }; onlineLocalDirty = true; }
             }
           });
           paused = false;
@@ -11232,14 +11240,15 @@
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
           const collection = mode === "catcher" || mode === "coin-rush", kart = mode === "coastline-karts";
-          const loading = kart ? kartGameModule ? Promise.resolve(kartGameModule) : import(`./assets/kart-game.js?v=1&attempt=${++kartGameImportAttempt}`).then(module => { kartGameModule = module; return module; }) : collection
-            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=sound-1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
-            : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=1&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
+          const loading = kart ? kartGameModule ? Promise.resolve(kartGameModule) : import(`./assets/kart-game.js?v=emotes-2&attempt=${++kartGameImportAttempt}`).then(module => { kartGameModule = module; return module; }) : collection
+            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=emotes-2&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
+            : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=emotes-2&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           const mountGame = kart ? module.mountKartGame : collection ? module.mountCollectionGame : module.mountArcadeGame;
           controller.signal.throwIfAborted();
           let finished = false;
           const mounting = mountGame(threeGameHost, {
+            emotes: getEmoteInventory(),
             mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
             trackIndex: arcadeGameLevelIndex, autoStart, storageKey: `mgw-karts-${owner || "guest"}`, onTrack: (next, start) => startArcadeGame(mode, next, start),
             color: getTheme(playerStyle.color).head, pixelSkin: playerStyle.skin === "custom64" ? playerStyle.pixelSkin64 : "", palette: pixelSkinPalette,
@@ -11358,7 +11367,7 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const platformLoading = platformGameModule ? Promise.resolve(platformGameModule) : import(`./assets/three-games.js?v=trials-3&attempt=${++platformGameImportAttempt}`).then(module => { platformGameModule = module; return module; });
+          const platformLoading = platformGameModule ? Promise.resolve(platformGameModule) : import(`./assets/three-games.js?v=emotes-4&attempt=${++platformGameImportAttempt}`).then(module => { platformGameModule = module; return module; });
           const { mountThreeGame, LEVELS, normalizeProgress, recordLevelResult } = await Promise.race([platformLoading, canceled]);
           controller.signal.throwIfAborted();
           const progressKey = `crystal-isles-3d-progress-${owner || "guest"}`;
@@ -11378,6 +11387,7 @@
           };
           saveProgress();
           const mounting = mountThreeGame(threeGameHost, {
+            emotes: getEmoteInventory(),
             trial, replayKey: `${progressKey}-replay-${levelIndex}`,
             onTrial: () => startThreeGame(levelIndex, true),
             mode: currentGame, levelIndex, completed: progress.completed, signal: controller.signal, quality: getGraphicsQualityRank(),
@@ -16664,13 +16674,15 @@
           return;
         }
 
+        const owner = getUserKeyFromAccount();
         const user = await refreshCurrentUserData();
-        shopMessage.textContent = `Coins: ${user.coins} | Flame Coins: ${user.flameCoins} | Premium cosmetics are in Premium menu.`;
+        if (!user || owner !== getUserKeyFromAccount()) return;
+        shopMessage.textContent = `Coins: ${user.coins} | Flame Coins: ${user.flameCoins}`;
         shopList.innerHTML = shopItems.map((item) => {
           const owned = Boolean(user.ownedItems?.[item.id]);
-          const equipped = user.equipped?.[item.type] === item.value;
+          const equipped = item.type === "emote" ? owned : user.equipped?.[item.type] === item.value;
           const priceText = item.flameCost ? `${item.flameCost} Flame Coins` : `${item.cost} coins`;
-          const action = owned ? (equipped ? "Equipped" : "Equip") : `Buy ${priceText}`;
+          const action = owned ? (item.type === "emote" ? "Owned" : equipped ? "Equipped" : "Equip") : `Buy ${priceText}`;
           return `
             <div class="shop-item" data-shop-type="${escapeHtml(item.type)}" data-shop-currency="${item.flameCost ? "flame" : "coins"}">
               <strong>${escapeHtml(item.name)}</strong>
@@ -17313,6 +17325,52 @@
         }
       }
 
+      function getOwnedEmotes() {
+        return ["bounce", "spin", "bow", ...emoteShopItems.filter(item => currentAccount?.username && currentUserData?.ownedItems?.[item.id] === true).map(item => item.value)];
+      }
+
+      function getEmoteInventory() {
+        const owner = getUserKeyFromAccount();
+        return {
+          storageKey: `mgw-victory-pose-${owner || "guest"}`,
+          getOwned: () => owner === getUserKeyFromAccount() ? getOwnedEmotes() : ["bounce", "spin", "bow"],
+          buy: id => buyEmote(id, owner)
+        };
+      }
+
+      function emotePurchaseUpdate(user, id) {
+        const item = emoteShopItems.find(item => item.value === id);
+        if (!item || !user || user.ownedItems?.[item.id] === true || !Number.isSafeInteger(user.coins) || user.coins < item.cost) return;
+        return { ...user, coins: user.coins - item.cost, ownedItems: { ...(user.ownedItems || {}), [item.id]: true } };
+      }
+
+      async function buyEmote(id, owner = getUserKeyFromAccount()) {
+        const item = emoteShopItems.find(item => item.value === id);
+        if (!owner) throw new Error("Sign in to buy emotes.");
+        if (owner !== getUserKeyFromAccount()) throw new Error("Account changed. Reopen the game or shop.");
+        if (!item) throw new Error("Unknown emote.");
+        const key = `${owner}:${id}`;
+        if (pendingEmotePurchases.has(key)) return pendingEmotePurchases.get(key);
+        const purchase = (async () => {
+          await ensureFirebaseSession();
+          if (owner !== getUserKeyFromAccount()) throw new Error("Account changed. Reopen the game or shop.");
+          const ref = firebaseDb.ref(`users/${owner}`);
+          if (!(await ref.once("value")).exists()) throw new Error("Account data unavailable. Please retry.");
+          if (owner !== getUserKeyFromAccount()) throw new Error("Account changed. Reopen the game or shop.");
+          const result = await ref.transaction(user => emotePurchaseUpdate(user, id), undefined, false);
+          const user = result.snapshot.val();
+          if (user?.ownedItems?.[item.id] !== true) throw new Error(user ? "Not enough coins." : "Account data unavailable. Please retry.");
+          if (owner === getUserKeyFromAccount()) {
+            currentUserData = normalizeUserProgress(user);
+            mgwTopCoins.textContent = currentUserData.coins.toLocaleString();
+          }
+          return { owned: true, purchased: result.committed };
+        })();
+        pendingEmotePurchases.set(key, purchase);
+        try { return await purchase; }
+        finally { if (pendingEmotePurchases.get(key) === purchase) pendingEmotePurchases.delete(key); }
+      }
+
       async function handleShopAction(event) {
         const button = event.target.closest("[data-shop-id]");
 
@@ -17321,6 +17379,15 @@
         }
 
         const item = allShopItems.find((shopItem) => shopItem.id === button.dataset.shopId);
+        if (item?.type === "emote") {
+          const owner = getUserKeyFromAccount(); button.disabled = true;
+          try {
+            await buyEmote(item.value, owner);
+            if (owner === getUserKeyFromAccount()) { await renderShopMenu(); shopMessage.textContent = `${item.name} unlocked.`; }
+          } catch (error) { if (owner === getUserKeyFromAccount()) shopMessage.textContent = error?.message || "Purchase failed. Please retry."; }
+          finally { if (button.isConnected) button.disabled = false; }
+          return;
+        }
         const user = await refreshCurrentUserData();
 
         if (!item || !user) {
