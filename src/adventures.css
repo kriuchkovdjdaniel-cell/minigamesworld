@@ -1,0 +1,126 @@
+.mgw-photo-open { position: absolute; bottom: 22px; left: 190px; z-index: 8; }
+#threeGameHost .mgw-photo-open, #threeGameHost .mgw-photo-tools button { display: grid; place-items: center; width: 40px; height: 40px; padding: 8px; border-radius: 6px; background: #233c35; border: 1px solid #598977; color: #edf6f0; box-shadow: none; }
+#threeGameHost .mgw-photo-open::before, #threeGameHost .mgw-photo-tools button::before { display: none; }
+#threeGameHost[data-photo="true"] > :not(canvas):not(.mgw-photo-tools) { visibility: hidden !important; pointer-events: none !important; }
+#threeGameHost[data-photo="true"] > canvas:not(:first-child) { visibility: hidden; }
+#threeGameHost .mgw-photo-tools { position: absolute; z-index: 50; bottom: 16px; left: 16px; right: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px; color: #eef5ee; background: #10231fed; border: 1px solid #598977; border-radius: 8px; font: 14px Arial, sans-serif; }
+#threeGameHost .mgw-photo-tools[hidden], #threeGameHost .mgw-photo-tools [hidden] { display: none; }
+.mgw-photo-tools label { display: flex; align-items: center; gap: 6px; }
+.mgw-photo-tools input { width: 110px; }
+.mgw-photo-tools select { max-width: 130px; }
+.mgw-photo-tools [role="status"] { flex-basis: 100%; }
+.emote-favorites { width: 100%; text-align: left; }
+.emote-favorites summary { cursor: pointer; padding: 8px 0; }
+.emote-favorites label { margin: 5px 0; }
+@media(max-width: 540px) { .mgw-photo-open { bottom: 180px; left: 12px; } }
+.adventure-hub, .adventure-party-lobby { padding: 24px; color: #dce8e1; font: 15px Arial, sans-serif; text-align: left; }
+.adventure-hub h2, .adventure-party-lobby h2 { font: 700 26px Arial, sans-serif; color: #e7eee8; margin: 0 0 12px; text-shadow: none; }
+.adventure-hub h3 { font: 700 19px Arial, sans-serif; text-shadow: none; margin: 10px 0; }
+.adventure-heading { border-bottom: 1px solid #345348; padding-bottom: 12px; }
+.adventure-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0; border-bottom: 1px solid #345348; }
+.adventure-hub button, .adventure-party-lobby button, .mgw-clubhouse button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-width: 0; padding: 10px 14px; border: 1px solid #456c60; border-radius: 6px; background: #213d35; color: #e7eee8; font: 600 14px Arial, sans-serif; text-transform: none; box-shadow: none; text-shadow: none; letter-spacing: 0; }
+.adventure-hub button::before, .adventure-party-lobby button::before, .mgw-clubhouse button::before { display: none; }
+.adventure-hub button[aria-pressed="true"], .adventure-hub button:hover, .adventure-party-lobby button:hover, .mgw-clubhouse button:hover { background: #365951; border-color: #89b9a2; }
+.adventure-hub button:disabled, .adventure-party-lobby button:disabled, .mgw-clubhouse button:disabled { opacity: 0.5; cursor: not-allowed; }
+.adventure-hub button:focus-visible, .adventure-party-lobby button:focus-visible, .mgw-clubhouse button:focus-visible { outline: 2px solid #b9d8c6; outline-offset: 3px; }
+.adventure-content { padding: 24px 0; min-width: 0; }
+.adventure-weekly { display: grid; grid-template-columns: minmax(180px, 0.8fr) minmax(0, 1fr); gap: 24px; align-items: center; }
+.adventure-weekly img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 6px; }
+.adventure-weekly button { margin: 8px 8px 0 0; }
+.adventure-rewards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.adventure-reward { min-width: 0; padding: 18px; border: 1px solid #3b5054; border-radius: 6px; background: #142629; }
+.adventure-reward progress { display: block; width: 100%; height: 8px; margin: 16px 0; accent-color: #7ab198; }
+.adventure-swatch { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 6px; background: #756b91; }
+.adventure-relic-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 20px; margin-bottom: 24px; }
+.adventure-relic { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #2b4540; color: #9eaeb5; }
+.adventure-relic[data-found="true"] { color: #9bd2b0; }
+.adventure-party-create { display: grid; gap: 14px; max-width: 420px; }
+.adventure-party-create select, .adventure-party-create input, .party-vote select { min-width: 0; width: 100%; padding: 12px; border: 1px solid #4a6d62; border-radius: 5px; background: #152726; color: #e1ece4; font: 15px Arial, sans-serif; }
+.adventure-status { min-height: 24px; color: #d5c596; }
+.adventure-party-lobby { max-width: 1000px; margin: auto; }
+.adventure-party-lobby header { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 20px 0; border-bottom: 1px solid #3b5054; }
+.adventure-party-lobby header strong { color: #ddc792; font: 700 22px monospace; }
+.party-members { list-style: none; padding: 0; margin: 12px 0 24px; }
+.party-members li { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 4px; border-bottom: 1px solid #2b4540; }
+.party-members li strong { flex: 1; overflow-wrap: anywhere; }
+.party-vote { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
+.party-vote label { display: grid; gap: 8px; flex: 1; min-width: 180px; }
+.party-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.party-return { position: fixed; z-index: 8000; bottom: 12px; left: 50%; transform: translateX(-50%); }
+#threeGameHost .party-return[data-in-menu="true"] { position: static; transform: none; width: 100%; }
+/* These views live inside the legacy start panel; do not inherit its display-card typography. */
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) { text-align: left; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) > header { position: static; display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 12px; width: 100%; min-height: 0; margin: 0; padding: 0 0 12px; border: 0; border-bottom: 1px solid #345348; border-radius: 0; background: none; box-shadow: none; transform: none; animation: none; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) :is(header,section,h2,h3)::before,
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) :is(header,section,h2,h3)::after { display: none; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) section { position: static; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) :is(h2,h3) { min-width: 0; max-width: 100%; margin: 0 0 10px; padding: 0; border: 0; border-radius: 0; background: none; color: #e7eee8; font: 700 20px/1.3 Arial, sans-serif; letter-spacing: 0; text-align: left; text-transform: none; text-shadow: none; box-shadow: none; transform: none; overflow-wrap: anywhere; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) h3 { font-size: 18px; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) p { min-height: 0; margin: 8px 0; padding: 0; border: 0; border-radius: 0; background: none; color: #b8c9c2; font: 400 14px/1.5 Arial, sans-serif; letter-spacing: 0; text-align: left; text-shadow: none; box-shadow: none; overflow-wrap: anywhere; }
+body #startAdventuresMenu:is(.adventure-hub,.adventure-party-lobby) [role="status"] { min-height: 22px; margin: 14px 0 0; color: #baccc7; }
+body #startAdventuresMenu.adventure-party-lobby > header h2 { margin: 0; }
+body[data-runtime] #startAdventuresMenu.open { display: block; width: 100%; max-width: none; min-height: 100%; }
+/* The portal is a grid track. Keep its canvas full-bleed, without inherited hub padding. */
+body[data-runtime] #startScreen #startPanel > #startAdventuresMenu.clubhouse-open,
+.mgw-clubhouse { position: relative; display: block; width: 100%; height: 100%; min-height: 0; max-height: none; padding: 0; overflow: hidden; scrollbar-gutter: auto; background: #9aaead; border: 0; border-radius: 0; box-shadow: none; font: 14px Arial, sans-serif; color: #e6efe9; text-align: left; }
+body[data-runtime] #startScreen #startPanel > #startAdventuresMenu.clubhouse-open::before,
+body[data-runtime] #startScreen #startPanel > #startAdventuresMenu.clubhouse-open::after { display: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse *, .mgw-clubhouse * { box-sizing: border-box; letter-spacing: 0; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse > canvas, .mgw-clubhouse > canvas { position: absolute; inset: 0; display: block; max-width: none; width: 100%; height: 100%; margin: 0; border: 0; border-radius: 0; box-shadow: none; touch-action: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(.club-toolbar,.club-dock), .mgw-clubhouse :is(.club-toolbar,.club-dock) { position: absolute; z-index: 2; left: 12px; right: 12px; margin: 0; max-width: none; padding: 12px; border: 1px solid #516961; border-radius: 8px; background: #152923f5; box-shadow: 0 4px 18px #12211b20; color: #e6efe9; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-toolbar, .mgw-clubhouse .club-toolbar { top: 12px; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-title, .mgw-clubhouse .club-title { flex: 1; min-width: 100px; overflow: hidden; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse h2, .mgw-clubhouse h2 { margin: 0 0 3px; padding: 0; font: 700 19px Arial, sans-serif; text-align: left; color: #eef5ef; text-shadow: none; background: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [data-club-owner], .mgw-clubhouse [data-club-owner] { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 230px; color: #aebfb5; font: 13px Arial, sans-serif; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button, .mgw-clubhouse button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; width: auto; min-width: 0; min-height: 40px; height: auto; max-width: 100%; margin: 0; padding: 8px 12px; border: 1px solid #526e62; border-radius: 5px; background: #29453b; color: #edf5ee; font: 600 14px Arial, sans-serif; text-transform: none; text-shadow: none; box-shadow: none; transform: none; animation: none; white-space: normal; overflow-wrap: anywhere; cursor: pointer; transition: background-color 100ms; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button:is(:hover,:focus-visible), .mgw-clubhouse button:is(:hover,:focus-visible) { background: #3c5c4e; border-color: #a6c4b2; transform: none; box-shadow: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button:active, .mgw-clubhouse button:active { background: #203b32; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button:disabled, .mgw-clubhouse button:disabled { opacity: 0.55; cursor: not-allowed; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :focus-visible, .mgw-clubhouse :focus-visible { outline: 2px solid #f0d698; outline-offset: 2px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button::before,
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button::after,
+.mgw-clubhouse button::before, .mgw-clubhouse button::after { display: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse svg, .mgw-clubhouse svg { width: 20px; height: 20px; flex: 0 0 20px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(.club-commands,.club-room-colors,.club-item-colors), .mgw-clubhouse :is(.club-commands,.club-room-colors,.club-item-colors) { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(.club-commands button,[data-club-rotate],[data-club-delete],[data-club-collapse]), .mgw-clubhouse :is(.club-commands button,[data-club-rotate],[data-club-delete],[data-club-collapse]) { width: 40px; height: 40px; padding: 8px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button.club-color, .mgw-clubhouse button.club-color { position: relative; width: 32px; height: 36px; min-height: 36px; padding: 6px; border: 1px solid transparent; border-radius: 4px; background: transparent; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button.club-color::after, .mgw-clubhouse button.club-color::after { content: ""; position: static; display: block; width: 20px; height: 20px; border: 1px solid #ffffff60; border-radius: 50%; background: var(--club-swatch); opacity: 1; transform: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse button.club-color[aria-pressed="true"], .mgw-clubhouse button.club-color[aria-pressed="true"] { border-color: #f3db99; background: #ffffff18; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-dock, .mgw-clubhouse .club-dock { bottom: 12px; padding: 0; display: flex; flex-direction: column; max-height: min(280px, 45%); }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-dock-header, .mgw-clubhouse .club-dock-header { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; padding: 8px 12px; border-bottom: 1px solid #3c5549; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [role="tablist"], .mgw-clubhouse [role="tablist"] { display: flex; gap: 4px; flex: 1; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [role="tab"], .mgw-clubhouse [role="tab"] { border-color: transparent; background: transparent; min-height: 36px; padding: 7px 10px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [role="tab"][aria-selected="true"], .mgw-clubhouse [role="tab"][aria-selected="true"] { background: #3b5748; border-color: #698571; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [data-club-count], .mgw-clubhouse [data-club-count] { color: #b7c9bc; font: 13px Arial, sans-serif; white-space: nowrap; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-dock-body, .mgw-clubhouse .club-dock-body { min-height: 0; overflow: auto; padding: 12px; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #7b9a86 #20372e; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(.club-palette,.club-inspector), .mgw-clubhouse :is(.club-palette,.club-inspector) { position: static; width: 100%; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [data-club-items], .mgw-clubhouse [data-club-items] { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [data-furniture], .mgw-clubhouse [data-furniture] { justify-content: flex-start; text-align: left; min-height: 46px; padding: 9px; font-size: 13px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-add, .mgw-clubhouse .club-add { margin-left: auto; width: 14px; height: 14px; flex-basis: 14px; opacity: 0.7; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-unlock, .mgw-clubhouse .club-unlock { margin: 10px 0 0; padding: 0; color: #bccabc; font: 12px Arial, sans-serif; text-align: left; text-shadow: none; background: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-inspector, .mgw-clubhouse .club-inspector { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-item-picker, .mgw-clubhouse .club-item-picker { flex: 1; min-width: 150px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse label, .mgw-clubhouse label { display: grid; gap: 5px; color: #c4d3c9; font: 13px Arial, sans-serif; text-align: left; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(input,select), .mgw-clubhouse :is(input,select) { display: block; min-width: 0; width: 100%; height: 40px; padding: 7px; margin: 0; border: 1px solid #6d8c7b; border-radius: 4px; background: #1a3028; color: #eff5ef; font: 14px Arial, sans-serif; text-align: left; text-shadow: none; box-shadow: none; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-item-controls, .mgw-clubhouse .club-item-controls { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-item-controls input, .mgw-clubhouse .club-item-controls input { width: 62px; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [data-club-delete], .mgw-clubhouse [data-club-delete] { background: #503b3b; border-color: #95716d; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-status, .mgw-clubhouse .club-status { position: static; flex: 0 0 auto; min-height: 30px; padding: 7px 12px; margin: 0; max-width: 100%; border: 0; border-top: 1px solid #3c5549; border-radius: 0; background: #0f221a; color: #b9d6c1; font: 12px/1.4 Arial, sans-serif; text-align: left; text-shadow: none; overflow-wrap: anywhere; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-status[data-state="unsaved"], .mgw-clubhouse .club-status[data-state="unsaved"] { color: #ead59e; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-status[data-state="error"], .mgw-clubhouse .club-status[data-state="error"] { color: #ffc1b5; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse [hidden], .mgw-clubhouse [hidden] { display: none !important; }
+body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-unavailable, .mgw-clubhouse .club-unavailable { padding: 24px; background: #152923; }
+@media(max-width: 700px) {
+  .adventure-hub, .adventure-party-lobby { padding: 16px; }
+  .adventure-weekly { grid-template-columns: 1fr; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-toolbar, .mgw-clubhouse .club-toolbar { gap: 6px; padding: 8px; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-room-colors, .mgw-clubhouse .club-room-colors { order: 3; flex-basis: 100%; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse :is(.club-toolbar,.club-dock), .mgw-clubhouse :is(.club-toolbar,.club-dock) { left: 8px; right: 8px; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-dock-header, .mgw-clubhouse .club-dock-header { padding: 6px; gap: 4px; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse .club-item-picker, .mgw-clubhouse .club-item-picker { flex-basis: 100%; }
+  body[data-runtime] #startAdventuresMenu.mgw-clubhouse button.club-color, .mgw-clubhouse button.club-color { width: 40px; height: 40px; min-height: 40px; }
+}
+@media(prefers-reduced-motion: reduce) { .mgw-clubhouse button { transition: none; } }
+@media(max-width: 760px) {
+  body[data-runtime] #startScreen #startPanel > #startAdventuresMenu.clubhouse-open { height: calc(100% - 5.2rem); }
+}

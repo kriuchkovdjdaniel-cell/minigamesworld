@@ -18,11 +18,12 @@ export function makeLevel(mode, levelIndex = 0) {
   throw new Error("Unknown 3D game.");
 }
 
-export async function createSimulation(mode, levelIndex = 0) {
+export async function createSimulation(mode, levelIndex = 0, modifier = "") {
   ready ||= RAPIER.init().catch((error) => { ready = null; throw error; });
   await ready;
   const level = makeLevel(mode, levelIndex);
-  const world = new RAPIER.World({ x: 0, y: -22, z: 0 });
+  const gravity = modifier === "low-gravity" ? 13 : 22;
+  const world = new RAPIER.World({ x: 0, y: -gravity, z: 0 });
   world.timestep = STEP;
   for (const box of level.boxes) {
     world.createCollider(RAPIER.ColliderDesc.cuboid(box.w / 2, box.h / 2, box.d / 2).setTranslation(box.x, box.y, box.z));
@@ -61,7 +62,7 @@ export async function createSimulation(mode, levelIndex = 0) {
     else jumpBuffer = Math.max(0, jumpBuffer - STEP);
     coyote = state.grounded ? 0.1 : Math.max(0, coyote - STEP);
     if (jumpBuffer > 0 && coyote > 0) { state.velocityY = 9.3; jumpBuffer = coyote = 0; state.grounded = false; }
-    state.velocityY = Math.max(-25, state.velocityY - 22 * STEP);
+    state.velocityY = Math.max(-25, state.velocityY - gravity * STEP);
     const x = Number.isFinite(input.x) ? Math.max(-1, Math.min(1, input.x)) : 0;
     const z = Number.isFinite(input.z) ? Math.max(-1, Math.min(1, input.z)) : 0;
     const length = Math.max(1, Math.hypot(x, z));

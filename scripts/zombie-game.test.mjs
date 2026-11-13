@@ -30,7 +30,7 @@ test("all three stops create colliding worlds with distinct encounters and loot"
     try {
       assert.equal(sim.state.enemies.length, STOPS[i].enemies);
       assert.equal(sim.state.loot.length, 5);
-      assert.equal(sim.state.enemies.filter(e => e.boss).length, i === 2 ? 1 : 0);
+      assert.equal(sim.state.enemies.filter(e => e.boss).length, 1);
       assert.equal(sim.checkpoint().stopIndex, i);
       assert.equal(sim.bus.body.translation().z, STOPS[i].z + 8);
       tick(sim, 0.5, { x: 1 });
@@ -170,6 +170,7 @@ test("complete three-stop journey with shooting, real driving, checkpoints and f
       }
       teleport(sim, sim.player, -17, STOPS[stop].z - 9); sim.interact();
       teleport(sim, sim.player, 17, STOPS[stop].z - 9); sim.interact();
+      assert.equal(sim.chooseUpgrade("reinforced"), true);
       teleport(sim, sim.player, 4, STOPS[stop].z + 9); assert.equal(sim.interact(), true);
       sim.purchase("repair"); sim.purchase("armor"); sim.purchase("weapon");
       tick(sim, 9, () => sim.state.stopIndex === stop && sim.state.status === "playing" ? { throttle: 1 } : {});
@@ -184,7 +185,8 @@ test("complete three-stop journey with shooting, real driving, checkpoints and f
     assert.ok(sim.state.fuel > 0);
     const restored = await createZombieSimulation(sim.checkpoint());
     assert.equal(restored.state.stopIndex, 2); assert.equal(restored.state.enemies.length, 7);
-    assert.equal(restored.state.loot.some(item => item.taken), false); restored.dispose();
+    assert.equal(restored.state.stopCleared, true);
+    assert.equal(restored.state.loot.some(item => item.taken), true); restored.dispose();
   } finally { sim.dispose(); }
 });
 
@@ -194,7 +196,7 @@ test("new game stays lazy-loaded and is copied by both existing web/app builds",
   assert.match(html, /data-start-game="dead-route-3d"/);
   assert.match(html, /function isThreeGame[\s\S]*?dead-route-3d/);
   assert.match(html, /async function startZombieGame[\s\S]*?requireDesktopGameplay\(\)/);
-  assert.match(html, /import\(`\.\/assets\/zombie-game.js\?v=route-2&attempt=/);
+  assert.match(html, /import\(`\.\/assets\/zombie-game.js\?v=adventures-1&attempt=/);
   for (const script of ["scripts/prepare-vercel.mjs", "scripts/prepare-tauri.mjs", "scripts/serve.mjs"]) assert.match(read(script), /assets\/zombie-game.js/);
   assert.match(read("service-worker.js"), /LAZY_ASSETS = \[.*zombie-game.js/);
 });

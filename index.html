@@ -9129,6 +9129,7 @@
     <link rel="stylesheet" href="assets/online-bomb.css">
     <link rel="stylesheet" href="assets/kart-game.css">
     <link rel="stylesheet" href="assets/coop-route.css">
+    <link rel="stylesheet" href="assets/adventures.css">
   </head>
   <body>
     <div class="start-screen" id="startScreen" aria-label="Start menu">
@@ -9163,6 +9164,7 @@
         <div class="start-actions">
           <button type="button" id="startPlayButton">Play</button>
           <button type="button" id="startGamesButton">Games</button>
+          <button type="button" id="startAdventuresButton">Adventures</button>
           <button type="button" id="startProfileButton">Profile</button>
           <button type="button" id="startSkinStudioButton">Skin Studio</button>
           <button type="button" id="startShopButton">Shop</button>
@@ -9410,6 +9412,7 @@
           <div class="shop-list" id="achievementsList"></div>
           <p class="room-note" id="questsMessage"></p>
         </div>
+        <div class="start-submenu" id="startAdventuresMenu" aria-label="Adventures"></div>
         <div class="start-submenu" id="startSocialMenu" aria-label="Friends">
           <button type="button" id="startBackFromSocial">Back</button>
           <h3>Friends</h3>
@@ -10410,6 +10413,9 @@
 
       let currentGame = "snake";
       let threeGameSession = null;
+      let adventureCorePromise = null, adventuresUiPromise = null, adventureView = null, clubhouseSession = null, partyLobbyView = null;
+      let partySnapshot = null, partyEpoch = -1, partyTransition = false, partyLobbyActive = false, partyRenderId = 0;
+      const adventureLocal = new Map();
       let threeGameLoading = null;
       let onlineCoopModule = null;
       let onlineCoopRuntime = null;
@@ -10624,7 +10630,9 @@
       const emoteShopItems = [
         { id: "emote-groove", type: "emote", value: "groove", name: "Groove Emote", cost: 200 },
         { id: "emote-twirl", type: "emote", value: "twirl", name: "Twirl Emote", cost: 350 },
-        { id: "emote-flip", type: "emote", value: "flip", name: "Flip Emote", cost: 500 }
+        { id: "emote-flip", type: "emote", value: "flip", name: "Flip Emote", cost: 500 },
+        { id: "emote-shuffle", type: "emote", value: "shuffle", name: "Shuffle Emote", cost: 650 },
+        { id: "emote-sway", type: "emote", value: "sway", name: "Sway Emote", cost: 800 }
       ];
       const pendingEmotePurchases = new Map();
       const shopItems = [
@@ -11131,7 +11139,7 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=emotes-3&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
+          const loading = onlineBombModule ? Promise.resolve(onlineBombModule) : import(`./assets/online-bomb.js?v=adventures-1&attempt=${++onlineBombImportAttempt}`).then(module => { onlineBombModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           controller.signal.throwIfAborted();
           if (!ownsRoom()) return;
@@ -11180,7 +11188,7 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Please retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loading = onlineCoopModule ? Promise.resolve(onlineCoopModule) : import(`./assets/coop-route.js?v=1&attempt=${++onlineCoopImportAttempt}`).then(module => { onlineCoopModule = module; return module; });
+          const loading = onlineCoopModule ? Promise.resolve(onlineCoopModule) : import(`./assets/coop-route.js?v=adventures-1&attempt=${++onlineCoopImportAttempt}`).then(module => { onlineCoopModule = module; return module; });
           const module = await Promise.race([loading, canceled]); controller.signal.throwIfAborted();
           if (!ownsRoom()) return;
           if (onlinePlayerSlot === "p1") {
@@ -11219,7 +11227,7 @@
         } finally { clearTimeout(timeout); }
       }
 
-      async function startArcadeGame(mode, levelIndex = 0, autoStart = false) {
+      async function startArcadeGame(mode, levelIndex = 0, autoStart = false, challenge = null) {
         if (!["dodger", "laser-dodge", "catcher", "coin-rush", "coastline-karts"].includes(mode) || !requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting a solo game.");
@@ -11240,14 +11248,16 @@
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
           const collection = mode === "catcher" || mode === "coin-rush", kart = mode === "coastline-karts";
-          const loading = kart ? kartGameModule ? Promise.resolve(kartGameModule) : import(`./assets/kart-game.js?v=emotes-2&attempt=${++kartGameImportAttempt}`).then(module => { kartGameModule = module; return module; }) : collection
-            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=emotes-2&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
-            : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=emotes-2&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
+          const loading = kart ? kartGameModule ? Promise.resolve(kartGameModule) : import(`./assets/kart-game.js?v=adventures-1&attempt=${++kartGameImportAttempt}`).then(module => { kartGameModule = module; return module; }) : collection
+            ? collectionGameModule ? Promise.resolve(collectionGameModule) : import(`./assets/collection-games.js?v=adventures-1&attempt=${++collectionGameImportAttempt}`).then(module => { collectionGameModule = module; return module; })
+            : arcadeGameModule ? Promise.resolve(arcadeGameModule) : import(`./assets/arcade-games.js?v=adventures-1&attempt=${++arcadeGameImportAttempt}`).then(module => { arcadeGameModule = module; return module; });
           const module = await Promise.race([loading, canceled]);
           const mountGame = kart ? module.mountKartGame : collection ? module.mountCollectionGame : module.mountArcadeGame;
+          const adventure = await Promise.race([makeAdventureRun(owner, mode, arcadeGameLevelIndex, challenge), canceled]);
           controller.signal.throwIfAborted();
           let finished = false;
           const mounting = mountGame(threeGameHost, {
+            challenge: adventure.challenge, secrets: adventure.secrets,
             emotes: getEmoteInventory(),
             mode, levelIndex: arcadeGameLevelIndex, signal: controller.signal, quality: getGraphicsQualityRank(), getVolume: getGameVolume,
             trackIndex: arcadeGameLevelIndex, autoStart, storageKey: `mgw-karts-${owner || "guest"}`, onTrack: (next, start) => startArcadeGame(mode, next, start),
@@ -11256,16 +11266,19 @@
             onPause: value => { if (threeGameLoading === controller) paused = value; },
             onPickup: collection ? undefined : () => playSound("eat"), onHit: collection ? undefined : () => playSound("gameover"),
             onFullscreen: toggleGameFullscreen, onExit: showMainMenu,
-            onRestart: () => startArcadeGame(mode, levelIndex), onLevelChange: next => startArcadeGame(mode, next),
+            onRestart: () => startArcadeGame(mode, levelIndex, false, challenge), onLevelChange: next => startArcadeGame(mode, next),
             onFinish: result => {
               if (finished || threeGameLoading !== controller) return;
               finished = true; gameOver = true; score = result.score;
-              try { if (score > getLocalBestScore(mode)) setLocalBestScore(mode, score); }
-              catch { showTopNotification("Best score could not be saved on this device."); }
-              if (owner && owner === getUserKeyFromAccount()) {
-                firebaseDb.ref(`users/${owner}/bestScores/${mode}`).transaction(previous => Math.max(Number(previous) || 0, result.score))
-                  .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
-                handleGameFinishedRewards(result.score, mode).catch(() => showTopNotification("Could not sync round rewards. Check your connection."));
+              void adventure.finish(result);
+              if (!adventure.challenge) {
+                try { if (score > getLocalBestScore(mode)) setLocalBestScore(mode, score); }
+                catch { showTopNotification("Best score could not be saved on this device."); }
+                if (owner && owner === getUserKeyFromAccount()) {
+                  firebaseDb.ref(`users/${owner}/bestScores/${mode}`).transaction(previous => Math.max(Number(previous) || 0, result.score))
+                    .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
+                  handleGameFinishedRewards(result.score, mode).catch(() => showTopNotification("Could not sync round rewards. Check your connection."));
+                }
               }
               publishProfilePresence(); if (!collection) playSound(result.won ? "eat" : "gameover");
             }
@@ -11302,9 +11315,10 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const loadingModule = zombieGameModule ? Promise.resolve(zombieGameModule) : import(`./assets/zombie-game.js?v=route-2&attempt=${++zombieGameImportAttempt}`)
+          const loadingModule = zombieGameModule ? Promise.resolve(zombieGameModule) : import(`./assets/zombie-game.js?v=adventures-1&attempt=${++zombieGameImportAttempt}`)
             .then(module => { zombieGameModule = module; return module; });
           const { mountZombieGame, normalizeCheckpoint } = await Promise.race([loadingModule, canceled]);
+          const adventure = await Promise.race([makeAdventureRun(owner, "dead-route-3d", 0), canceled]);
           controller.signal.throwIfAborted();
           let checkpoint = null;
           if (!fresh) { try { checkpoint = JSON.parse(localStorage.getItem(checkpointKey) || "null"); } catch {} }
@@ -11321,6 +11335,7 @@
             onFinish: result => {
               if (threeGameLoading !== controller) return;
               gameOver = true; score = result.score;
+              void adventure.finish(result);
               try { if (score > getLocalBestScore("dead-route-3d")) setLocalBestScore("dead-route-3d", score); }
               catch { showTopNotification("Best score could not be saved on this device."); }
               if (owner && owner === getUserKeyFromAccount()) {
@@ -11340,7 +11355,7 @@
         } finally { clearTimeout(timeout); }
       }
 
-      async function startThreeGame(requestedLevel, trial = false) {
+      async function startThreeGame(requestedLevel, trial = false, challenge = null) {
         if (!requireDesktopGameplay()) return;
         if (onlineRoomCode || roomJoinInFlight) {
           showTopNotification("Leave your online room before starting Crystal Isles 3D.");
@@ -11367,7 +11382,7 @@
         const timeout = setTimeout(() => controller.abort(new Error("Loading took too long. Check your connection and retry.")), 20000);
         try {
           const canceled = new Promise((resolve, reject) => controller.signal.addEventListener("abort", () => reject(controller.signal.reason), { once: true }));
-          const platformLoading = platformGameModule ? Promise.resolve(platformGameModule) : import(`./assets/three-games.js?v=emotes-4&attempt=${++platformGameImportAttempt}`).then(module => { platformGameModule = module; return module; });
+          const platformLoading = platformGameModule ? Promise.resolve(platformGameModule) : import(`./assets/three-games.js?v=adventures-1&attempt=${++platformGameImportAttempt}`).then(module => { platformGameModule = module; return module; });
           const { mountThreeGame, LEVELS, normalizeProgress, recordLevelResult } = await Promise.race([platformLoading, canceled]);
           controller.signal.throwIfAborted();
           const progressKey = `crystal-isles-3d-progress-${owner || "guest"}`;
@@ -11385,8 +11400,10 @@
             try { localStorage.setItem(progressKey, JSON.stringify(progress)); }
             catch { showTopNotification("Level progress could not be saved on this device."); }
           };
-          saveProgress();
+          const adventure = await Promise.race([makeAdventureRun(owner, "crystal-isles-3d", levelIndex, challenge), canceled]);
+          if (!adventure.challenge) saveProgress();
           const mounting = mountThreeGame(threeGameHost, {
+            challenge: adventure.challenge, secrets: adventure.secrets,
             emotes: getEmoteInventory(),
             trial, replayKey: `${progressKey}-replay-${levelIndex}`,
             onTrial: () => startThreeGame(levelIndex, true),
@@ -11398,19 +11415,22 @@
             onPickup: () => playSound("eat"),
             onFullscreen: toggleGameFullscreen,
             onExit: showMainMenu,
-            onRestart: () => startThreeGame(levelIndex, trial),
+            onRestart: () => startThreeGame(levelIndex, trial, challenge),
             onLevelChange: (nextLevel) => startThreeGame(nextLevel, trial),
             onFinish: (result) => {
               if (threeGameLoading !== controller) return;
-              progress = recordLevelResult(progress, result);
-              saveProgress();
+              void adventure.finish(result);
+              if (!adventure.challenge) {
+                progress = recordLevelResult(progress, result);
+                saveProgress();
+                if (result.score > getLocalBestScore("crystal-isles-3d")) setLocalBestScore("crystal-isles-3d", result.score);
+                if (owner && owner === getUserKeyFromAccount()) {
+                  firebaseDb.ref(`users/${owner}/bestScores/crystal-isles-3d`).transaction((previous) => Math.max(Number(previous) || 0, result.score))
+                    .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
+                }
+              }
               gameOver = true;
               score = result.score;
-              if (score > getLocalBestScore("crystal-isles-3d")) setLocalBestScore("crystal-isles-3d", score);
-              if (owner && owner === getUserKeyFromAccount()) {
-                firebaseDb.ref(`users/${owner}/bestScores/crystal-isles-3d`).transaction((previous) => Math.max(Number(previous) || 0, result.score))
-                  .catch(() => showTopNotification("Best score saved on this device. Cloud save failed."));
-              }
               publishProfilePresence();
               playSound(result.won ? "eat" : "gameover");
             }
@@ -11840,6 +11860,14 @@
 
       function applyPlayerStyleControls() {
         selectedMusicPack = normalizeMusicPack(selectedMusicPack);
+        const earnedColors = [["relic", "Relic Jade"], ...["Crystal Isles", "Gem Dash", "Laser Escape", "Apple Drop", "Coin Dash", "Coastline Karts", "Dead Route"].map((name, i) => [`mastery-${i}`, `${name} Master`])];
+        for (const select of [startColorSelect, colorSelect]) {
+          for (const [value, label] of earnedColors) {
+            let option = [...select.options].find(item => item.value === value);
+            if (!option) { option = new Option(label, value); select.append(option); }
+            option.disabled = currentUserData?.ownedItems?.[`color-${value}`] !== true;
+          }
+        }
         skinSelect.value = playerStyle.skin;
         colorSelect.value = playerStyle.color;
         trailSelect.value = playerStyle.trail || "";
@@ -11955,7 +11983,8 @@
         const ownsSkin = selectedSkin === "custom64"
           ? Boolean(currentUserData?.pixelSkin64)
           : !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`skin-${selectedSkin}`]);
-        const ownsColor = !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`color-${selectedColor}`]);
+        const earnedColor = selectedColor === "relic" || /^mastery-[0-6]$/.test(selectedColor);
+        const ownsColor = earnedColor ? currentUserData?.ownedItems?.[`color-${selectedColor}`] === true : !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`color-${selectedColor}`]);
         const ownsTrail = !selectedTrail || !currentAccount?.username || !currentUserData || Boolean(currentUserData.ownedItems?.[`trail-${selectedTrail}`]);
 
         if (!ownsSkin || !ownsColor || !ownsTrail) {
@@ -12449,6 +12478,9 @@
       }
 
       function getTheme(colorName) {
+        const masteryColors = ["#9bcbb4", "#b8a0d9", "#dfb7c6", "#d9c58d", "#91bdca", "#c5d3ac", "#a3b5c5"];
+        const earned = /^mastery-[0-6]$/.test(colorName) ? masteryColors[Number(colorName.slice(-1))] : colorName === "relic" ? "#77c6ad" : "";
+        if (earned) return { head: earned, body: earned, top: "#e2eee5" };
         return colorThemes[colorName] || colorThemes.teal;
       }
 
@@ -15422,6 +15454,7 @@
 
         const navButtons = [
           [startGamesButton, "games"],
+          [document.getElementById("startAdventuresButton"), "adventures"],
           [startProfileButton, "profile"],
           [startSkinStudioButton, "skinStudio"],
           [startShopButton, "shop"],
@@ -15559,7 +15592,15 @@
       }
 
       function showStartSection(section) {
+        const clubhouseState = clubhouseSession?.snapshot();
+        if (clubhouseState?.busy) return;
+        if (clubhouseState?.dirty && !confirm("Leave without saving clubhouse changes?")) return;
         section = setHubSection(section);
+        const adventureMenu = document.getElementById("startAdventuresMenu");
+        adventureMenu.classList.toggle("open", section === "adventures");
+        if (section !== "adventures") { adventureView?.dispose(); adventureView = null; clubhouseSession?.dispose(); clubhouseSession = null; partyLobbyView?.dispose(); partyLobbyView = null; adventureMenu.classList.remove("clubhouse-open"); }
+        else if (partyLobbyActive) void renderPartyLobbyView();
+        else void renderAdventures();
 
         if (section === "admin" && !currentAccount?.isAdmin) {
           section = setHubSection("games");
@@ -17325,8 +17366,229 @@
         }
       }
 
+      function getAdventureCore() {
+        return adventureCorePromise ||= import("./assets/adventure-model.js?v=1").catch(error => { adventureCorePromise = null; throw error; });
+      }
+
+      function getAdventuresUi() {
+        return adventuresUiPromise ||= import("./assets/adventures.js?v=1").catch(error => { adventuresUiPromise = null; throw error; });
+      }
+
+      async function readAdventureProgress(owner = getUserKeyFromAccount()) {
+        const model = await getAdventureCore();
+        if (!adventureLocal.has(owner)) {
+          let local = null; try { local = JSON.parse(localStorage.getItem(`mgw-adventure-${owner || "guest"}`)); } catch {}
+          adventureLocal.set(owner, model.normalizeAdventure(local));
+        }
+        const value = model.mergeAdventure(adventureLocal.get(owner), owner && owner === getUserKeyFromAccount() ? currentUserData?.adventure : null);
+        adventureLocal.set(owner, value); return value;
+      }
+
+      async function recordAdventureEvent(owner, event) {
+        const model = await getAdventureCore(), savedProgress = await readAdventureProgress(owner);
+        const progress = model.recordAdventure(model.mergeAdventure(savedProgress, adventureLocal.get(owner)), event);
+        adventureLocal.set(owner, progress);
+        try { localStorage.setItem(`mgw-adventure-${owner || "guest"}`, JSON.stringify(progress)); } catch { showTopNotification("Adventure progress could not be saved on this device."); }
+        if (!owner) return progress;
+        await ensureFirebaseSession();
+        const ref = firebaseDb.ref(`users/${owner}`); await ref.once("value");
+        const result = await ref.transaction(user => user ? { ...user, adventure: model.mergeAdventure(user.adventure, adventureLocal.get(owner)) } : undefined, undefined, false);
+        if (!result.committed) throw new Error("Account unavailable; progress is saved on this device.");
+        const saved = model.mergeAdventure(adventureLocal.get(owner), result.snapshot.val().adventure); adventureLocal.set(owner, saved);
+        if (owner === getUserKeyFromAccount() && currentUserData) currentUserData.adventure = saved;
+        return saved;
+      }
+
+      async function makeAdventureRun(owner, game, level, requested = null) {
+        const model = await getAdventureCore(), progress = await readAdventureProgress(owner), weekly = model.weeklyChallenge();
+        const challenge = requested && requested.id === weekly.id && game === weekly.game && level === weekly.level ? weekly : null;
+        if (requested && !challenge) throw new Error("This weekly challenge has ended. Open Adventures for the new challenge.");
+        return {
+          challenge,
+          secrets: { found: Object.keys(progress.secrets), collect: async id => {
+            if (owner !== getUserKeyFromAccount()) throw new Error("Account changed.");
+            if (id !== `${game}:${level}`) throw new Error("Invalid relic.");
+            await recordAdventureEvent(owner, { type: "secret", id }); showTopNotification("Secret relic found! View rewards in Adventures.");
+          } },
+          finish: async result => {
+            if (owner !== getUserKeyFromAccount() || !result.won) return;
+            try { await recordAdventureEvent(owner, { type: "finish", game, level, won: true, seconds: result.seconds, flawless: result.flawless, challenge: challenge?.id }); }
+            catch { showTopNotification("Adventure progress saved on this device. Cloud sync failed."); }
+          }
+        };
+      }
+
+      let adventureRenderId = 0;
+      async function renderAdventures(tab = "weekly") {
+        const id = ++adventureRenderId, owner = getUserKeyFromAccount(), host = document.getElementById("startAdventuresMenu");
+        adventureView?.dispose(); adventureView = null; clubhouseSession?.dispose(); clubhouseSession = null; host.classList.remove("clubhouse-open");
+        host.textContent = "Loading Adventures...";
+        try {
+          const ui = await getAdventuresUi();
+          if (owner) await refreshCurrentUserData();
+          const progress = await readAdventureProgress(owner);
+          if (id !== adventureRenderId || owner !== getUserKeyFromAccount() || document.body.dataset.hubSection !== "adventures" || partyLobbyView) return;
+          adventureView = ui.mountAdventures(host, { progress, tab,
+            onPlay: weekly => weekly.game === "crystal-isles-3d" ? startThreeGame(weekly.level, false, weekly) : startArcadeGame(weekly.game, weekly.level, false, weekly),
+            onClaim: async reward => {
+              if (!owner) throw new Error("Sign in to claim rewards.");
+              if (owner !== getUserKeyFromAccount()) throw new Error("Account changed. Reopen Adventures.");
+              await recordAdventureEvent(owner, { type: "sync" });
+              if (owner !== getUserKeyFromAccount()) throw new Error("Account changed. Reopen Adventures.");
+              const ref = firebaseDb.ref(`users/${owner}`); await ref.once("value");
+              const result = await ref.transaction(user => ui.claimAdventureReward(user, reward), undefined, false), user = result.snapshot.val();
+              if (!user?.adventure?.claims?.[reward]) throw new Error("Reward is not ready yet.");
+              if (owner === getUserKeyFromAccount()) { currentUserData = normalizeUserProgress(user); mgwTopCoins.textContent = currentUserData.coins.toLocaleString(); }
+              adventureLocal.set(owner, ui.normalizeAdventure(user.adventure)); return user.adventure;
+            },
+            onEquip: async item => {
+              if (!owner || owner !== getUserKeyFromAccount()) throw new Error("Sign in to equip rewards.");
+              const reward = [...ui.MASTERY_REWARDS, ...ui.EXPLORER_REWARDS].find(r => r.item === item);
+              if (!reward || reward.type !== "color") return;
+              const ref = firebaseDb.ref(`users/${owner}`); await ref.once("value");
+              const result = await ref.transaction(user => user?.ownedItems?.[item] === true ? { ...user, equipped: { ...user.equipped, color: reward.value } } : undefined, undefined, false);
+              if (!result.committed) throw new Error("Unlock this reward first.");
+              if (owner === getUserKeyFromAccount()) { currentUserData = normalizeUserProgress(result.snapshot.val()); playerStyle.color = reward.value; savePlayerStyle(); applyPlayerStyleControls(); }
+            },
+            onClubhouse: () => openClubhouse(owner), onPartyCreate: visibility => createPartyLobby(visibility), onPartyJoin: code => joinPartyLobby(code)
+          });
+        } catch (error) { if (id === adventureRenderId && document.body.dataset.hubSection === "adventures") { host.textContent = error.message || "Could not load Adventures."; const retry = document.createElement("button"); retry.textContent = "Retry"; retry.onclick = () => renderAdventures(tab); host.append(retry); } }
+      }
+
+      async function openClubhouse(owner = getUserKeyFromAccount()) {
+        const ui = await getAdventuresUi(), progress = await readAdventureProgress(owner), host = document.getElementById("startAdventuresMenu");
+        if (owner !== getUserKeyFromAccount() || document.body.dataset.hubSection !== "adventures") return;
+        adventureView?.dispose(); adventureView = null; clubhouseSession?.dispose();
+        let value = currentUserData?.clubhouse;
+        if (!owner) { try { value = JSON.parse(localStorage.getItem("mgw-clubhouse-guest")); } catch {} }
+        host.classList.add("clubhouse-open");
+        clubhouseSession = ui.mountClubhouse(host, { value, name: currentAccount?.username || "Guest", clan: currentUserData?.clanId || "", trophies: ui.MASTERY_REWARDS.some(r => ui.rewardProgress(progress, r) >= r.target),
+          onSave: async value => {
+            if (owner !== getUserKeyFromAccount()) throw new Error("Account changed.");
+            if (!owner) { localStorage.setItem("mgw-clubhouse-guest", JSON.stringify(value)); return; }
+            await ensureFirebaseSession(); const ref = firebaseDb.ref(`users/${owner}`); await ref.once("value");
+            const result = await ref.transaction(user => user ? { ...user, clubhouse: value } : undefined, undefined, false);
+            if (!result.committed) throw new Error("Account unavailable.");
+            if (owner === getUserKeyFromAccount() && currentUserData) currentUserData.clubhouse = value;
+          }, onExit: () => renderAdventures("clubhouse")
+        });
+      }
+
+      async function createPartyLobby(visibility) {
+        if (onlineRoomCode || roomJoinInFlight) { showTopNotification("Leave your current room before creating a party."); return; }
+        if (!requireDesktopGameplay()) return;
+        await getAdventuresUi(); selectedOnlineGame = "online-bomb-tag";
+        startRoomVisibilitySelect.value = visibility === "public" ? "public" : "private";
+        await createRoom(true);
+        if (!onlineRoomCode) showTopNotification(roomNoteEl.textContent || "Could not create party. Please retry.");
+      }
+
+      async function joinPartyLobby(value) {
+        if (onlineRoomCode || roomJoinInFlight) { showTopNotification("Leave your current room before joining a party."); return; }
+        if (!requireDesktopGameplay()) return;
+        const code = String(value || "").trim().toUpperCase();
+        if (!/^[A-Z0-9]{4,8}$/.test(code)) { showTopNotification("Enter a valid party room code."); return; }
+        try {
+          await getAdventuresUi(); const room = await getRoom(code);
+          if (!room?.party?.enabled) { showTopNotification("Party not found. Check the code."); return; }
+          roomCodeInput.value = code; await joinRoom();
+          if (!onlineRoomCode) showTopNotification(roomNoteEl.textContent || "Could not join party. Please retry.");
+        } catch { showTopNotification("Could not join party. Check your connection."); }
+      }
+
+      function resetPartyLocal() {
+        partySnapshot = null; partyEpoch = -1; partyTransition = false; partyLobbyActive = false; partyRenderId++;
+        partyLobbyView?.dispose(); partyLobbyView = null; document.getElementById("partyReturnButton")?.remove();
+      }
+
+      function updatePartyReturnButton() {
+        let button = document.getElementById("partyReturnButton");
+        if (!partySnapshot?.party?.enabled || partySnapshot.party.phase !== "playing" || partySnapshot.createdBy !== playerId || !onlineRoomCode) { button?.remove(); return; }
+        if (!button) {
+          button = document.createElement("button"); button.id = "partyReturnButton"; button.className = "party-return"; button.textContent = "Return Party to Lobby"; document.body.append(button);
+          button.addEventListener("click", async () => { if (!confirm("End the current match and return everyone to the party lobby?")) return; try { await updateParty("lobby"); } catch (error) { showTopNotification(error.message || "Could not return to lobby."); } });
+        }
+        const roomMenu = !threeGameHost.hidden && threeGameHost.querySelector("dialog.three-menu");
+        const parent = roomMenu || document.body;
+        if (button.parentElement !== parent) parent.append(button);
+        button.dataset.inMenu = String(!!roomMenu);
+      }
+
+      function preparePartyRound(room) {
+        const game = room.party.selectedGame, playersState = {};
+        for (const [slot, old] of getOnlinePlayerEntries(room)) {
+          const fresh = makeOnlinePlayer(slot, game);
+          for (const key of ["username", "skin", "color", "trail", "pixelSkin64", "customPalette", "accessory", "customAccessory16", "memberId"]) if (old[key] !== undefined) fresh[key] = old[key];
+          playersState[slot] = fresh;
+        }
+        const next = { ...room, game, gameName: onlineGameNames[game], playersState, chat: [], status: "playing" };
+        for (const key of ["foods", "food", "apples", "apple", "ball", "tagger", "goal", "orb", "bomb", "poweredSlot", "route", "startedAt"]) delete next[key];
+        if (game === "online-snake") next.foods = makeOnlineFoods(next);
+        if (game === "online-catcher") next.apples = makeOnlineApples();
+        if (game === "online-pong") next.ball = makeOnlinePongBall(1);
+        if (game === "online-soccer") next.ball = makeOnlineSoccerBall();
+        if (game === "online-tag") next.tagger = "p1";
+        if (game === "online-maze") next.goal = makeOnlineMazeGoal();
+        if (game === "online-battle") next.orb = makeOnlineArenaItem();
+        if (game === "online-bomb-tag") next.bomb = makeOnlineBombState("p1", room.party.selectedMap);
+        return next;
+      }
+
+      async function updateParty(action, payload) {
+        const code = onlineRoomCode;
+        if (!code || !partySnapshot?.party?.enabled || onlineSpectating) throw new Error("Party no longer available.");
+        const ui = await getAdventuresUi(), ref = firebaseDb.ref(`rooms/${code}`); await ref.once("value");
+        const result = await ref.transaction(room => {
+          const next = ui.changeParty(room, playerId, action, payload);
+          return next && action === "start" ? preparePartyRound(next) : next;
+        }, undefined, false);
+        if (!result.committed) throw new Error(action === "start" ? "At least two players must be ready. Only the host can start." : "Party changed. Try again.");
+      }
+
+      async function renderPartyLobbyView() {
+        const serial = ++partyRenderId, code = onlineRoomCode, room = partySnapshot;
+        const ui = await getAdventuresUi();
+        if (serial !== partyRenderId || !partyLobbyActive || code !== onlineRoomCode || room !== partySnapshot || document.body.dataset.hubSection !== "adventures") return;
+        const host = document.getElementById("startAdventuresMenu");
+        adventureView?.dispose(); adventureView = null; clubhouseSession?.dispose(); clubhouseSession = null; host.classList.remove("clubhouse-open");
+        partyLobbyView?.dispose();
+        partyLobbyView = ui.mountPartyLobby(host, room, { code, playerId, onAction: updateParty, onLeave: async () => { await leaveOnlineRoom(); showMainMenu(); } });
+      }
+
+      async function enterPartyLobby(code, room, slot) {
+        partySnapshot = room; partyEpoch = room.party.round || 0; partyLobbyActive = true;
+        disposeThreeGame(); disposeOnlineCoop(); clearInterval(timer); clearInterval(waitingTimer);
+        onlineRoomCode = code; onlinePlayerSlot = slot; onlineSpectating = false; currentGame = room.game;
+        onlineState = prepareOnlineState(room, room.game, slot); paused = true; waitingToPlay = true; gameOver = false;
+        onlineMove = { x: 0, y: 0 }; catcherMove = pongMove = tankMove = 0;
+        hidePlayOverlay(); pauseMenu.classList.remove("open"); pauseMenu.setAttribute("aria-hidden", "true");
+        startScreen.classList.remove("closed"); startScreen.classList.add("loaded"); startScreen.setAttribute("aria-hidden", "false");
+        showStartSection("adventures"); updatePartyReturnButton(); publishProfilePresence();
+        subscribeToRoom(code, latest => { if (!latest?.createdBy) { closeOnlineRoomLocally("Party closed by the host."); showMainMenu(); } });
+      }
+
+      function handlePartySnapshot(code, room) {
+        if (!room?.party?.enabled || code !== onlineRoomCode || onlineSpectating) return false;
+        const slot = getOnlinePlayerEntries(room).find(([, player]) => player.memberId === playerId)?.[0];
+        if (!slot) { closeOnlineRoomLocally("You are no longer in this party."); showMainMenu(); return true; }
+        partySnapshot = room; updatePartyReturnButton();
+        if (room.party.phase === "lobby") {
+          if (!partyLobbyActive) void enterPartyLobby(code, room, slot);
+          else if (document.body.dataset.hubSection === "adventures") void renderPartyLobbyView();
+          return true;
+        }
+        if (partyLobbyActive || partyEpoch !== room.party.round || currentGame !== room.game) {
+          if (!partyTransition) {
+            partyTransition = true; partyLobbyActive = false; partyLobbyView?.dispose(); partyLobbyView = null;
+            void beginOnlineRoom(code, room.game, slot, room).catch(() => showTopNotification("Party game failed to start. Return to the lobby and retry.")).finally(() => { partyTransition = false; });
+          }
+          return true;
+        }
+        return false;
+      }
+
       function getOwnedEmotes() {
-        return ["bounce", "spin", "bow", ...emoteShopItems.filter(item => currentAccount?.username && currentUserData?.ownedItems?.[item.id] === true).map(item => item.value)];
+        return ["bounce", "spin", "bow", ...emoteShopItems.filter(item => currentAccount?.username && currentUserData?.ownedItems?.[item.id] === true).map(item => item.value), ...(currentAccount?.username && currentUserData?.ownedItems?.["emote-levitate"] === true ? ["levitate"] : [])];
       }
 
       function getEmoteInventory() {
@@ -18142,7 +18404,7 @@
                 <span class="admin-room-code">${escapeHtml(code)}</span>
                 <span class="admin-badge">${getOnlinePlayerEntries(room).length}/${ONLINE_MAX_PLAYERS} players</span>
               </div>
-              <div class="admin-user-meta">${escapeHtml(room.gameName || room.game || "Online game")} | ${escapeHtml(room.createdByUsername || "Player")}</div>
+              <div class="admin-user-meta">${room.party?.enabled ? "Party | " : ""}${escapeHtml(room.gameName || room.game || "Online game")} | ${escapeHtml(room.createdByUsername || "Player")}</div>
               <div class="admin-user-actions">
                 <button type="button" data-lobby-join="${escapeHtml(code)}">Join</button>
                 <button type="button" data-lobby-spectate="${escapeHtml(code)}">Spectate</button>
@@ -19316,6 +19578,10 @@
       }
 
       async function patchRoom(code, patch) {
+        if (code === onlineRoomCode && partySnapshot?.party?.enabled) {
+          const epoch = partyEpoch, game = currentGame, ui = await getAdventuresUi();
+          return firebaseDb.ref(`rooms/${code}`).transaction(room => ui.patchPartyRound(room, playerId, epoch, game, patch), undefined, false);
+        }
         return firebaseUpdate(`rooms/${code}`, patch);
       }
 
@@ -19343,7 +19609,7 @@
           ...room,
           players: entries.length + 1,
           maxPlayers: ONLINE_MAX_PLAYERS,
-          status: "playing",
+          status: room.party?.phase === "lobby" ? "waiting" : "playing",
           members: { ...members, [slot]: memberId },
           playersState: { ...room.playersState, [slot]: { ...makePlayer(slot, room.game || "online-snake"), memberId } },
           updatedAt: Date.now()
@@ -21191,8 +21457,9 @@
         const roomRef = firebaseDb.ref(`rooms/${code}`);
         const handler = (snapshot) => {
           const room = snapshot.val();
-          onRoom(room);
           if (code === onlineRoomCode) renderFriendRoomInvites(code, room);
+          if (handlePartySnapshot(code, room)) return;
+          onRoom(room);
         };
 
         roomRef.on("value", handler, () => {
@@ -21202,6 +21469,7 @@
       }
 
       function closeOnlineRoomLocally(message = "Online room closed.") {
+        resetPartyLocal();
         disposeOnlineCoop();
         clearInterval(timer);
         clearInterval(waitingTimer);
@@ -21225,6 +21493,11 @@
       }
 
       async function beginOnlineRoom(code, gameName, slot, room) {
+        if (room.party?.enabled) {
+          await getAdventuresUi(); partySnapshot = room; partyEpoch = room.party.round || 0;
+          if (room.party.phase === "lobby") { await enterPartyLobby(code, room, slot); return; }
+          partyLobbyActive = false; partyLobbyView?.dispose(); partyLobbyView = null; closeStartScreen(); updatePartyReturnButton();
+        }
         disposeThreeGame();
         clearInterval(timer);
         clearInterval(waitingTimer);
@@ -21644,6 +21917,7 @@
       }
 
       async function leaveOnlineRoom() {
+        resetPartyLocal();
         if (isThreeGame()) disposeThreeGame();
         disposeOnlineCoop();
         if (!onlineRoomCode) {
@@ -21686,7 +21960,8 @@
               delete room.playersState?.[slotToLeave];
               delete room.members?.[slotToLeave];
               room.players = getOnlinePlayerEntries(room).length;
-              room.status = room.players > 1 ? "playing" : "waiting";
+              room.status = room.party?.phase === "lobby" ? "waiting" : room.players > 1 ? "playing" : "waiting";
+              if (room.party) { delete room.party.ready?.[slotToLeave]; delete room.party.votes?.[slotToLeave]; }
               room.updatedAt = Date.now();
               return room;
             }, undefined, false);
@@ -21712,7 +21987,7 @@
       }
 
       function tickOnlineGame() {
-        if (gameOver || !onlineRoomCode) {
+        if (gameOver || !onlineRoomCode || partyLobbyActive) {
           return;
         }
         if (paused || document.hidden) {
@@ -21756,7 +22031,7 @@
       }
 
       function syncOnlineState() {
-        if (onlineSpectating || !onlineRoomCode || !onlineState) {
+        if (onlineSpectating || !onlineRoomCode || !onlineState || partyLobbyActive) {
           return;
         }
 
@@ -22926,7 +23201,7 @@
         drawAccessoryAt(drawX - 16, drawY - 22, 32, player.accessory, player.customAccessory16, player.customPalette);
       }
 
-      async function createRoom() {
+      async function createRoom(partyMode = false) {
         if (pendingFriendJoin || roomJoinInFlight) {
           showTopNotification("Finish or cancel your current room request first.");
           return;
@@ -22952,6 +23227,7 @@
 
           const code = await generateRoomCode();
           const room = {
+            ...(partyMode === true ? { party: { enabled: true, phase: "lobby", round: 0, ready: {}, votes: {} } } : {}),
             players: 1,
             maxPlayers: ONLINE_MAX_PLAYERS,
             members: { p1: playerId },
@@ -22994,7 +23270,8 @@
           gamesRoomCodeInput.value = code;
           roomCodeEl.textContent = `Room code: ${code}`;
           roomNoteEl.textContent = `${room.gameName} selected. Share this code with up to four friends.`;
-          waitForSecondPlayer(code, selectedOnlineGame, room);
+          if (partyMode === true) await beginOnlineRoom(code, selectedOnlineGame, "p1", room);
+          else waitForSecondPlayer(code, selectedOnlineGame, room);
         } catch {
           roomCodeEl.textContent = "";
           roomNoteEl.textContent = "Could not create room. Check Firebase database rules.";
@@ -23219,6 +23496,7 @@
       });
       updateStartGameShowcase();
       startPlayButton.addEventListener("click", playFromStartMenu);
+      document.getElementById("startAdventuresButton").addEventListener("click", () => showStartSection("adventures"));
       startGamesButton.addEventListener("click", () => {
         activeGameFolder = "";
         showStartSection("games");

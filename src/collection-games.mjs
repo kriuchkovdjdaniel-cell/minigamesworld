@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { attachAvatarEmotes } from "./avatar-emotes.mjs";
+import { mountPhotoMode } from "./photo-mode.mjs";
+import { mountRelic } from "./secret-relic.mjs";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Apple, Coins, Heart, Timer, ArrowRight, Zap, Volume2, VolumeX } from "lucide";
 import { createCollectionSimulation, COLLECTION_LEVELS, STEP } from "./collection-world.mjs";
@@ -54,6 +56,7 @@ export async function mountCollectionGame(host, options) {
   const dashButton = host.querySelector('[data-action="dash"]'), keys = new Set(), abort = new AbortController();
   const on = (target, type, callback, extra = {}) => target.addEventListener(type, callback, { ...extra, signal: abort.signal });
   let disposed = false, paused = false, ended = false, frameId = null, lastTime = null, accumulator = 0, jump = false, dash = false, cameraPointer = null;
+  const relic = mountRelic(scene, options.mode, level, options.secrets, abort.signal);
   let previousCollected = 0, previousLives = 3, previousShield = 0, noticeUntil = 0;
   let moving = false;
   const emotes = attachAvatarEmotes(menu, visuals.player, { signal: abort.signal, inventory: options.emotes, time: () => sim.state.elapsed, resume: () => setPaused(false), canOpen: () => !disposed && !paused && !ended,
@@ -79,7 +82,8 @@ export async function mountCollectionGame(host, options) {
     controls.disconnect(); controls.connect(renderer.domElement); renderer.domElement.style.cursor = "";
   }
   function render() {
-    if (disposed) return;
+    if (disposed || host.dataset.photo === "true") return;
+    if (!paused && !ended) relic.update(sim.body.translation(), sim.state.elapsed);
     const s = sim.state, p = sim.body.translation(); visuals.update(sim);
     emotes.update(moving);
     const target = new THREE.Vector3(p.x * 0.25, 0, p.z * 0.25); camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
@@ -102,7 +106,7 @@ export async function mountCollectionGame(host, options) {
   }
   const schedule = () => { if (!disposed && !paused && !ended && frameId === null) frameId = requestAnimationFrame(frame); };
   function setPaused(value) {
-    if (disposed) return;
+    if (disposed || host.dataset.photo === "true") return;
     audio.setPaused(value);
     if (ended) return;
     paused = value; keys.clear(); jump = dash = false; accumulator = 0; lastTime = null; releaseCamera(); controls.enabled = !value;
@@ -128,7 +132,7 @@ export async function mountCollectionGame(host, options) {
     host.querySelector("h2").textContent = won ? "Stage Clear" : sim.state.lives <= 0 ? "Out of Lives" : "Time Up";
     hud.result.textContent = `${sim.state.score} points / ${clock(sim.state.elapsed)}${orchard ? ` / ${sim.state.missed} missed` : ""}`;
     host.querySelector('[data-action="resume"]').hidden = true; host.querySelector('[data-action="next"]').hidden = !won || level.index === 2;
-    menu.showModal(); options.onFinish?.({ won, score: sim.state.score, seconds: sim.state.elapsed, levelIndex: level.index });
+    menu.showModal(); options.onFinish?.({ won, score: sim.state.score, seconds: sim.state.elapsed, levelIndex: level.index, flawless: sim.state.lives === 3 });
   }
   on(host, "click", event => {
     const action = event.target.closest("[data-action]")?.dataset.action;
@@ -144,6 +148,7 @@ export async function mountCollectionGame(host, options) {
     if (action === "level") { menu.close(); options.onLevelChange?.(Number(host.querySelector("select").value)); }
   });
   on(renderer.domElement, "pointerdown", event => {
+    if (host.dataset.photo === "true") return;
     if (!paused && !ended) void audio.unlock();
     if (event.pointerType !== "mouse") return;
     if (event.button !== 2 || paused || ended) { event.stopImmediatePropagation(); renderer.domElement.focus(); return; }
@@ -169,16 +174,18 @@ export async function mountCollectionGame(host, options) {
   const resize = () => {
     if (disposed) return; const { width, height } = host.getBoundingClientRect(); if (!width || !height) return;
     renderer.setSize(width, height); camera.aspect = width / height;
+    if (host.dataset.photo === "true") { camera.updateProjectionMatrix(); return; }
     const compact = height <= 520, distance = Math.max(Math.hypot(25, 22) * (compact ? height / Math.max(150, height - 170) : 1), 18 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect));
     camera.position.sub(controls.target).multiplyScalar(distance / framingDistance).add(controls.target); framingDistance = distance;
     const offset = width <= 460 && height < 700 ? (compact ? -105 : -55) : compact ? -75 : 0;
     controls.maxDistance = Math.max(45, distance * 1.3); camera.setViewOffset(width, height, 0, offset, width, height);
     scene.fog.near = Math.max(55, distance + 5); scene.fog.far = Math.max(140, distance + 100); camera.far = Math.max(200, distance + 120); camera.updateProjectionMatrix(); render();
   };
+  const photo = mountPhotoMode(host, { renderer, scene, camera, controls, signal: abort.signal, canOpen: () => !disposed && !paused && !ended, pause: () => setPaused(true), resume: () => setPaused(false), onRestore: resize, avatar: visuals.player, inventory: options.emotes });
   const observer = new ResizeObserver(resize); observer.observe(host); resize(); updateSoundButton(); renderer.domElement.focus(); void audio.unlock(); schedule();
   return {
     pause: () => setPaused(true),
-    snapshot: () => ({ mode: level.mode, levelIndex: level.index, status: sim.state.status, paused, elapsed: sim.state.elapsed, score: sim.state.score, lives: sim.state.lives,
+    snapshot: () => ({ mode: level.mode, levelIndex: level.index, status: sim.state.status, photo: photo.snapshot(), paused, elapsed: sim.state.elapsed, score: sim.state.score, lives: sim.state.lives,
       caught: sim.state.caught, missed: sim.state.missed, collected: sim.state.collected.size, cooldown: sim.state.cooldown, shield: sim.state.shield,
       drops: sim.state.drops.map(({ id, kind, phase, x, y, z }) => ({ id, kind, phase, x, y, z })), position: { ...sim.body.translation() },
       camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle() }, drawCalls: renderer.info.render.calls, audio: audio.snapshot() }),

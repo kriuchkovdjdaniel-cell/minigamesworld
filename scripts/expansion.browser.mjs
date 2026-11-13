@@ -76,6 +76,9 @@ export async function runExpansionQA(browser, base = "http://127.0.0.1:4173", ca
     assert.match(await rejected.evaluate(() => roomNoteEl.textContent), /full/); await rejected.context().close();
     // The broker is isolated from Firebase. Freeze only enemies to test UI/network controls deterministically.
     await host.evaluate(() => { for (const enemy of onlineCoopRuntime.world.enemies) { enemy.hp = 0; enemy.collider.setEnabled(false); } });
+    await host.locator('[data-route-choice="reinforced"]').waitFor({ state: "visible" });
+    await host.locator('[data-route-choice="reinforced"]').click();
+    await guests[0].waitForFunction(() => threeGameSession.snapshot().routeUpgrades[0] === "reinforced" && !threeGameSession.snapshot().paused);
     const guest = guests[0], before = await guest.evaluate(() => threeGameSession.snapshot().position);
     await guest.locator('#threeGameHost > canvas').first().focus(); await guest.keyboard.down("KeyD"); await guest.waitForTimeout(700); await guest.keyboard.up("KeyD");
     await guest.waitForTimeout(200); const after = await guest.evaluate(() => threeGameSession.snapshot().position);

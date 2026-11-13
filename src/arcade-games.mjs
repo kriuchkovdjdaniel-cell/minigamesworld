@@ -5,6 +5,8 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Gem, Heart, Timer, ArrowRight } from "lucide";
 import { createArcadeSimulation, ARCADE_LEVELS, STEP } from "./arcade-world.mjs";
+import { mountPhotoMode } from "./photo-mode.mjs";
+import { mountRelic } from "./secret-relic.mjs";
 import { createCustomAccessory } from "./skin-studio-accessory.mjs";
 import "./arcade-games.css";
 
@@ -12,7 +14,7 @@ const icons = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, 
 const clock = time => `${Math.floor(Math.max(0, time) / 60)}:${String(Math.floor(Math.max(0, time) % 60)).padStart(2, "0")}`;
 
 export async function mountArcadeGame(host, options) {
-  const sim = await createArcadeSimulation(options.mode, options.levelIndex);
+  const sim = await createArcadeSimulation(options.mode, options.levelIndex, options.challenge?.modifier);
   if (options.signal?.aborted) { sim.dispose(); throw new DOMException("Canceled", "AbortError"); }
   let renderer;
   const quality = Math.max(0, Math.min(3, Math.floor(options.quality) || 0));
@@ -44,6 +46,7 @@ export async function mountArcadeGame(host, options) {
       <button data-action="exit"><i data-icon="exit"></i>Return to Games</button>
     </dialog>`;
   host.prepend(renderer.domElement);
+  if (options.challenge?.name) host.querySelector(".arcade-title small").textContent = `${level.index + 1} / 3 ${level.name} / ${options.challenge.name}`;
   host.querySelectorAll("[data-icon]").forEach(node => node.replaceWith(createElement(icons[node.dataset.icon], { width: 19, height: 19, "aria-hidden": "true" })));
   const abort = new AbortController(), signal = abort.signal;
   const on = (target, type, fn, extra = {}) => target.addEventListener(type, fn, { ...extra, signal });
@@ -153,14 +156,17 @@ export async function mountArcadeGame(host, options) {
   const menu = host.querySelector("dialog"), notice = host.querySelector(".arcade-notice"), map = host.querySelector(".arcade-map"), mapCtx = map.getContext("2d");
   const hud = Object.fromEntries(["lives", "score", "time", "objective", "progress", "result"].map(name => [name, host.querySelector(`[data-${name}]`)]));
   const keys = new Set(); let frameId = null, paused = false, ended = false, disposed = false, lastTime = null, accumulator = 0, jump = false, cameraPointer = null;
+  const relic = mountRelic(scene, options.mode, level, options.secrets, abort.signal);
   let previousGems = 0, previousLives = 3, noticeUntil = 0;
   let moving = false;
   const emotes = attachAvatarEmotes(menu, player, { signal: abort.signal, inventory: options.emotes, time: () => sim.state.elapsed, resume: () => setPaused(false), canOpen: () => !disposed && !paused && !ended,
     onWheelChange: open => { keys.clear(); jump = false; moving = false; releaseCamera(); controls.enabled = !open && !paused && !ended; } });
   function releaseCamera() { if (cameraPointer === null) return; const id = cameraPointer; cameraPointer = null; if (renderer.domElement.hasPointerCapture(id)) renderer.domElement.releasePointerCapture(id); controls.disconnect(); controls.connect(renderer.domElement); renderer.domElement.style.cursor = ""; }
   function render() {
+    if (host.dataset.photo === "true") return;
     if (disposed) return;
     player.position.copy(sim.body.translation()); player.visible = sim.state.invulnerable <= 0 || Math.floor(sim.state.elapsed * 12) % 2 === 0;
+    if (!paused && !ended) relic.update(sim.body.translation(), sim.state.elapsed);
     emotes.update(moving);
     const target = new THREE.Vector3(player.position.x * 0.3, 0, player.position.z * 0.3); camera.position.add(target.clone().sub(controls.target)); controls.target.copy(target);
     gems.forEach((m, i) => { m.visible = !sim.state.collected.has(i); m.rotation.y = sim.state.elapsed; m.position.y = level.gems[i].y + Math.sin(sim.state.elapsed * 2 + i) * 0.1; });
@@ -187,7 +193,7 @@ export async function mountArcadeGame(host, options) {
   }
   const schedule = () => { if (!disposed && !paused && !ended && frameId === null) frameId = requestAnimationFrame(frame); };
   function setPaused(value) {
-    if (disposed || ended) return;
+    if (disposed || ended || host.dataset.photo === "true") return;
     paused = value; keys.clear(); jump = false; accumulator = 0; lastTime = null; releaseCamera(); controls.enabled = !value;
     if (value) { host.querySelector("h2").textContent = "Paused"; hud.result.textContent = `${level.name} / ${sim.state.score} points`; menu.showModal(); cancelAnimationFrame(frameId); frameId = null; }
     else { menu.close(); renderer.domElement.focus(); schedule(); }
@@ -210,7 +216,7 @@ export async function mountArcadeGame(host, options) {
       host.querySelector("h2").textContent = won ? "Stage Clear" : sim.state.lives <= 0 ? "Out of Lives" : "Time Up";
       hud.result.textContent = `${sim.state.score} points / ${clock(sim.state.elapsed)}`;
       host.querySelector('[data-action="resume"]').hidden = true; host.querySelector('[data-action="next"]').hidden = !won || level.index === 2;
-      menu.showModal(); options.onFinish?.({ won, score: sim.state.score, seconds: sim.state.elapsed, levelIndex: level.index });
+      menu.showModal(); options.onFinish?.({ won, score: sim.state.score, seconds: sim.state.elapsed, levelIndex: level.index, flawless: sim.state.lives === (options.challenge?.modifier === "one-life" ? 1 : 3) });
     } else schedule();
   }
   on(host, "click", event => {
@@ -223,7 +229,7 @@ export async function mountArcadeGame(host, options) {
     if (action === "next" && sim.state.status === "won" && level.index < 2) { menu.close(); options.onLevelChange?.(level.index + 1); }
     if (action === "level") { menu.close(); options.onLevelChange?.(Number(host.querySelector("select").value)); }
   });
-  on(renderer.domElement, "pointerdown", event => { if (event.pointerType !== "mouse") return; if (event.button !== 2 || paused || ended) { event.stopImmediatePropagation(); renderer.domElement.focus(); return; } cameraPointer = event.pointerId; renderer.domElement.style.cursor = "grabbing"; renderer.domElement.focus(); }, { capture: true });
+  on(renderer.domElement, "pointerdown", event => { if (host.dataset.photo === "true" || event.pointerType !== "mouse") return; if (event.button !== 2 || paused || ended) { event.stopImmediatePropagation(); renderer.domElement.focus(); return; } cameraPointer = event.pointerId; renderer.domElement.style.cursor = "grabbing"; renderer.domElement.focus(); }, { capture: true });
   on(renderer.domElement, "pointermove", event => { if (event.pointerType === "mouse" && !(event.buttons & 2)) releaseCamera(); }, { capture: true });
   on(window, "pointerup", event => { if (!(event.buttons & 2)) releaseCamera(); }); on(renderer.domElement, "pointercancel", releaseCamera); on(renderer.domElement, "lostpointercapture", releaseCamera);
   on(window, "keydown", event => {
@@ -240,6 +246,7 @@ export async function mountArcadeGame(host, options) {
     const { width, height } = host.getBoundingClientRect();
     if (!width || !height) return;
     renderer.setSize(width, height); camera.aspect = width / height;
+    if (host.dataset.photo === "true") { camera.updateProjectionMatrix(); return; }
     const compact = height <= 520;
     const verticalFit = Math.hypot(23, 22) * (compact ? height / Math.max(150, height - 170) : 1);
     const distance = Math.max(verticalFit, 18 / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect));
@@ -249,10 +256,11 @@ export async function mountArcadeGame(host, options) {
     scene.fog.near = Math.max(50, distance + 5); scene.fog.far = Math.max(135, distance + 100);
     camera.far = Math.max(180, distance + 120); camera.updateProjectionMatrix(); render();
   };
+  const photo = mountPhotoMode(host, { renderer, scene, camera, controls, signal: abort.signal, canOpen: () => !disposed && !paused && !ended, pause: () => setPaused(true), resume: () => setPaused(false), onRestore: resize, avatar: player, inventory: options.emotes });
   const observer = new ResizeObserver(resize); observer.observe(host); resize(); renderer.domElement.focus(); schedule();
   return {
     pause: () => setPaused(true),
-    snapshot: () => ({ mode: level.mode, levelIndex: level.index, status: sim.state.status, paused, elapsed: sim.state.elapsed, score: sim.state.score, lives: sim.state.lives, collected: sim.state.collected.size, position: { ...sim.body.translation() }, camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle() }, drawCalls: renderer.info.render.calls }),
+    snapshot: () => ({ mode: level.mode, levelIndex: level.index, status: sim.state.status, photo: photo.snapshot(), paused, elapsed: sim.state.elapsed, score: sim.state.score, lives: sim.state.lives, collected: sim.state.collected.size, position: { ...sim.body.translation() }, camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle() }, drawCalls: renderer.info.render.calls }),
     dispose() {
       if (disposed) return; disposed = true; cancelAnimationFrame(frameId); abort.abort(); observer.disconnect(); releaseCamera(); controls.dispose(); menu.close();
       const geometries = new Set(); scene.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.isInstancedMesh) o.dispose(); });

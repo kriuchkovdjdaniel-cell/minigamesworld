@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { mountPhotoMode } from "./photo-mode.mjs";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createElement, Menu, Maximize, Camera, Play, LogOut, RotateCcw } from "lucide";
 import { createKartWorld, TRACKS, KART_STEP, trackPoint } from "./kart-world.mjs";
@@ -95,7 +96,7 @@ export async function mountKartGame(host, options) {
   const appearance = () => { models[0].paint.color.set(el("paint").value); models[0].spoiler.visible = el("body").value === "sprint"; try { localStorage.setItem(options.storageKey + "-garage", JSON.stringify({ paint: el("paint").value, body: el("body").value })); } catch {} };
   appearance(); el("paint").addEventListener("input", appearance, { signal }); el("body").addEventListener("change", appearance, { signal });
   function pause(value) {
-    if (disposed) return; paused = value; keys.clear(); releaseCamera(); controls.enabled = !value; options.onPause?.(value); audio.setPaused(value); engine.setPaused(value);
+    if (disposed || host.dataset.photo === "true") return; paused = value; keys.clear(); releaseCamera(); controls.enabled = !value; options.onPause?.(value); audio.setPaused(value); engine.setPaused(value);
     if (value) { if (!menu.open) menu.showModal(); } else { menu.close(); previous = 0; canvas.focus(); void audio.unlock(); void engine.unlock(); }
   }
   function render(now, dt) {
@@ -127,7 +128,7 @@ export async function mountKartGame(host, options) {
         options.onFinish?.({ won: sim.state.place === 1, score: (5 - sim.state.place) * 250, seconds: sim.state.elapsed });
       }
     }
-    render(now, dt); if (!document.hidden) frameId = requestAnimationFrame(frame);
+    if (host.dataset.photo !== "true") render(now, dt); if (!document.hidden) frameId = requestAnimationFrame(frame);
   }
   host.addEventListener("click", event => {
     const action = event.target.closest("[data-action]")?.dataset.action;
@@ -143,7 +144,7 @@ export async function mountKartGame(host, options) {
   }, { signal });
   window.addEventListener("keyup", event => keys.delete(event.code), { signal }); window.addEventListener("blur", () => pause(true), { signal });
   menu.addEventListener("cancel", event => { event.preventDefault(); if (started && !finished) pause(false); }, { signal });
-  canvas.addEventListener("pointerdown", event => { canvas.focus(); if (event.button !== 2 || paused) event.stopImmediatePropagation(); else cameraDragging = true; }, { capture: true, signal });
+  canvas.addEventListener("pointerdown", event => { if (host.dataset.photo === "true") return; canvas.focus(); if (event.button !== 2 || paused) event.stopImmediatePropagation(); else cameraDragging = true; }, { capture: true, signal });
   function releaseCamera() { if (cameraDragging) { cameraDragging = false; orbitUntil = performance.now() + 3000; controls.disconnect(); controls.connect(canvas); } }
   window.addEventListener("pointerup", releaseCamera, { signal }); canvas.addEventListener("pointercancel", releaseCamera, { signal }); canvas.addEventListener("lostpointercapture", releaseCamera, { signal });
   canvas.addEventListener("contextmenu", event => event.preventDefault(), { signal });
@@ -152,8 +153,9 @@ export async function mountKartGame(host, options) {
   const resize = () => { if (!host.clientWidth || !host.clientHeight || disposed) return; renderer.setSize(host.clientWidth, host.clientHeight); camera.aspect = host.clientWidth / host.clientHeight; camera.updateProjectionMatrix(); };
   const observer = new ResizeObserver(resize); observer.observe(host); resize();
   try { const best = Number(localStorage.getItem(options.storageKey + "-best-" + sim.state.trackIndex)); el("result").textContent = `Personal best: ${formatTrialTime(best || undefined)}`; } catch {}
+  const photo = mountPhotoMode(host, { renderer, scene, camera, controls, signal, canOpen: () => started && !disposed && !paused && !finished, pause: () => pause(true), resume: () => pause(false), avatar: models[0].driver.group, inventory: options.emotes });
   pause(!options.autoStart); if (options.autoStart) started = true; frameId = requestAnimationFrame(frame);
-  return { pause: () => pause(true), snapshot: () => ({ ...sim.state, paused, speed: sim.karts[0].speed, drift: sim.karts[0].drift, position: sim.karts[0].body.translation(), lap: sim.karts[0].lap, camera: { yaw: controls.getAzimuthalAngle(), dragging: cameraDragging }, drawCalls: renderer.info.render.calls }), dispose() {
+  return { pause: () => pause(true), snapshot: () => ({ ...sim.state, photo: photo.snapshot(), paused, speed: sim.karts[0].speed, drift: sim.karts[0].drift, position: sim.karts[0].body.translation(), lap: sim.karts[0].lap, camera: { yaw: controls.getAzimuthalAngle(), dragging: cameraDragging }, drawCalls: renderer.info.render.calls }), dispose() {
     if (disposed) return; disposed = true; abort.abort(); cancelAnimationFrame(frameId); observer.disconnect(); controls.dispose(); menu.close(); audio.dispose(); engine.dispose(); models.forEach(model => model.driver.dispose()); scene.traverse(object => { if (object.isInstancedMesh) object.dispose(); }); geometries.forEach(g => g.dispose()); materials.forEach(m => m.dispose()); renderer.dispose(); renderer.forceContextLoss(); sim.dispose(); delete host.dataset.kart; host.replaceChildren();
   } };
 }

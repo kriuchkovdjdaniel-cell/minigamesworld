@@ -31,7 +31,7 @@ export function beamAt(time, index, difficulty) {
     coordinate: direction * (-11.4 + 22.8 * progress), height: difficulty > 0 && (cycle + index) % 3 === 2 ? 1.9 : 0.38 };
 }
 
-export async function createArcadeSimulation(mode, index = 0) {
+export async function createArcadeSimulation(mode, index = 0, modifier = "") {
   const level = makeArcadeLevel(mode, index);
   ready ||= RAPIER.init().catch(error => { ready = null; throw error; });
   await ready;
@@ -49,6 +49,7 @@ export async function createArcadeSimulation(mode, index = 0) {
   const guards = Array.from({ length: level.guardCount }, () => sensor(RAPIER.ColliderDesc.ball(0.64).setTranslation(0, -20, 0)));
   const beams = Array.from({ length: level.beamCount }, () => sensor(RAPIER.ColliderDesc.cuboid(11.6, 0.12, 0.12).setTranslation(0, -20, 0)));
   const state = { elapsed: 0, lives: 3, score: 0, status: "playing", collected: new Set(), grounded: false, velocityY: 0, invulnerable: 0, beams: [], guards: [], gateOpen: false };
+  if (modifier === "one-life") state.lives = 1;
   let disposed = false, wasJump = false;
   world.step();
   function damage() {
@@ -71,7 +72,7 @@ export async function createArcadeSimulation(mode, index = 0) {
     state.grounded = controller.computedGrounded();
     if (state.grounded && state.velocityY < 0 || state.velocityY > 0 && movement.y < desired.y - 0.001) state.velocityY = 0;
     guards.forEach((guard, i) => {
-      const t = state.elapsed * (0.65 + level.index * 0.12) + i * 1.4;
+      const t = state.elapsed * (0.65 + level.index * 0.12) * (modifier === "fast-guards" ? 1.5 : 1) + i * 1.4;
       const point = i < 3 ? { x: Math.sin(t) * 9, y: 0.65, z: [-7, -2, 7][i] } : { x: i === 3 ? -6 : 6, y: 0.65, z: Math.sin(t) * 9 };
       guard.setTranslation(point); state.guards[i] = point;
     });

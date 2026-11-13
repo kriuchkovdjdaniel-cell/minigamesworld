@@ -57,6 +57,7 @@ test("journey checkpoints require fuel, a cleared stop and all living survivors 
   try {
     for (const enemy of sim.enemies) { enemy.hp = 0; enemy.collider.setEnabled(false); }
     sim.state.fuelFound = true; command(sim, people, "p1", { action: "interact" });
+    command(sim, people, "p1", { action: "upgrade:reinforced", upgradeStop: 0, upgradeRun: sim.state.runId });
     for (let i = 0; i < 360; i++) command(sim, people, "p1", { throttle: 1, steer: 0 });
     assert.ok(sim.bus.body.translation().z >= -28.1); assert.equal(sim.state.stopIndex, 0);
     const passenger = sim.players.get("p2"); passenger.inBus = true; passenger.collider.setEnabled(false);
@@ -112,6 +113,7 @@ test("a full three-stop co-op journey reaches Safe Haven and ends once", async (
       for (const enemy of sim.enemies) { enemy.hp = 0; enemy.collider.setEnabled(false); }
       sim.state.fuelFound = true;
       command(sim, people, "p1", { action: "interact", throttle: 0 }); command(sim, people, "p2", { action: "interact" });
+      command(sim, people, "p1", { action: "upgrade:reinforced", upgradeStop: stop, upgradeRun: sim.state.runId });
       for (let i = 0; i < 1000 && sim.state.stopIndex === stop && sim.state.status === "playing"; i++) command(sim, people, "p1", { throttle: 1, steer: 0 });
       assert.ok(sim.state.stopIndex > stop || sim.state.status === "won", `Bus stalled at stop ${stop}: ${JSON.stringify(sim.bus.body.translation())}`);
     }
@@ -126,6 +128,7 @@ test("late arrivals board a moving bus and exiting mid-route does not teleport t
     for (const enemy of sim.enemies) { enemy.hp = 0; enemy.collider.setEnabled(false); }
     sim.state.fuelFound = true;
     command(sim, people, "p1", { action: "interact" }); command(sim, people, "p2", { action: "interact" });
+    command(sim, people, "p1", { action: "upgrade:reinforced", upgradeStop: 0, upgradeRun: sim.state.runId });
     for (let i = 0; i < 230; i++) command(sim, people, "p1", { throttle: 1 });
     assert.ok(sim.bus.body.translation().z < -40);
     people.push(members(3)[2]); sim.reconcile(people); assert.equal(sim.players.get("p3").inBus, true);

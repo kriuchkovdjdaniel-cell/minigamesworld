@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { Script, createContext } from "node:vm";
-import { EMOTES, ownsEmote, emotePose } from "../src/avatar-emotes.mjs";
+import { EMOTES, ownsEmote, emotePose, wheelSlots, setWheelSlot } from "../src/avatar-emotes.mjs";
+import { SECRET_IDS, claimAdventureReward, recordAdventure } from "../src/adventure-model.mjs";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 function fixture(coins = 1000) {
@@ -25,21 +26,89 @@ function fixture(coins = 1000) {
   return { ctx, data: () => stored, calls: () => calls, fail: value => { fault = value; }, hold: promise => { wait = promise; }, missing: () => { stored = null; } };
 }
 
-test("three starter emotes stay free and paid catalog matches the shop exactly", () => {
+test("three free, five paid and one earned emote have distinct ownership rules", () => {
   const { ctx } = fixture();
-  assert.deepEqual(EMOTES.filter(e => !e.cost).map(e => e.id), ["bounce", "spin", "bow"]);
+  assert.deepEqual(EMOTES.filter(e => e.cost === 0).map(e => e.id), ["bounce", "spin", "bow"]);
+  assert.equal(ctx.catalog.length, 5); assert.equal(EMOTES.length, 9);
   for (const emote of EMOTES.filter(e => e.cost)) {
     const item = ctx.catalog.find(item => item.value === emote.id); assert.equal(item.cost, emote.cost); assert.equal(item.id, `emote-${emote.id}`);
     assert.equal(ownsEmote(emote.id), false); assert.equal(ownsEmote(emote.id, [emote.id]), true);
   }
   assert.equal(ownsEmote("unknown", ["unknown"]), false);
+  assert.equal(ownsEmote("levitate"), false); assert.equal(ownsEmote("levitate", ["levitate"]), true);
+  assert.equal(ownsEmote("groove", null), false);
+  assert.equal(ctx.catalog.some(item => item.value === "levitate"), false);
+  assert.match(EMOTES.find(e => e.id === "levitate").source, /10 secret relics/);
 });
 
-test("all six animations are finite, bounded and return to a neutral pose", () => {
+test("all nine animations are finite, bounded and return to a neutral pose", () => {
   for (const emote of EMOTES) {
     for (let t = 0; t < 2.4; t += 0.025) { const pose = emotePose(emote.id, t); assert.ok(Object.values(pose).every(Number.isFinite)); assert.ok(Math.abs(pose.y) <= 0.5 && pose.squash >= 0.8 && pose.squash <= 1.2); }
     assert.deepEqual(emotePose(emote.id, 3), { y: 0, yaw: 0, tilt: 0, squash: 1 });
   }
+});
+
+test("six favorite positions contain only unique owned emotes, with empty unfilled slots", () => {
+  for (const owned of [[], ["shuffle"], ["levitate", "sway"], EMOTES.map(e => e.id)]) {
+    for (const value of [null, {}, "spin", [], ["unknown", "spin", "spin", null, 4], EMOTES.map(e => e.id)]) {
+      const slots = wheelSlots(value, owned), assigned = slots.filter(Boolean);
+      assert.equal(slots.length, 6); assert.equal(new Set(assigned).size, assigned.length);
+      assert.equal(assigned.length, Math.min(6, 3 + owned.filter(id => !ownsEmote(id)).length));
+      assert.ok(assigned.every(id => ownsEmote(id, owned)));
+      assert.deepEqual(wheelSlots(slots, owned), slots);
+    }
+  }
+  assert.deepEqual(wheelSlots(), ["bounce", "spin", "bow", "", "", ""]);
+  assert.equal(wheelSlots(["levitate", "shuffle", "sway"], ["levitate"])[0], "levitate");
+  assert.ok(!wheelSlots(["levitate", "shuffle", "sway"]).includes("levitate"));
+});
+
+test("moving a favorite swaps existing slots without duplicates or changing the input", () => {
+  const owned = EMOTES.map(e => e.id), original = wheelSlots(null, owned); let slots = original;
+  for (const emote of EMOTES) for (let index = 0; index < 6; index++) {
+    slots = setWheelSlot(slots, index, emote.id, owned);
+    assert.equal(slots[index], emote.id); assert.equal(new Set(slots).size, 6);
+  }
+  assert.deepEqual(original, wheelSlots(null, owned));
+  assert.deepEqual(setWheelSlot(original, 0, "spin", owned), ["spin", "bounce", "bow", "groove", "twirl", "flip"]);
+  assert.deepEqual(setWheelSlot(original, 0, "unknown", owned), original);
+  assert.deepEqual(setWheelSlot(original, -1, "spin", owned), original);
+  assert.deepEqual(setWheelSlot(original, 6, "spin", owned), original);
+  assert.deepEqual(setWheelSlot([], 0, "levitate"), wheelSlots());
+  assert.deepEqual(setWheelSlot([], 5, "spin"), ["bounce", "", "bow", "", "", "spin"]);
+});
+
+test("Levitate is earned at ten distinct relics, not nine or duplicate finds", () => {
+  let adventure = {};
+  for (const id of SECRET_IDS.slice(0, 9)) adventure = recordAdventure(adventure, { type: "secret", id });
+  adventure = recordAdventure(adventure, { type: "secret", id: SECRET_IDS[0] });
+  const user = { coins: 3000, ownedItems: { "emote-shuffle": true }, adventure };
+  assert.equal(claimAdventureReward(user, "explorer-10"), undefined);
+  user.adventure = recordAdventure(adventure, { type: "secret", id: SECRET_IDS[9] });
+  const earned = claimAdventureReward(user, "explorer-10");
+  assert.equal(earned.ownedItems["emote-levitate"], true);
+  assert.equal(earned.ownedItems["emote-shuffle"], true); assert.equal(earned.coins, 3000);
+  assert.equal(user.ownedItems["emote-levitate"], undefined);
+  assert.equal(claimAdventureReward(earned, "explorer-10"), undefined);
+});
+
+test("Shuffle and Sway debit their paid prices without granting Levitate", async () => {
+  const f = fixture(1450);
+  await f.ctx.buyEmote("shuffle"); assert.equal(f.data().coins, 800);
+  await f.ctx.buyEmote("sway"); assert.equal(f.data().coins, 0);
+  assert.equal(f.data().ownedItems["emote-shuffle"], true); assert.equal(f.data().ownedItems["emote-sway"], true);
+  assert.equal(f.data().ownedItems["emote-levitate"], undefined);
+});
+
+test("Levitate cannot be coin-bought and only an explicit earned claim grants ownership", async () => {
+  const f = fixture(100000);
+  assert.equal(f.ctx.emotePurchaseUpdate(f.data(), "levitate"), undefined);
+  await assert.rejects(f.ctx.buyEmote("levitate")); assert.equal(f.calls(), 0);
+  assert.equal(f.ctx.getOwnedEmotes().includes("levitate"), false);
+  f.ctx.currentUserData.ownedItems["emote-levitate"] = true;
+  assert.equal(f.ctx.getOwnedEmotes().includes("levitate"), true);
+  f.ctx.currentUserData.ownedItems["emote-levitate"] = "true";
+  assert.equal(f.ctx.getOwnedEmotes().includes("levitate"), false);
 });
 
 test("purchase update refuses malformed balances, duplicates and unknown emotes", () => {

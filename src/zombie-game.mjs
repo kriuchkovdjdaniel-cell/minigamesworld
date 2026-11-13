@@ -2,9 +2,10 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { createElement, Pause, Play, RotateCcw, Camera, Maximize, LogOut, Heart, Crosshair, Backpack, Fuel, Shield, Volume2, VolumeX } from "lucide";
-import { createZombieSimulation, STOPS, STEP, normalizeCheckpoint } from "./zombie-world.mjs";
+import { createZombieSimulation, STOPS, STEP, normalizeCheckpoint, ROUTE_BOSSES, ROUTE_UPGRADES } from "./zombie-world.mjs";
 import { buildRoadScenery } from "./zombie-scenery.mjs";
 import { createRouteAudio, spatialMix } from "./zombie-audio.mjs";
+import { mountPhotoMode } from "./photo-mode.mjs";
 export { normalizeCheckpoint } from "./zombie-world.mjs";
 
 const ICONS = { pause: Pause, resume: Play, restart: RotateCcw, camera: Camera, fullscreen: Maximize, exit: LogOut, heal: Heart, reload: Crosshair, inventory: Backpack, fuel: Fuel, shield: Shield, sound: Volume2 };
@@ -30,10 +31,37 @@ export async function mountZombieGame(host, options) {
   canvas.title = "WASD move or drive; right mouse rotates camera; click shoots; E interact; R reload; Space melee; H heal; Tab workshop";
   host.dataset.game = "dead-route-3d";
   host.innerHTML = `
+    <style>
+      #threeGameHost .route-status { position:absolute; top:96px; left:50%; transform:translateX(-50%); width:min(400px,calc(100% - 500px)); display:grid; gap:8px; pointer-events:none; }
+      #threeGameHost .route-status .zombie-notice { position:static; transform:none; max-width:none; width:100%; box-sizing:border-box; }
+      #threeGameHost .route-boss { padding:10px 14px; box-sizing:border-box; border:1px solid #b59a6d; border-radius:6px; background:#192d2ef2; color:#f4ecd7; font:14px Arial,sans-serif; }
+      #threeGameHost .route-boss[hidden],#threeGameHost [data-route-upgrades][hidden] { display:none; }
+      #threeGameHost .route-boss header { display:flex; justify-content:space-between; gap:12px; align-items:center; margin:0; padding:0; border:0; border-radius:0; background:none; box-shadow:none; }
+      #threeGameHost .route-boss strong { font-size:15px; }
+      #threeGameHost .route-boss meter { display:block; width:100%; height:12px; margin:6px 0; accent-color:#d5b476; }
+      #threeGameHost .route-boss small { display:block; min-height:16px; color:#cddbd1; }
+      #threeGameHost .route-boss[data-phase="windup"] { border-color:#f5cc77; background:#3c3325f5; }
+      #threeGameHost [data-route-upgrades] { text-align:left; }
+      #threeGameHost [data-route-upgrades] p { color:#cddbd1; margin:8px 0 14px; font:14px/1.5 Arial,sans-serif; }
+      #threeGameHost [data-route-choice] { display:flex; align-items:flex-start; flex-direction:column; width:100%; min-height:80px; gap:6px; margin:8px 0; padding:12px 16px; border:1px solid #698e87; border-radius:6px; text-align:left; background:#233e3b; color:#edf3df; text-transform:none; white-space:normal; box-sizing:border-box; }
+      #threeGameHost [data-route-choice] strong { font:700 16px Arial,sans-serif; }
+      #threeGameHost [data-route-choice] small { font:13px/1.5 Arial,sans-serif; color:#cddbd1; }
+      #threeGameHost [data-route-choice]:nth-of-type(2) { background:#343344; border-color:#90809f; }
+      #threeGameHost [data-route-choice]:nth-of-type(3) { background:#34402f; border-color:#8c9d74; }
+      #threeGameHost [data-route-choice]:focus-visible { outline:3px solid #e4d49a; outline-offset:2px; }
+      #threeGameHost [data-route-choice]:disabled { opacity:.6; cursor:default; }
+      #threeGameHost [data-action="upgrade"] { color:#f0d495; }
+      #threeGameHost[data-game="dead-route-3d"] .mgw-photo-open { left:320px; bottom:24px; }
+      @media(max-width:900px) { #threeGameHost .route-status { width:min(320px,calc(100% - 32px)); } }
+      @media(max-width:760px) { #threeGameHost .route-status { top:248px; } #threeGameHost[data-game="dead-route-3d"] .mgw-photo-open { left:12px; bottom:194px; } }
+      @media(max-height:520px) { #threeGameHost .route-status { top:96px; width:280px; } #threeGameHost .route-boss { padding:5px 10px; } }
+      @media(max-height:520px) and (max-width:760px) { #threeGameHost .route-status { top:148px; } }
+    </style>
     <header class="zombie-header">
       <div class="zombie-brand"><span>MINIGAMEWORLD</span><strong>DEAD ROUTE <small>3D</small></strong></div>
       <div class="zombie-route"><span data-stop></span><strong data-objective></strong></div>
       <nav class="zombie-tools" aria-label="Game controls">
+        <button data-action="upgrade" title="Choose route upgrade" aria-label="Choose route upgrade" hidden><i data-icon="shield"></i></button>
         <button data-action="sound" title="Mute game sounds (M)" aria-label="Mute game sounds" aria-pressed="false"><i data-icon="sound"></i></button>
         <button data-action="workshop" title="Inventory / Bus Workshop (Tab)" aria-label="Inventory and Bus Workshop"><i data-icon="inventory"></i></button>
         <button data-action="camera" title="Reset camera" aria-label="Reset camera"><i data-icon="camera"></i></button>
@@ -41,6 +69,10 @@ export async function mountZombieGame(host, options) {
         <button data-action="pause" title="Pause (Escape)" aria-label="Pause"><i data-icon="pause"></i></button>
       </nav>
     </header>
+    <div class="route-status"><section class="route-boss" aria-label="Boss encounter" hidden>
+      <header><strong data-boss-name></strong><output data-boss-health></output></header>
+      <meter data-boss-meter min="0" max="1" value="1" aria-label="Boss health"></meter><small data-boss-attack></small>
+    </section><p class="zombie-notice" role="status" aria-live="polite"></p></div>
     <canvas class="zombie-map" width="152" height="152" aria-label="Nearby survivors, infected, bus and supplies"></canvas>
     <section class="zombie-vitals" aria-label="Survivor and bus status">
       <div><i data-icon="heal"></i><span>Survivor</span><output data-health></output><meter data-health-meter min="0" max="100"></meter></div>
@@ -54,9 +86,13 @@ export async function mountZombieGame(host, options) {
       <button data-action="heal" title="Use medkit (H)" aria-label="Use medkit"><i data-icon="heal"></i></button>
       <button data-action="reload" title="Reload (R)" aria-label="Reload"><i data-icon="reload"></i></button>
     </div>
-    <p class="zombie-notice" role="status" aria-live="polite"></p>
     <dialog class="three-menu zombie-menu" aria-labelledby="zombieMenuTitle">
       <h2 id="zombieMenuTitle">Paused</h2><p data-result></p>
+      <section data-route-upgrades hidden aria-label="Route upgrades">
+        <p data-upgrade-instruction></p>
+        ${ROUTE_UPGRADES.map(item => `<button data-route-choice="${item.id}"><strong>${item.name}</strong><small>${item.description}</small></button>`).join("")}
+        <p data-upgrade-status role="status" aria-live="polite"></p>
+      </section>
       <section data-workshop hidden>
         <div class="zombie-inventory"><span data-inventory></span></div>
         <div class="zombie-offers">
@@ -213,7 +249,7 @@ export async function mountZombieGame(host, options) {
       box(health, 0, 0, 0, 0.95, 0.08, 0.025, "#263c37");
       box(health, 0, 0, 0.018, 0.9, 0.045, 0.02, boss ? "#d5ad87" : "#9abb91");
       if (boss) {
-        const name = label("ROADWARDEN", "#eee2b4", "#403f47", 256, 64);
+        const name = label(ROUTE_BOSSES[sim.state.stopIndex].name.toUpperCase(), "#eee2b4", "#403f47", 512, 64);
         name.position.y = 0.3; name.scale.setScalar(0.35); health.add(name);
       }
       scene.add(health);
@@ -248,6 +284,13 @@ export async function mountZombieGame(host, options) {
   const aimGeo = new THREE.RingGeometry(0.25, 0.32, 24); geometries.add(aimGeo);
   const aimMat = new THREE.MeshBasicMaterial({ color: "#f8e1a0", side: THREE.DoubleSide, depthWrite: false }); materials.set("aim", aimMat);
   const aimMarker = new THREE.Mesh(aimGeo, aimMat); aimMarker.rotation.x = -Math.PI / 2; scene.add(aimMarker);
+  const warningGeo = new THREE.RingGeometry(0.9, 1, 48), warningFillGeo = new THREE.CircleGeometry(1, 48), laneGeo = new THREE.PlaneGeometry(1, 1);
+  geometries.add(warningGeo); geometries.add(warningFillGeo); geometries.add(laneGeo);
+  const warningMat = new THREE.MeshBasicMaterial({ color: "#f1bf67", transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide });
+  const warningFillMat = warningMat.clone(); warningFillMat.opacity = 0.18;
+  materials.set("boss-warning", warningMat); materials.set("boss-warning-fill", warningFillMat);
+  const warning = new THREE.Group(), warningRing = new THREE.Mesh(warningGeo, warningMat), warningFill = new THREE.Mesh(warningFillGeo, warningFillMat);
+  warning.add(warningRing, warningFill); warning.rotation.x = -Math.PI / 2; warning.visible = false; scene.add(warning);
   const particles = [], particleLimit = options.quality > 0 ? 64 : 24;
   const particleMaterial = new THREE.MeshBasicMaterial({ color: "#ffffff" }); materials.set("route-particles", particleMaterial);
   const particleMesh = new THREE.InstancedMesh(boxGeo, particleMaterial, particleLimit); particleMesh.frustumCulled = false; particleMesh.count = 0; scene.add(particleMesh);
@@ -263,6 +306,8 @@ export async function mountZombieGame(host, options) {
   const el = name => host.querySelector(`[data-${name}]`);
   const keys = new Set(), oneShot = new Set(), raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(0, 0);
   let pointerActive = false, shooting = false, cameraPointer = null, paused = false, ended = false, disposed = false, frameId = 0, previous = 0, accumulator = 0, hudTime = 0, noticeTime = 0, tracerTime = 0, lastWalking = false;
+  let upgradePromptKey = "";
+  const upgradeNeeded = () => sim.state.status === "playing" && sim.state.stopCleared && !sim.state.routeUpgrades?.[sim.state.stopIndex];
   function updateSoundButton() {
     const muted = audio.snapshot().muted, button = host.querySelector('[data-action="sound"]');
     button.replaceChildren(createElement(muted ? VolumeX : Volume2, { width: 19, height: 19, "aria-hidden": "true" }));
@@ -287,18 +332,33 @@ export async function mountZombieGame(host, options) {
     if (paused) {
       if (!options.cooperative) { cancelAnimationFrame(frameId); frameId = 0; }
       updateHUD();
+      const upgrade = !workshop && !ended && upgradeNeeded();
+      el("route-upgrades").hidden = !upgrade;
       el("workshop").hidden = !workshop;
-      host.querySelector("#zombieMenuTitle").textContent = ended ? sim.state.status === "won" ? "Safe Haven" : "Journey interrupted" : workshop ? "Bus Workshop" : "Paused";
+      host.querySelector("#zombieMenuTitle").textContent = ended ? sim.state.status === "won" ? "Safe Haven" : "Journey interrupted" : upgrade ? "Stop Secured" : workshop ? "Bus Workshop" : "Paused";
       el("result").textContent = ended ? `${sim.objective()} / ${sim.state.score} score / ${sim.state.kills} infected defeated` : options.cooperative ? "The co-op room stays live while this menu is open." : `${STOPS[sim.state.stopIndex].name} / Level ${sim.state.level}`;
       host.querySelector('[data-action="resume"]').hidden = ended;
       workshopUI();
       const freshButton = host.querySelector('[data-action="new"]'); freshButton.textContent = "New Journey"; delete freshButton.dataset.confirm;
       if (options.cooperative) { const restart = host.querySelector('[data-action="restart"]'); restart.textContent = "Restart Journey"; delete restart.dataset.confirm; }
       if (!menu.open) menu.showModal();
+      if (upgrade) { upgradeUI(); host.querySelector('[data-route-choice]:not(:disabled)')?.focus(); }
     } else {
       if (menu.open) menu.close(); previous = 0; accumulator = 0; canvas.focus();
       if (!frameId && !document.hidden) frameId = requestAnimationFrame(frame);
     }
+  }
+  function upgradeUI() {
+    const canChoose = !options.cooperative || options.slot === "p1";
+    el("upgrade-instruction").textContent = canChoose ? "Choose one permanent journey upgrade. Every choice also adds 20 fuel." : "The host is choosing one upgrade for the whole team.";
+    for (const button of host.querySelectorAll("[data-route-choice]")) button.disabled = !canChoose || !upgradeNeeded() || !!sim.upgradePending;
+    el("upgrade-status").textContent = sim.upgradePending ? "Waiting for host confirmation..." : "";
+  }
+  function syncUpgradePrompt() {
+    if (disposed || ended || host.dataset.photo === "true") return;
+    const key = `${sim.epoch || "solo"}:${sim.state.stopIndex}`;
+    if (upgradeNeeded() && upgradePromptKey !== key) { upgradePromptKey = key; pause(true); }
+    else if (!upgradeNeeded() && menu.open && !el("route-upgrades").hidden) pause(false);
   }
   function workshopUI() {
     const s = sim.state, near = s.inBus || Math.hypot(sim.player.body.translation().x - sim.bus.body.translation().x, sim.player.body.translation().z - sim.bus.body.translation().z) <= 7;
@@ -316,6 +376,16 @@ export async function mountZombieGame(host, options) {
     }
     el("stop").textContent = `STOP ${s.stopIndex + 1} / 3 - ${STOPS[s.stopIndex].name.toUpperCase()}`;
     el("objective").textContent = sim.objective();
+    const boss = s.enemies.find(enemy => enemy.boss && enemy.hp > 0), bossPanel = host.querySelector(".route-boss");
+    bossPanel.hidden = !boss;
+    if (boss) {
+      const spec = ROUTE_BOSSES[s.stopIndex]; bossPanel.dataset.phase = boss.bossPhase;
+      el("boss-name").textContent = spec.name; el("boss-health").textContent = `${Math.ceil(boss.hp)} / ${boss.maxHp}`;
+      el("boss-meter").max = boss.maxHp; el("boss-meter").value = boss.hp;
+      el("boss-attack").textContent = boss.bossPhase === "windup" ? `${spec.attackName} / ${boss.bossTimer.toFixed(1)}s` : boss.bossPhase === "recover" ? "Recovering" : boss.bossPhase === "strike" ? spec.attackName : "Defend the bus";
+    }
+    host.querySelector('[data-action="upgrade"]').hidden = !upgradeNeeded();
+    if (menu.open && !el("route-upgrades").hidden) upgradeUI();
     for (const [key, value, max] of [["health", s.health, s.maxHealth], ["bus", s.busHealth, s.maxBusHealth], ["fuel", s.fuel, 100]]) {
       el(key).textContent = `${Math.ceil(value)} / ${max}`; el(key + "-meter").max = max; el(key + "-meter").value = value;
     }
@@ -351,14 +421,16 @@ export async function mountZombieGame(host, options) {
         tracer.visible = true; tracerTime = 0.07;
       }
       if (["reload", "melee", "door", "loot", "upgrade", "heal"].includes(event.type)) audio.play(event.type);
-      if (event.type === "level") audio.play("upgrade");
+      if (event.type === "level" || event.type === "stop-clear") audio.play("upgrade");
+      if (event.type === "boss-warning") audio.play("reload", { rate: 0.6, gain: 0.6 });
+      if (event.type === "boss-strike") { audio.play("melee", { rate: 0.55, gain: 0.8 }); burst(event.x, 0.3, event.z, 10, "#d6b683"); }
       if (event.type === "hit" || event.type === "hurt") {
         const mix = spatialMix(event, sim.position(), controls.getAzimuthalAngle());
         audio.play(event.type, { ...mix, gain: Math.max(0.15, mix.gain) * 0.65 });
         if (event.type === "hit") burst(event.x, 1.2, event.z, 6, "#e2ce99");
       }
       if (event.type === "kill") { const model = enemies.get(event.id); if (model) model.deathTime = sim.state.elapsed; burst(event.x, 0.7, event.z, 8, "#9faeaa"); }
-      if (event.type === "finish") { ended = true; options.onFinish?.({ won: sim.state.status === "won", score: sim.state.score }); pause(true); }
+      if (event.type === "finish") { ended = true; options.onFinish?.({ won: sim.state.status === "won", score: sim.state.score, seconds: sim.state.elapsed }); pause(true); }
       if (event.message) notify(event.message);
     }
   }
@@ -372,6 +444,7 @@ export async function mountZombieGame(host, options) {
       coopEpoch = sim.epoch; drainEvents();
       if (renderedStop !== sim.state.stopIndex || enemies.size !== sim.state.enemies.length) refreshStop();
     }
+    syncUpgradePrompt();
     if (!paused && !document.hidden) {
       const forward = new THREE.Vector3(); camera.getWorldDirection(forward); forward.y = 0; forward.normalize();
       const right = new THREE.Vector3(-forward.z, 0, forward.x);
@@ -385,13 +458,14 @@ export async function mountZombieGame(host, options) {
         if (raycaster.ray.intersectPlane(groundAim, aimed)) aim = { x: aimed.x - p.x, z: aimed.z - p.z };
       } else if (movement.lengthSq() > 0) aim = { x: movement.x, z: movement.z };
       accumulator += dt;
-      while (accumulator >= STEP) {
+      while (accumulator >= STEP && !paused) {
         sim.step({ x: movement.x, z: movement.z, throttle: vertical, steer: horizontal, aim, shoot: shooting && cameraPointer === null,
           interact: oneShot.has("KeyE"), reload: oneShot.has("KeyR"), heal: oneShot.has("KeyH"), melee: keys.has("Space") });
         oneShot.clear(); accumulator -= STEP;
       }
       lastWalking = movement.lengthSq() > 0;
       drainEvents();
+      syncUpgradePrompt();
       if (renderedStop !== sim.state.stopIndex) refreshStop();
       const nextTarget = new THREE.Vector3(sim.position().x, sim.state.inBus ? 2 : 1, sim.position().z);
       const delta = nextTarget.clone().sub(controls.target); controls.target.copy(nextTarget); camera.position.add(delta); controls.update();
@@ -444,6 +518,18 @@ export async function mountZombieGame(host, options) {
       model.health.children[1].scale.x = 0.9 * enemy.hp / enemy.maxHp;
       for (let i = 0; i < 2; i++) { model.legs[i].rotation.x = Math.sin(t * 6 + i * Math.PI) * 0.3; model.arms[i].rotation.x = -1.1 + Math.sin(t * 4 + i) * 0.15; }
       model.group.scale.setScalar((enemy.boss ? 1.5 : 1) * (enemy.flash > 0 ? 1.04 : 1));
+      if (enemy.boss && enemy.bossPhase === "windup") for (const arm of model.arms) arm.rotation.x = -2.4;
+    }
+    const attackingBoss = sim.state.enemies.find(enemy => enemy.boss && enemy.hp > 0 && enemy.telegraph);
+    warning.visible = !!attackingBoss;
+    if (attackingBoss) {
+      const zone = attackingBoss.telegraph, lane = zone.kind === "charge";
+      warningRing.geometry = lane ? laneGeo : warningGeo; warningFill.geometry = lane ? laneGeo : warningFillGeo;
+      warning.position.set(zone.x + (lane ? zone.dx * zone.length / 2 : 0), 0.06, zone.z + (lane ? zone.dz * zone.length / 2 : 0));
+      warning.rotation.z = lane ? Math.atan2(zone.dx, zone.dz) : 0;
+      warning.scale.set(lane ? zone.radius * 2 : zone.radius, lane ? zone.length : zone.radius, 1);
+      warningRing.visible = !lane; warningFillMat.opacity = attackingBoss.bossPhase === "strike" ? 0.55 : 0.22 + Math.sin(t * 8) * 0.06;
+      warningMat.color.set(attackingBoss.bossPhase === "strike" ? "#f19c78" : ROUTE_BOSSES[sim.state.stopIndex].color); warningFillMat.color.copy(warningMat.color);
     }
     for (const item of sim.state.loot) { const model = loot.get(item.id); model.group.visible = !item.taken; model.marker.rotation.y = t; model.marker.position.y = 1.8 + Math.sin(t * 2) * 0.1; }
     for (const roof of roofs) roof.mesh.visible = sim.state.inBus || Math.abs(pos.x - roof.building.x) > roof.building.w / 2 + 1 || Math.abs(pos.z - roof.building.z) > roof.building.d / 2 + 2;
@@ -471,11 +557,16 @@ export async function mountZombieGame(host, options) {
   host.addEventListener("click", event => {
     const button = event.target.closest("button"); if (!button || button.disabled) return;
     if (button.dataset.action !== "sound") void audio.unlock();
+    if (button.dataset.routeChoice) {
+      if (sim.chooseUpgrade?.(button.dataset.routeChoice, sim.state.stopIndex)) { drainEvents(); upgradeUI(); syncUpgradePrompt(); updateHUD(); }
+      return;
+    }
     if (button.dataset.buy) { sim.purchase(button.dataset.buy); drainEvents(); workshopUI(); updateHUD(); return; }
     switch (button.dataset.action) {
       case "pause": pause(true); break;
       case "resume": pause(false); break;
       case "workshop": pause(true, true); break;
+      case "upgrade": pause(true); break;
       case "sound": toggleSound(); break;
       case "camera": resetCamera(); break;
       case "fullscreen": options.onFullscreen?.(); break;
@@ -503,6 +594,7 @@ export async function mountZombieGame(host, options) {
   }, { signal });
   window.addEventListener("keyup", event => keys.delete(event.code), { signal });
   canvas.addEventListener("pointerdown", event => {
+    if (host.dataset.photo === "true") return;
     if (paused || ended) return;
     void audio.unlock();
     canvas.focus();
@@ -521,6 +613,7 @@ export async function mountZombieGame(host, options) {
   menu.addEventListener("cancel", event => { event.preventDefault(); if (!ended) pause(false); }, { signal });
   window.addEventListener("blur", () => { if (!paused && !ended) pause(true); else clearInput(); }, { signal });
   document.addEventListener("visibilitychange", () => {
+    if (host.dataset.photo === "true") return;
     if (document.hidden) { pause(true); cancelAnimationFrame(frameId); frameId = 0; }
     else if (!frameId && !disposed) { previous = 0; frameId = requestAnimationFrame(frame); }
   }, { signal });
@@ -537,6 +630,10 @@ export async function mountZombieGame(host, options) {
     delete host.dataset.cooperative;
   }
   options.signal?.addEventListener("abort", dispose, { once: true });
-  drainEvents(); updateHUD(); updateSoundButton(); canvas.focus(); void audio.unlock(); frameId = requestAnimationFrame(frame);
-  return { pause, dispose, snapshot: () => ({ status: sim.state.status, stop: sim.state.stopIndex, paused, inBus: sim.state.inBus, health: sim.state.health, enemies: sim.state.enemies.filter(e => e.hp > 0).length, position: sim.position(), camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls, buildings: buildingCount, particles: particles.length, audio: audio.snapshot() }) };
+  const photo = !options.cooperative ? mountPhotoMode(host, { renderer, scene, camera, controls, signal, canOpen: () => !disposed && !paused && !ended, pause: () => pause(true), resume: () => pause(false) }) : null;
+  drainEvents(); updateHUD(); updateSoundButton(); canvas.focus(); void audio.unlock(); syncUpgradePrompt(); frameId = requestAnimationFrame(frame);
+  return { pause, dispose, snapshot: () => ({ status: sim.state.status, stop: sim.state.stopIndex, paused, elapsed: sim.state.elapsed, photo: photo?.snapshot(), inBus: sim.state.inBus, health: sim.state.health,
+    busHealth: sim.state.busHealth, stopCleared: sim.state.stopCleared, routeUpgrades: [...(sim.state.routeUpgrades || [])], upgradePending: upgradeNeeded(),
+    boss: (() => { const enemy = sim.state.enemies.find(e => e.boss); return enemy ? { name: enemy.bossName, hp: enemy.hp, maxHp: enemy.maxHp, phase: enemy.bossPhase, timer: enemy.bossTimer, telegraph: enemy.telegraph ? { ...enemy.telegraph } : null } : null; })(),
+    enemies: sim.state.enemies.filter(e => e.hp > 0).length, position: sim.position(), camera: { yaw: controls.getAzimuthalAngle(), pitch: controls.getPolarAngle(), distance: controls.getDistance() }, drawCalls: renderer.info.render.calls, buildings: buildingCount, particles: particles.length, audio: audio.snapshot() }) };
 }

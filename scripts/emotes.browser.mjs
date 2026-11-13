@@ -1,10 +1,33 @@
 import assert from "node:assert/strict";
 import { createBombBrowserQA } from "./online-bomb.browser.mjs";
 import { canvasCheck } from "./expansion.browser.mjs";
-import { pathToFileURL } from "node:url";
+import { pathToFileURL, fileURLToPath } from "node:url";
+import { basename } from "node:path";
+import { build } from "esbuild";
+
+// Serve the current sources without overwriting another agent's generated assets.
+export async function createEmoteBrowserQA(browser, base) {
+  const result = await build({
+    absWorkingDir: fileURLToPath(new URL("..", import.meta.url)),
+    entryPoints: ["three-games", "arcade-games", "collection-games", "kart-game", "online-bomb", "adventures", "adventure-model"].map(name => `src/${name}.mjs`),
+    outdir: "assets", write: false, bundle: true, format: "esm", platform: "browser", target: "es2022", minify: true,
+    external: ["../assets/*.png"]
+  });
+  const outputs = new Map(result.outputFiles.map(file => [basename(file.path), file.contents]));
+  const qa = await createBombBrowserQA(browser, base), client = qa.client;
+  qa.client = async options => {
+    const page = await client(options);
+    await page.route("**/assets/*", route => {
+      const name = new URL(route.request().url()).pathname.split("/").pop(), body = outputs.get(name);
+      return body ? route.fulfill({ body: Buffer.from(body), contentType: name.endsWith(".css") ? "text/css" : "text/javascript" }) : route.fallback();
+    });
+    return page;
+  };
+  return qa;
+}
 
 export async function runEmoteQA(browser, base = "http://127.0.0.1:4173", capture = async () => {}) {
-  const qa = await createBombBrowserQA(browser, base), checks = [];
+  const qa = await createEmoteBrowserQA(browser, base), checks = [];
   const ready = page => page.waitForFunction(() => !!threeGameSession);
   const open = async page => { await page.keyboard.press("KeyM"); await page.locator(".mgw-emote-wheel").waitFor({ state: "visible" }); };
   try {
@@ -14,17 +37,18 @@ export async function runEmoteQA(browser, base = "http://127.0.0.1:4173", captur
     const end = await page.evaluate(() => threeGameSession.snapshot().position); assert.ok(Math.hypot(end.x - start.x, end.z - start.z) < 0.01, "opening clears held movement");
     for (const [width, height] of [[1280, 800], [390, 844], [844, 390]]) {
       await page.setViewportSize({ width, height }); await page.waitForTimeout(100);
-      await page.locator('[data-wheel-emote="flip"]').click();
+      await page.locator('[data-wheel-emote=""]').first().evaluate(button => button.click());
+      assert.equal(await page.locator('[data-wheel-emote=""]').count(), 3);
       const fits = await page.locator(".mgw-emote-wheel").evaluate(wheel => {
         const nodes = [wheel, ...wheel.querySelectorAll("button:not([hidden])")], boxes = nodes.map(e => e.getBoundingClientRect());
         return boxes.every(r => r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight) && wheel.scrollWidth <= wheel.clientWidth;
       }); assert.ok(fits, `${width}x${height} wheel fits`); await capture(page, `emote-wheel-${width}`);
     }
-    await page.locator('[data-emote-buy]').click(); await page.waitForFunction(() => document.querySelector('[data-wheel-status]').textContent.includes("Sign in"));
+    assert.equal(await page.locator('[data-emote-buy]').isHidden(), true);
     await page.keyboard.press("KeyM"); assert.equal(await page.evaluate(() => threeGameSession.snapshot().paused), false);
     await open(page); await page.keyboard.press("Escape"); assert.equal(await page.locator("dialog[open]").count(), 0);
     await open(page); await page.keyboard.press("Digit2"); await page.waitForFunction(() => threeGameSession.snapshot().emote === "spin");
-    assert.equal(await page.locator(".mgw-emote-wheel[open]").count(), 0); checks.push("wheel, keyboard, movement reset, guest locks, responsive layout");
+    assert.equal(await page.locator(".mgw-emote-wheel[open]").count(), 0); checks.push("six positions, owned-only guest favorites, keyboard, movement reset, responsive layout");
     await page.evaluate(() => showMainMenu()); assert.equal(await page.locator(".mgw-emote-wheel").count(), 0);
     await page.setViewportSize({ width: 1280, height: 800 });
 
@@ -33,17 +57,71 @@ export async function runEmoteQA(browser, base = "http://127.0.0.1:4173", captur
     const groove = page.locator('[data-shop-id="emote-groove"]'); await groove.waitFor({ state: "visible" }); await groove.click();
     await page.waitForFunction(() => currentUserData?.ownedItems?.["emote-groove"] === true && document.querySelector('[data-shop-id="emote-groove"]').textContent === "Owned");
     assert.equal(qa.get("users/emotebuyer/coins"), 800); assert.equal(await groove.isDisabled(), true); await capture(page, "emote-shop");
+    await page.locator('[data-shop-id="emote-twirl"]').click();
+    await page.waitForFunction(() => currentUserData?.ownedItems?.["emote-twirl"] === true); assert.equal(qa.get("users/emotebuyer/coins"), 450);
+    const failure = await page.evaluate(async () => { try { await buyEmote("flip"); } catch (error) { return error.message; } });
+    assert.match(failure, /Not enough/); assert.equal(qa.get("users/emotebuyer/coins"), 450);
     await page.evaluate(() => startThreeGame(0)); await ready(page); await open(page);
     assert.equal(await page.locator('[data-wheel-emote="groove"]').getAttribute("data-locked"), "false");
-    await page.locator('[data-wheel-emote="twirl"]').click(); await page.locator('[data-emote-buy]').click();
-    await page.waitForFunction(() => currentUserData?.ownedItems?.["emote-twirl"] === true); assert.equal(qa.get("users/emotebuyer/coins"), 450);
-    await page.locator('[data-wheel-emote="flip"]').click(); await page.locator('[data-emote-buy]').click();
-    await page.waitForFunction(() => document.querySelector('[data-wheel-status]').textContent.includes("Not enough")); assert.equal(qa.get("users/emotebuyer/coins"), 450);
     await page.locator('[data-wheel-emote="groove"]').click(); await page.waitForTimeout(160);
     const pose = await page.evaluate(() => threeGameSession.snapshot()); assert.equal(pose.emote, "groove"); assert.ok(Math.abs(pose.emoteVisual.tilt) > 0.01 || pose.emoteVisual.y > 0.01); assert.ok((await canvasCheck(page)).colors > 50);
     await page.keyboard.press("Escape"); await page.getByLabel("Victory pose", { exact: true }).selectOption("twirl"); await page.locator('[data-action="restart"]').click(); await ready(page);
     await page.keyboard.press("Escape"); assert.equal(await page.getByLabel("Victory pose", { exact: true }).inputValue(), "twirl");
-    await page.evaluate(() => showMainMenu()); checks.push("shop purchase, wheel purchase, balance, insufficient funds, owned animation, saved victory");
+    await page.evaluate(() => showMainMenu()); checks.push("shop purchases, balance, insufficient funds, owned animation, saved victory");
+
+    // A stale/edited favorite may name an earned emote, but never bypasses ownership.
+    await page.evaluate(() => localStorage.setItem("mgw-victory-pose-emotebuyer-wheel", JSON.stringify(["levitate", "levitate", "invalid", "spin"])));
+    await page.evaluate(() => startThreeGame(0)); await ready(page); await open(page);
+    assert.equal(await page.locator("[data-wheel-emote]").count(), 6);
+    assert.equal(await page.locator('[data-wheel-emote="levitate"]').count(), 0);
+    assert.equal(await page.locator("[data-emote-buy]").isHidden(), true);
+    await page.locator("[data-emote-buy]").evaluate(button => button.click());
+    assert.equal(qa.get("users/emotebuyer/coins"), 450);
+    await page.keyboard.press("Escape"); await page.keyboard.press("Escape");
+    await page.locator(".emote-favorites summary").click();
+    assert.equal(await page.getByLabel("Emote slot 1", { exact: true }).locator("option").count(), 10);
+    assert.equal(await page.getByLabel("Emote slot 1", { exact: true }).locator('[value="levitate"]').evaluate(option => option.disabled), true);
+    assert.match(await page.locator('[data-emote="levitate"]').getAttribute("title"), /10 secret relics/);
+    await page.evaluate(() => showMainMenu());
+
+    await qa.patch("users/emotebuyer", { coins: 1900 });
+    await page.evaluate(async () => { await refreshCurrentUserData(); startShopButton.click(); });
+    for (const id of ["shuffle", "sway"]) {
+      await page.locator(`[data-shop-id="emote-${id}"]`).click();
+      await page.waitForFunction(id => currentUserData?.ownedItems?.[`emote-${id}`] === true, id);
+    }
+    assert.equal(qa.get("users/emotebuyer/coins"), 450);
+    assert.equal(await page.locator('[data-shop-id="emote-levitate"]').count(), 0);
+    await page.evaluate(async () => {
+      const core = await getAdventureCore(), owner = getUserKeyFromAccount();
+      for (const id of core.SECRET_IDS.slice(0, 9)) await recordAdventureEvent(owner, { type: "secret", id });
+    });
+    assert.notEqual(qa.get("users/emotebuyer/ownedItems/emote-levitate"), true);
+    await page.evaluate(async () => {
+      const core = await getAdventureCore();
+      await recordAdventureEvent(getUserKeyFromAccount(), { type: "secret", id: core.SECRET_IDS[9] });
+      showStartSection("adventures");
+      await renderAdventures("secrets");
+    });
+    await page.locator('[data-reward="explorer-10"]').click();
+    await page.waitForFunction(() => currentUserData?.ownedItems?.["emote-levitate"] === true);
+    await page.evaluate(async () => { await refreshCurrentUserData(); startThreeGame(0); }); await ready(page);
+    await page.keyboard.press("Escape"); await page.locator(".emote-favorites summary").click();
+    const favorites = ["shuffle", "levitate", "bounce", "groove", "twirl", "sway"];
+    for (const [index, id] of favorites.entries()) await page.getByLabel(`Emote slot ${index + 1}`, { exact: true }).selectOption(id);
+    await page.getByLabel("Emote slot 1", { exact: true }).selectOption("levitate");
+    assert.equal(await page.getByLabel("Emote slot 2", { exact: true }).inputValue(), "shuffle");
+    await page.getByLabel("Emote slot 1", { exact: true }).selectOption("shuffle");
+    assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem("mgw-victory-pose-emotebuyer-wheel"))), favorites);
+    await page.locator('[data-action="restart"]').click(); await ready(page); await open(page);
+    assert.deepEqual(await page.locator("[data-wheel-emote]").evaluateAll(nodes => nodes.map(node => node.dataset.wheelEmote)), favorites);
+    await page.locator('[data-wheel-emote="levitate"]').click(); await page.waitForFunction(() => threeGameSession.snapshot().emote === "levitate");
+    await page.evaluate(() => showMainMenu());
+    await page.evaluate(() => { currentAccount = { username: "Other" }; currentUserData = { coins: 0, ownedItems: {} }; startThreeGame(0); }); await ready(page); await open(page);
+    assert.deepEqual(await page.locator("[data-wheel-emote]").evaluateAll(nodes => nodes.map(node => node.dataset.wheelEmote)), ["bounce", "spin", "bow", "", "", ""]);
+    await page.evaluate(() => showMainMenu());
+    await page.evaluate(async () => { currentAccount = { username: "EmoteBuyer" }; await refreshCurrentUserData(); });
+    checks.push("nine emotes, unique six-slot favorites, account-specific persistence, earned-only Levitate gating");
 
     for (const mode of ["catcher", "coin-rush", "dodger", "laser-dodge", "coastline-karts"]) {
       await page.evaluate(mode => startArcadeGame(mode), mode); await ready(page);
